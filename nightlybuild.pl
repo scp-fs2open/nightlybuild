@@ -125,10 +125,10 @@ sub getrevision
 {
 	my $command;
 	my $output;
-	
+
 	$command = "svnversion -n " . $CONFIG->{$OS}->{source_path};
 	$output = `$command 2>&1`;
-	
+
 	return $output;
 }
 
@@ -141,14 +141,14 @@ sub updatesvn
 		$rline = '-r ' . $stoprevision . ' ';
 	}
 	my $updatecommand = "svn update " . $rline . $CONFIG->{$OS}->{source_path};
-	
+
 	unless(-d $CONFIG->{$OS}->{source_path})
 	{
 		print "Could not find source code at " . $CONFIG->{$OS}->{source_path} . "\n";
 		$revision = "FAILURE";
 		return 0;
 	}
-	
+
 	$oldrevision = getrevision();
 	unless($oldrevision =~ /^\d+$/)
 	{
@@ -160,7 +160,7 @@ sub updatesvn
 #	$updateoutput = "Updated to revision 4823.";
 
 	# print $updateoutput;
-	
+
 	# TODO:  Simple test for now.  Later, if not At revision, filter out project file updates that don't apply and other unimportant changes.
 	if($updateoutput =~ /At revision /)
 	{
@@ -200,7 +200,7 @@ sub export
 	$exportcommand = "svn export " . $CONFIG->{$OS}->{source_path} . " " . $exportpath;
 #	print $exportcommand . "\n";
 	$exportoutput = `$exportcommand`;
-	
+
 	if($exportoutput =~ /Export complete.\s*$/)
 	{
 		return 1;
@@ -226,7 +226,7 @@ sub compile
 	@CONFIG_STRINGS{split(/~/, $CONFIG->{$OS}->{config_groups})} = split(/::/, $CONFIG->{$OS}->{config_strings});
 
 #	@BUILD_CONFIGS{split(/~/, $CONFIG->{$OS}->{config_names})} = split(/~/, $CONFIG->{$OS}->{config_strings});
-	
+
 	$currentdir = cwd();
 
 	unless(-d $exportpath)
@@ -234,7 +234,7 @@ sub compile
 		print "Could not find source code at " . $exportpath . "\n";
 		return 0;
 	}
-	
+
 	chdir($exportpath);
 	if($OS eq "OSX" || $OS eq "WIN")
 	{
@@ -244,17 +244,17 @@ sub compile
 			`tar -xzf Frameworks.tgz`;
 		}
 	}
-	
+
 	foreach $group (keys (%CONFIG_NAMES))
 	{
 		@filenames = ();
 		%BUILD_CONFIGS = ();
 		@BUILD_CONFIGS{split(/~/, $CONFIG_NAMES{$group})} = split(/~/, $CONFIG_STRINGS{$group});
-		
+
 		foreach(keys (%BUILD_CONFIGS))
 		{
 			print "Building " . $_ . "...\n";
-			
+
 			if($OS eq "WIN") {
 				if($CONFIG->{$OS}->{compiler} eq "MSVC2008") {
 					$command = $CONFIG->{$OS}->{build_program_path} . " /nocolor /nologo /rebuild Freespace2.sln \"" . $BUILD_CONFIGS{$_} . "\"";
@@ -279,16 +279,16 @@ sub compile
 				print "Unrecognized OS detected.\n";
 				return 0;
 			}
-			
+
 			$command = $command . " 2>&1";
 			print $command . "\n";
 			$output = `$command`;
-			
+
 			push(@outputlist, $output);
-			
+
 			# TODO:  Check @outputlist for actual changes, or if it just exited without doing anything
-			if(($OS eq "OSX" && $output =~ / BUILD FAILED /) || 
-				($OS eq "WIN" && !($output =~ /0 Projects failed/)) || 
+			if(($OS eq "OSX" && $output =~ / BUILD FAILED /) ||
+				($OS eq "WIN" && !($output =~ /0 Projects failed/)) ||
 				(($OS eq "LINUX" || $OS eq "FREEBSD") && $output =~ / Error 1\n$/)) {
 				print $output . "\n\n";
 				print "Building " . $_ . " failed, see output for more information.\n";
@@ -296,12 +296,12 @@ sub compile
 			}
 			push(@filenames, move_and_rename($_));
 		}
-		
+
 		($archives{$group}, $md5s{$group}) = archive($group, @filenames);
 	}
-	
+
 	chdir($currentdir);
-	
+
 	return 1;
 }
 
@@ -320,12 +320,12 @@ sub move_and_rename
 	$this_build_drop =~ s/##PROJECT##/$CONFIG->{$OS}->{project}/;
 	$this_build_drop =~ s/##CONFIG##/$configname/;
 	$this_build_drop =~ s/##EXPORTPATH##/$exportpath/;
-	
+
 	unless(-d $this_build_drop)
 	{
 		die "Could not find build drop at " . $this_build_drop . ", terminating.\n";
 	}
-	
+
 	chdir($this_build_drop);
 	my @temp = glob("*");
 	my @files;
@@ -336,27 +336,27 @@ sub move_and_rename
 			push(@files, $_);
 		}
 	}
-	
+
 	if($#files == -1)
 	{
 		die "No files found to move and rename for " . $configname . ", terminating...\n";
 	}
-	
+
 	chdir($currentdir);
-	
+
 	print "Moving and renaming files...\n";
 
 	unless(-d $CONFIG->{$OS}->{archive_path})
 	{
 		print "Could not find archive path at " . $CONFIG->{$OS}->{archive_path} . ", attempting to create...\n";
 		mkpath( $CONFIG->{$OS}->{archive_path}, {verbose => 1} );
-		
+
 		unless(-d $CONFIG->{$OS}->{archive_path})
 		{
 			die "Still could not find archive path at " . $CONFIG->{$OS}->{archive_path} . ", terminating.\n";
 		}
 	}
-	
+
 	foreach (@files)
 	{
 		$foundext = "";
@@ -367,19 +367,19 @@ sub move_and_rename
 			$basename =~ s/(${ext})$//;
 			$foundext = $1;
 		}
-		
+
 		$newname = $basename . "-" . $DATE . "_r" . $revision;
-		
+
 		if($foundext ne "")
 		{
 			$newname .= $foundext;
 		}
-		
+
 		push(@returnfiles, $newname);
 		print "Moving " . $this_build_drop . "/" . $oldname . " to " . $CONFIG->{$OS}->{archive_path} . "/" . $newname . "\n";
 		move($this_build_drop . "/" . $oldname, $CONFIG->{$OS}->{archive_path} . "/" . $newname);
 	}
-	
+
 	return @returnfiles;
 }
 
@@ -396,12 +396,12 @@ sub archive
 	my $archivename;
 	my $md5name;
 	my $currentdir = cwd();
-	
+
 	if($#filenames == -1)
 	{
 		die "No filenames to archive, terminating...\n";
 	}
-	
+
 	chdir($CONFIG->{$OS}->{archive_path});
 
 	foreach (@filenames)
@@ -410,22 +410,22 @@ sub archive
 		{
 			die "File " . $_ . " does not exist, terminating...\n";
 		}
-		
+
 		$args .= " \"" . $_ . "\"";
 	}
-	
+
 	if($args eq "")
 	{
 		print "Empty arguments for archiving, terminating...\n";
 	}
-	
+
 	$basename = "fso-" . $OS . "-" . $group . "-" . $DATE . "_r" . $revision;
 	$archivename = $basename . $CONFIG->{$OS}->{archive_ext};
 	$command = $CONFIG->{$OS}->{path_to_archiver} . " " . $CONFIG->{$OS}->{archiver_args} . " " . $archivename . $args;
-	
+
 	$md5name = $basename . ".md5";
 	$command2 = $CONFIG->{$OS}->{md5} . " " . $archivename . " > " . $md5name;
-	
+
 	# archive the files
 	print "Executing:  " . $command . "\n";
 	$output = `$command 2>&1`;
@@ -434,7 +434,7 @@ sub archive
 	#md5 the archive
 	$output2 = `$command2 2>&1`;
 #	print $output2 . "\n";
-	
+
 	foreach (@filenames)
 	{
 		if(-e $_)
@@ -444,7 +444,7 @@ sub archive
 	}
 
 	chdir($currentdir);
-	
+
 	return ($archivename, $md5name);
 }
 
@@ -454,19 +454,19 @@ sub upload
 	my ($archivename, $md5name) = @_;
 	my $ftp;
 	my $currentdir = cwd();
-	
+
 	chdir($CONFIG->{$OS}->{archive_path});
-	
+
 	# Should have the full path to both files to upload, so upload them
 	# Connection info is in $CONFIG, read from config file.
-	
+
 	if(!(-e $archivename && -s $archivename && -e $md5name && -s $md5name))
 	{
 		die "Could not find a file to upload, terminating...\n";
 	}
-	
+
 	print "Uploading " . $CONFIG->{$OS}->{archive_path} . "/" . $archivename . " and " . $CONFIG->{$OS}->{archive_path} . "/" . $md5name . " to " . $CONFIG->{ftp}->{hostname} . "\n";
-	
+
 	$ftp = Net::FTP->new($CONFIG->{ftp}->{hostname}, Debug=> 0, Passive=> 1) or die "Cannot connect to ".$CONFIG->{ftp}->{hostname}.": $@";
 	$ftp->login($CONFIG->{ftp}->{username}, $CONFIG->{ftp}->{password}) or die "Cannot login ", $ftp->message;
 	$ftp->cwd($CONFIG->{general}->{upload_path} . $OS) or die "Cannot change working directory ", $ftp->message;
@@ -477,7 +477,7 @@ sub upload
 	$ftp->quit;
 
 	chdir($currentdir);
-	
+
 	return 1;
 }
 
@@ -491,17 +491,17 @@ sub post
 	my $md5name;
 
 	my $startrevision = $oldrevision + 1;
-	
+
 	print "In the post function, submitting post to builds area...\n";
-	
+
 	$logcommand = "svn log -v -r " . $startrevision . ":" . $revision . " " . $CONFIG->{$OS}->{source_path};
 	$logoutput = `$logcommand`;
-	
+
 	# Set up the Subject
 	$subject = "Nightly (" . $CONFIG->{$OS}->{os_name} . "): " . $mday . " " . $monthword . " " . $year . " - Revision " . $revision;
 	# Set up the message
 	$message = "Here is the nightly for " . $CONFIG->{$OS}->{os_name} . " on " . $mday . " " . $monthword . " " . $year . " - Revision " . $revision . "\n\n";
-	
+
 	# Make a post on the forums to the download
 	foreach (keys (%archives))
 	{
@@ -512,11 +512,11 @@ sub post
 		$message .= "[url=".$CONFIG->{general}->{download_path}.$OS."/".$md5name."]MD5Sum[/url]\n";
 		$message .= "\n";
 	}
-		
+
 	$message .= "[code]\n";
 	$message .= $logoutput . "\n";
 	$message .= "[/code]\n\n";
-	
+
 	Smf::set_homeurl($CONFIG->{general}->{forum_url});
 	Smf::set_board($CONFIG->{$OS}->{builds_forum});
 	Smf::set_username($CONFIG->{forum}->{username});

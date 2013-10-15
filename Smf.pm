@@ -66,9 +66,9 @@ sub login
 	{
 		init_mech();
 	}
-	
+
 	$mech->get($homeurl);
-	
+
 	$mech->submit_form(
 		form_number => 1,
 		fields => {
@@ -83,12 +83,12 @@ sub post
 {
 	my ($subject, $message) = @_;
 	my $form;
-	
+
 	login();
-	
+
 	# Sleep so that you don't set off the SMF post delay warning
 	sleep($SLEEPTIME);
-	
+
 	$mech->get($newtopicurl);
 #	$mech->agent_alias( 'Windows Mozilla' );
 	$mech->form_with_fields(qw(message subject));
@@ -98,7 +98,7 @@ sub post
 	# Debugging
 #	$form = $mech->current_form();
 #	print $form->dump;
-	
+
 	if($smfversion == "1")
 	{
 		$mech->click("post");
@@ -108,7 +108,7 @@ sub post
 		# SMF2+ handling
 		$mech->click_button('value'=>'Post');
 	}
-	
+
 	# More debugging
 #	print $mech->content() . "\n";
 }
