@@ -150,7 +150,12 @@ sub updatesvn
 	}
 	
 	$oldrevision = getrevision();
-	
+	unless($oldrevision =~ /^\d+$/)
+	{
+		$revision = "FAILURE";
+		return 0;
+	}
+
 	$updateoutput = `$updatecommand`;
 #	$updateoutput = "Updated to revision 4823.";
 

@@ -56,7 +56,7 @@ sub set_smfversion
 sub init_mech
 {
 	$mech = WWW::Mechanize->new();
-	$mech->agent_alias( 'Windows Mozilla' );
+#	$mech->agent_alias( 'Windows Mozilla' );
 }
 
 sub login
@@ -90,7 +90,7 @@ sub post
 	sleep($SLEEPTIME);
 	
 	$mech->get($newtopicurl);
-	$mech->agent_alias( 'Windows Mozilla' );
+#	$mech->agent_alias( 'Windows Mozilla' );
 	$mech->form_with_fields(qw(message subject));
 	$mech->field("message", $message);
 	$mech->field("subject", $subject);
