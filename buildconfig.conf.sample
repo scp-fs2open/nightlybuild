@@ -51,13 +51,13 @@ output_filename=f.*2_open_[3-4]_[0-9](_[1-9]?[0-9])?[rd].*\.(exe|pdb|map)
 [OSX]
 os_name=OS X
 build_program_path=xcodebuild
-project=Xcode
+project=Xcode4
 ; Need same number of names and strings!!!
 config_groups=Standard~Inferno
 config_names=Release~Debug::Release_Inferno~Debug_Inferno
 config_strings=Release~Debug::Release_Inferno~Debug_Inferno
 output_filename=FS2_Open.*\.app
-build_extension=\.app
+build_extension=\.app(\.dSYM)?
 source_path=/Users/cliff.gordon/fs2open
 build_drop=##EXPORTPATH##/projects/##PROJECT##/build/##CONFIG##
 archive_path=/Users/cliff.gordon/builds

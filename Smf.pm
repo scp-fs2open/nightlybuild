@@ -1,6 +1,7 @@
 package Smf;
 
-# SMF Automation 1.1
+# SMF Automation 1.1.1
+# 1.1.1 - Disabled UserAgent setting for the time being
 # 1.1 - SMF 2.0 support
 # 1.0 - Initial release
 

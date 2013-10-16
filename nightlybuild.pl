@@ -1,6 +1,7 @@
 #!/usr/bin/perl -W
 
-# Nightly build script version 1.7.1
+# Nightly build script version 1.7.2
+# 1.7.2 - Fixed OS X not renaming .dSYMs properly, escaping whitespace in regex, deleting temp build files on OS X, better old revision checking
 # 1.7.1 - Fixed another bug with subversion regex
 # 1.7.0 - Changed config file default name in SVN, so make sure it was copied to buildconfig.conf before continuing.
 # 1.6.9 - FreeBSD support
@@ -162,17 +163,17 @@ sub updatesvn
 	# print $updateoutput;
 
 	# TODO:  Simple test for now.  Later, if not At revision, filter out project file updates that don't apply and other unimportant changes.
-	if($updateoutput =~ /At revision /)
+	if($updateoutput =~ /At\ revision\ /)
 	{
 		# No change to source
-		$updateoutput =~ /At revision (\d*)\./;
+		$updateoutput =~ /At\ revision\ (\d*)\./;
 		$revision = $1;
 		return 0;
 	}
-	elsif($updateoutput =~ /Updated to revision /)
+	elsif($updateoutput =~ /Updated\ to\ revision\ /)
 	{
 		# Source has changed
-		$updateoutput =~ /Updated to revision (\d*)\./;
+		$updateoutput =~ /Updated\ to\ revision\ (\d*)\./;
 		$revision = $1;
 		return 1;
 	}
@@ -201,7 +202,7 @@ sub export
 #	print $exportcommand . "\n";
 	$exportoutput = `$exportcommand`;
 
-	if($exportoutput =~ /Export complete.\s*$/)
+	if($exportoutput =~ /Export\ complete.\s*$/)
 	{
 		return 1;
 	}
@@ -287,9 +288,9 @@ sub compile
 			push(@outputlist, $output);
 
 			# TODO:  Check @outputlist for actual changes, or if it just exited without doing anything
-			if(($OS eq "OSX" && $output =~ / BUILD FAILED /) ||
-				($OS eq "WIN" && !($output =~ /0 Projects failed/)) ||
-				(($OS eq "LINUX" || $OS eq "FREEBSD") && $output =~ / Error 1\n$/)) {
+			if(($OS eq "OSX" && $output =~ /\ BUILD\ FAILED\ /) ||
+				($OS eq "WIN" && !($output =~ /0\ Projects\ failed/)) ||
+				(($OS eq "LINUX" || $OS eq "FREEBSD") && $output =~ /\ Error\ 1\n$/)) {
 				print $output . "\n\n";
 				print "Building " . $_ . " failed, see output for more information.\n";
 				return 0;
@@ -406,7 +407,7 @@ sub archive
 
 	foreach (@filenames)
 	{
-		unless(-e $_ && -s $_)
+		unless(-s $_)
 		{
 			die "File " . $_ . " does not exist, terminating...\n";
 		}
@@ -439,7 +440,18 @@ sub archive
 	{
 		if(-e $_)
 		{
-			unlink($_);
+			if(-f $_)
+			{
+				unlink $_ or print "Could not unlink $_: $!";
+			}
+			elsif(-d $_)
+			{
+				rmtree($_);
+			}
+		}
+		else
+		{
+			print "Was told $_ does not exist for removal.";
 		}
 	}
 
