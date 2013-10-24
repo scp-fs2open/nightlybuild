@@ -1,6 +1,6 @@
 #!/usr/bin/perl -W
 
-# Nightly build script version 1.7.2
+# Nightly build script version 1.7.3
 # 1.7.3 - Forgot to update default MSVC2008 build name pattern matching when the names changed a while back.
 # 1.7.2 - Fixed OS X not renaming .dSYMs properly, change default OS X project to Xcode4, escaping whitespace in regex, deleting temp build files on OS X, better old revision checking
 # 1.7.1 - Fixed another bug with subversion regex
