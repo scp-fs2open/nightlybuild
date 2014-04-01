@@ -14,6 +14,7 @@ smfversion=2
 upload_path=/swc.fs2downloads.com/builds/
 download_path=http://swc.fs2downloads.com/builds/
 forum_url=http://www.hard-light.net/forums/
+vcs=svn
 
 [WIN]
 os_name=Windows

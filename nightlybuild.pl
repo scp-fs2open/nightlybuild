@@ -1,6 +1,7 @@
 #!/usr/bin/perl -W
 
-# Nightly build script version 1.7.3
+# Nightly build script version 2.0.0
+# 2.0.0 - Git support!  Moved VCS-related functions into plugins, including a parent plugin for all VCS modules.
 # 1.7.3 - Forgot to update default MSVC2008 build name pattern matching when the names changed a while back.
 # 1.7.2 - Fixed OS X not renaming .dSYMs properly, change default OS X project to Xcode4, escaping whitespace in regex, deleting temp build files on OS X, better old revision checking
 # 1.7.1 - Fixed another bug with subversion regex
@@ -30,6 +31,8 @@ use Config::Tiny;
 use File::Copy;
 use Net::FTP;
 use Smf;
+use Git;
+use Svn;
 use Cwd;
 use Data::Dumper;
 use File::Path;
@@ -54,33 +57,30 @@ if($mday < 10)
 my $DATE = $year . $mon . $mday;
 
 my @filenames;
-my $oldrevision;
-my $revision;
 my %archives;
 my %md5s;
 my @archiveslist;
-my $exportpath;
-my $stoprevision = '';
+my $vcs = ucfirst($CONFIG->{general}->{vcs})->new( 'source_path' => $CONFIG->{$OS}->{source_path}, 'OS' => $OS );
 
-GetOptions ('stoprevision=s' => \$stoprevision);
+GetOptions ('stoprevision=s' => \$vcs->{stoprevision});
 
-if(updatesvn() != 1)
+if(!$vcs->verifyrepo() || $vcs->update() != 1)
 {
-	if($revision eq "FAILURE")
+	if($vcs->{revision} eq "FAILURE")
 	{
 		die "Error checking for a revision change, terminating.\n";
 	}
 	else
 	{
-		die "SVN still at revision " . $revision . ", terminating.\n";
+		die "Repository still at revision " . $vcs->{revision} . ", terminating.\n";
 	}
 }
 
-print "SVN has been updated to revision " . $revision . ", compiling...\n";
+print "Repository has been updated to revision " . $vcs->{revision} . ", compiling...\n";
 
-if(export() != 1)
+if($vcs->export() != 1)
 {
-	die "Export to " . $exportpath . " failed...\n";
+	die "Export to " . $vcs->{exportpath} . " failed...\n";
 }
 
 # call Compile scripts
@@ -91,7 +91,7 @@ if(compile() != 1)
 
 print "Compiling completed\n";
 # Code was compiled and updated, move the built files somewhere for archiving
-rmtree($exportpath);
+rmtree($vcs->{exportpath});
 
 foreach (keys (%archives))
 {
@@ -100,6 +100,7 @@ foreach (keys (%archives))
 
 post();
 
+$vcs->finalize();
 
 #############SUBROUTINES################
 
@@ -123,96 +124,6 @@ sub getOS
 	}
 }
 
-sub getrevision
-{
-	my $command;
-	my $output;
-
-	$command = "svnversion -n " . $CONFIG->{$OS}->{source_path};
-	$output = `$command 2>&1`;
-
-	return $output;
-}
-
-sub updatesvn
-{
-	my $rline = '';
-	my $updateoutput;
-	if($stoprevision)
-	{
-		$rline = '-r ' . $stoprevision . ' ';
-	}
-	my $updatecommand = "svn update " . $rline . $CONFIG->{$OS}->{source_path};
-
-	unless(-d $CONFIG->{$OS}->{source_path})
-	{
-		print "Could not find source code at " . $CONFIG->{$OS}->{source_path} . "\n";
-		$revision = "FAILURE";
-		return 0;
-	}
-
-	$oldrevision = getrevision();
-	unless($oldrevision =~ /^\d+$/)
-	{
-		$revision = "FAILURE";
-		return 0;
-	}
-
-	$updateoutput = `$updatecommand`;
-#	$updateoutput = "Updated to revision 4823.";
-
-	# print $updateoutput;
-
-	# TODO:  Simple test for now.  Later, if not At revision, filter out project file updates that don't apply and other unimportant changes.
-	if($updateoutput =~ /At\ revision\ /)
-	{
-		# No change to source
-		$updateoutput =~ /At\ revision\ (\d*)\./;
-		$revision = $1;
-		return 0;
-	}
-	elsif($updateoutput =~ /Updated\ to\ revision\ /)
-	{
-		# Source has changed
-		$updateoutput =~ /Updated\ to\ revision\ (\d*)\./;
-		$revision = $1;
-		return 1;
-	}
-	else
-	{
-		# Unexpected data received
-		print "Unrecognized data:\n".$updateoutput."\n";
-		$revision = "FAILURE";
-		return 0;
-	}
-}
-
-sub export
-{
-	my $exportoutput;
-	my $exportcommand;
-	my $i = 0;
-
-	do {
-		$exportpath = $CONFIG->{$OS}->{source_path}."_".$i++;
-	} while (-d $exportpath);
-
-	print "Going to export ".$CONFIG->{$OS}->{source_path}." to directory ".$exportpath."\n";
-
-	$exportcommand = "svn export " . $CONFIG->{$OS}->{source_path} . " " . $exportpath;
-#	print $exportcommand . "\n";
-	$exportoutput = `$exportcommand`;
-
-	if($exportoutput =~ /Export\ complete.\s*$/)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
-}
-
 sub compile
 {
 	my @outputlist;
@@ -231,13 +142,13 @@ sub compile
 
 	$currentdir = cwd();
 
-	unless(-d $exportpath)
+	unless(-d $vcs->{exportpath})
 	{
-		print "Could not find source code at " . $exportpath . "\n";
+		print "Could not find source code at " . $vcs->{exportpath} . "\n";
 		return 0;
 	}
 
-	chdir($exportpath);
+	chdir($vcs->{exportpath});
 	if($OS eq "OSX" || $OS eq "WIN")
 	{
 		chdir("projects/" . $CONFIG->{$OS}->{project} . "/");
@@ -321,7 +232,7 @@ sub move_and_rename
 	my $ext = $CONFIG->{$OS}->{build_extension};
 	$this_build_drop =~ s/##PROJECT##/$CONFIG->{$OS}->{project}/;
 	$this_build_drop =~ s/##CONFIG##/$configname/;
-	$this_build_drop =~ s/##EXPORTPATH##/$exportpath/;
+	$this_build_drop =~ s/##EXPORTPATH##/$vcs->{exportpath}/;
 
 	unless(-d $this_build_drop)
 	{
@@ -370,7 +281,7 @@ sub move_and_rename
 			$foundext = $1;
 		}
 
-		$newname = $basename . "-" . $DATE . "_r" . $revision;
+		$newname = $basename . "-" . $DATE . "_" . $vcs->{buildrevision};
 
 		if($foundext ne "")
 		{
@@ -421,7 +332,7 @@ sub archive
 		print "Empty arguments for archiving, terminating...\n";
 	}
 
-	$basename = "fso-" . $OS . "-" . $group . "-" . $DATE . "_r" . $revision;
+	$basename = "fso-" . $OS . "-" . $group . "-" . $DATE . "_" . $vcs->{buildrevision};
 	$archivename = $basename . $CONFIG->{$OS}->{archive_ext};
 	$command = $CONFIG->{$OS}->{path_to_archiver} . " " . $CONFIG->{$OS}->{archiver_args} . " " . $archivename . $args;
 
@@ -499,21 +410,17 @@ sub post
 	my $subject;
 	my $message;
 	my $logoutput;
-	my $logcommand;
 	my $archivename;
 	my $md5name;
 
-	my $startrevision = $oldrevision + 1;
-
 	print "In the post function, submitting post to builds area...\n";
 
-	$logcommand = "svn log -v -r " . $startrevision . ":" . $revision . " " . $CONFIG->{$OS}->{source_path};
-	$logoutput = `$logcommand`;
+	$logoutput = $vcs->get_log();
 
 	# Set up the Subject
-	$subject = "Nightly (" . $CONFIG->{$OS}->{os_name} . "): " . $mday . " " . $monthword . " " . $year . " - Revision " . $revision;
+	$subject = "Nightly (" . $CONFIG->{$OS}->{os_name} . "): " . $mday . " " . $monthword . " " . $year . " - Revision " . $vcs->{displayrevision};
 	# Set up the message
-	$message = "Here is the nightly for " . $CONFIG->{$OS}->{os_name} . " on " . $mday . " " . $monthword . " " . $year . " - Revision " . $revision . "\n\n";
+	$message = "Here is the nightly for " . $CONFIG->{$OS}->{os_name} . " on " . $mday . " " . $monthword . " " . $year . " - Revision " . $vcs->{displayrevision} . "\n\n";
 
 	# Make a post on the forums to the download
 	foreach (keys (%archives))
