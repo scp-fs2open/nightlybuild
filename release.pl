@@ -108,7 +108,7 @@ if($createbranch)
 # Check out the branch for this version, git is just checkout in the current repo, SVN needs a new repo.
 # SVN should only have this done once per release, git can't be hurt by double checking it every time.
 # The VCS plugin should be able to figure out what to do here.
-print "Checking out or updating to branch version...";
+print "Checking out or updating to branch version...\n";
 $checkout_path = $vcs->checkout_update($versions{nextversion});
 
 if($versions{lastversion})
