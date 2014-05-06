@@ -100,7 +100,7 @@ Buildcore::set_version($naturalversion);
 
 if($createbranch)
 {
-	print "Creating branch...";
+	print "Creating branch...\n";
 	# Create a new branch in the VCS system
 	$vcs->createbranch($createbranch, $versions{nextversion});
 }
@@ -116,13 +116,13 @@ if($versions{lastversion})
 	# The fun part.  Replacing all the instances of the old version in the code with the new version.
 	# There are only several formats for the version string, probably create a list of files to
 	# apply a regex replace to for each one.
-	print "Replacing versions...";
+	print "Replacing versions...\n";
 	Replacer::replace_versions(\%files, \%versions, $checkout_path);
-	print "Committing versions...";
+	print "Committing versions...\n";
 	$vcs->commit_versions($checkout_path, $versions{nextversion}, ($versions{nextsubversion} ? $versions{nextsubversion} : "Final"));
 }
 
-print "Exporting code...";
+print "Exporting code...\n";
 if($vcs->export($checkout_path, $versions{nextversion}, $versions{nextsubversion}) != 1)
 {
 	die "Export to " . $vcs->{exportpath} . " failed...\n";
@@ -130,15 +130,15 @@ if($vcs->export($checkout_path, $versions{nextversion}, $versions{nextsubversion
 
 if($doarchive)
 {
-	print "Archiving source...";
+	print "Archiving source...\n";
 	archive_source();
-	print "Uploading source...";
+	print "Uploading source...\n";
 	Buildcore::upload("fs2_open_" . $fullversion . "_src.tgz", "fs2_open_" . $fullversion . "_src.md5", dirname($checkout_path), '');
-	print "Moving source...";
+	print "Moving source...\n";
 	move_to_builds();
 }
 
-print "Compiling...";
+print "Compiling...\n";
 if(Buildcore::compile($vcs->{exportpath}) != 1)
 {
 	die "Compile failed...\n";
@@ -149,10 +149,10 @@ if(Buildcore::compile($vcs->{exportpath}) != 1)
 
 print "Compiling completed\n";
 # Code was compiled and updated, move the built files somewhere for archiving
-print "Deleting code export...";
+print "Deleting code export...\n";
 rmtree($vcs->{exportpath});
 
-print "Uploading builds...";
+print "Uploading builds...\n";
 foreach (keys (%archives))
 {
 	Buildcore::upload($archives{$_}, $md5s{$_}, $CONFIG->{$OS}->{archive_path}, $OS);
