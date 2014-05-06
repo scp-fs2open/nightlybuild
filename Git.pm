@@ -1,12 +1,14 @@
 package Git;
 
-# Git Nightlybuild Plugin 1.0
+# Git Nightlybuild Plugin 2.0
+# 2.0 - Support for release building as well as nightly building
 # 1.0 - Initial release
 
 use strict;
 use warnings;
 
 use Config::Tiny;
+use File::Spec::Functions;
 require Vcs;
 use base 'Vcs';
 
@@ -20,7 +22,7 @@ sub new
 	my %parm = @_;
 	my $this = Vcs->new(%parm);  # Create an anonymous hash, and #self points to it.
 
-	$this->{gitremotecmd} = "git --git-dir=" . $this->{source_path} . "/.git --work-tree=" . $this->{source_path};
+	$this->{gitremotecmd} = "git --git-dir=" . catfile($this->{source_path}, ".git") . " --work-tree=" . $this->{source_path};
 	$this->{nightly_branch} = $CONFIG->{general}->{nightly_branch};
 	$this->{nightly_branch} =~ s/##BRANCH##/$CONFIG->{general}->{track_branch}/;
 	$this->{nightly_branch} =~ s/##OS##/$this->{'OS'}/;
@@ -63,6 +65,43 @@ sub getrevision
 	return $output;
 }
 
+sub createbranch
+{
+	my ($class, $revision, $version) = @_;
+	my $cmd = $class->{gitremotecmd} . " update-ref refs/heads/" . Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format}) . " " . $revision;
+	print $cmd . "\n";
+	`$cmd`;
+	$cmd = $class->{gitremotecmd} . " push origin " . Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format});
+	print $cmd . "\n";
+	`$cmd`;
+}
+
+sub checkout_update
+{
+	my ($class, $version) = @_;
+	my $cmd = $class->{gitremotecmd} . " checkout " . Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format});
+	print $cmd . "\n";
+	`$cmd`;
+	$cmd = $class->{gitremotecmd} . " pull";
+	print $cmd . "\n";
+	`$cmd`;
+
+	return $class->{source_path};
+}
+
+sub commit_versions
+{
+	my ($class, $checkout_path, $version, $subversion) = @_;
+	my $cmd;
+
+	$cmd = $class->{gitremotecmd} . " commit -am 'Automated " . $version . " " . $subversion . " versioning commit'";
+	print $cmd . "\n";
+	`$cmd`;
+	$cmd = $class->{gitremotecmd} . " push origin " . Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format});
+	print $cmd . "\n";
+	`$cmd`;
+}
+
 sub update
 {
 	my ($class) = @_;
@@ -96,15 +135,29 @@ sub update
 
 sub export
 {
-	my ($class) = @_;
+	my $class = shift;
+	my $source;
 	my $exportcommand;
-	my $i = 0;
+	unless($source = shift)
+	{
+		my $i = 0;
+		$source = $class->{source_path};
 
-	do {
-		$class->{exportpath} = $class->{source_path} . "_" . $i++;
-	} while (-d $class->{exportpath});
+		do {
+			$class->{exportpath} = $source . "_" . $i++;
+		} while (-d $class->{exportpath});
+	}
+	else
+	{
+		my $version = shift;
+		$class->{exportpath} = catfile(dirname($source), Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format}));
+		if(my $subversion = shift)
+		{
+			$class->{exportpath} .= "_" . $subversion;
+		}
+	}
 
-	print "Going to export " . $class->{source_path} . " to directory " . $class->{exportpath} . "\n";
+	print "Going to export " . $source . " to directory " . $class->{exportpath} . "\n";
 
 	mkdir($class->{exportpath});
 

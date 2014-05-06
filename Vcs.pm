@@ -1,6 +1,7 @@
 package Vcs;
 
-# Vcs Nightlybuild Plugin 1.0 - abstract class for VCS plugins to extend
+# Vcs Nightlybuild Plugin 2.0 - abstract class for VCS plugins to extend
+# 2.0 - Support for release building as well as nightly building
 # 1.0 - Initial release
 
 use strict;
@@ -30,7 +31,7 @@ sub verifyrepo
 	my ($class) = @_;
 	unless(-d $class->{source_path})
 	{
-		print "Could not find source code at " . $class->{source_path} . "\n";
+		print STDERR "Could not find source code at " . $class->{source_path} . "\n";
 		$class->{revision} = "FAILURE";
 		return 0;
 	}
@@ -42,6 +43,14 @@ sub verifyrepo
 	}
 
 	return 1;
+}
+
+sub get_dirbranch
+{
+	my ($dirversion, $branch) = @_;
+	$dirversion =~ s/[\. ]/_/g;
+	$branch =~ s/##VERSION##/$dirversion/;
+	return $branch;
 }
 
 1;

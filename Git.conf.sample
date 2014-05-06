@@ -2,3 +2,4 @@
 track_branch=master
 nightly_branch=nightly/##BRANCH##/##OS##
 log_pretty=format:"commit %h%nAuthor: %an <%ad>%nCommit: %cn <%cd>%n%n    %s%n"
+branch_format=fs2_open_##VERSION##

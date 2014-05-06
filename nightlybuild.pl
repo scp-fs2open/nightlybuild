@@ -1,6 +1,7 @@
-#!/usr/bin/perl -W
+#!/opt/local/bin/perl -W
 
-# Nightly build script version 2.0.0
+# Nightly build script version 3.0.0
+# 3.0.0 - Remaining shared functionality with release script moved into common Buildcore plugin
 # 2.0.0 - Git support!  Moved VCS-related functions into plugins, including a parent plugin for all VCS modules.
 # 1.7.3 - Forgot to update default MSVC2008 build name pattern matching when the names changed a while back.
 # 1.7.2 - Fixed OS X not renaming .dSYMs properly, change default OS X project to Xcode4, escaping whitespace in regex, deleting temp build files on OS X, better old revision checking
@@ -27,21 +28,22 @@
 use strict;
 # Switch top line to -w for production, -W for testing
 
-use Config::Tiny;
-use File::Copy;
-use Net::FTP;
+use Buildcore;
 use Smf;
 use Git;
 use Svn;
-use Cwd;
+use Replacer;
 use Data::Dumper;
-use File::Path;
+use Config::Tiny;
 use Getopt::Long;
+use File::Path;
+use File::Basename;
+use lib dirname (__FILE__);
 
 my $CONFIG = Config::Tiny->new();
-$CONFIG = Config::Tiny->read("buildconfig.conf"); # Read in the ftp and forum authentication info
+$CONFIG = Config::Tiny->read(dirname (__FILE__) . "/buildconfig.conf"); # Read in the ftp and forum authentication info
 if(!(Config::Tiny->errstr() eq "")) { die "Could not read config file, did you copy the sample to buildconfig.conf and edit it?\n"; }
-my $OS = getOS();
+my $OS = Buildcore::getOS();
 if(!$OS) { die "Unrecognized OS.\n"; }
 
 my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime;
@@ -56,11 +58,21 @@ if($mday < 10)
 }
 my $DATE = $year . $mon . $mday;
 
-my @filenames;
 my %archives;
 my %md5s;
-my @archiveslist;
+
 my $vcs = ucfirst($CONFIG->{general}->{vcs})->new( 'source_path' => $CONFIG->{$OS}->{source_path}, 'OS' => $OS );
+
+my %files = (
+	"code/fred2/fred.rc|raw" => ["inject_revision"],
+	"code/freespace2/freespace.rc|raw" => ["inject_revision"],
+	"code/globalincs/version.h" => ["inject_revision"],
+);
+
+my %versions = (
+	'lastreleaserevision' => '000000',
+	'nextreleaserevision' => '',
+);
 
 GetOptions ('stoprevision=s' => \$vcs->{stoprevision});
 
@@ -78,16 +90,24 @@ if(!$vcs->verifyrepo() || $vcs->update() != 1)
 
 print "Repository has been updated to revision " . $vcs->{revision} . ", compiling...\n";
 
+$versions{nextreleaserevision} = $vcs->{revision};
+Buildcore::set_basename_suffix("_" . $DATE . "_" . $vcs->{buildrevision});
+
 if($vcs->export() != 1)
 {
 	die "Export to " . $vcs->{exportpath} . " failed...\n";
 }
 
+Replacer::replace_versions(\%files, \%versions, $vcs->{exportpath});
+
 # call Compile scripts
-if(compile() != 1)
+if(Buildcore::compile($vcs->{exportpath}) != 1)
 {
 	die "Compile failed...\n";
 }
+
+%archives = Buildcore::get_archives();
+%md5s = Buildcore::get_md5s();
 
 print "Compiling completed\n";
 # Code was compiled and updated, move the built files somewhere for archiving
@@ -95,7 +115,7 @@ rmtree($vcs->{exportpath});
 
 foreach (keys (%archives))
 {
-	upload($archives{$_}, $md5s{$_});
+	Buildcore::upload($archives{$_}, $md5s{$_}, $CONFIG->{$OS}->{archive_path}, $OS);
 }
 
 post();
@@ -105,306 +125,6 @@ $vcs->finalize();
 #############SUBROUTINES################
 
 
-sub getOS
-{
-	if($^O eq "MSWin32") {
-		return "WIN";
-	}
-	elsif($^O eq "linux") {
-		return "LINUX";
-	}
-	elsif($^O eq "darwin" || $^O eq "rhapsody") {
-		return "OSX";
-	}
-	elsif($^O eq "freebsd") {
-		return "FREEBSD";
-	}
-	else {
-		return 0;
-	}
-}
-
-sub compile
-{
-	my @outputlist;
-	my $output;
-	my $command;
-	my $cleancmd;
-	my $currentdir;
-	my $group;
-	my %CONFIG_NAMES;
-	my %CONFIG_STRINGS;
-	my %BUILD_CONFIGS;
-	@CONFIG_NAMES{split(/~/, $CONFIG->{$OS}->{config_groups})} = split(/::/, $CONFIG->{$OS}->{config_names});
-	@CONFIG_STRINGS{split(/~/, $CONFIG->{$OS}->{config_groups})} = split(/::/, $CONFIG->{$OS}->{config_strings});
-
-#	@BUILD_CONFIGS{split(/~/, $CONFIG->{$OS}->{config_names})} = split(/~/, $CONFIG->{$OS}->{config_strings});
-
-	$currentdir = cwd();
-
-	unless(-d $vcs->{exportpath})
-	{
-		print "Could not find source code at " . $vcs->{exportpath} . "\n";
-		return 0;
-	}
-
-	chdir($vcs->{exportpath});
-	if($OS eq "OSX" || $OS eq "WIN")
-	{
-		chdir("projects/" . $CONFIG->{$OS}->{project} . "/");
-		if($OS eq "OSX")
-		{
-			`tar -xzf Frameworks.tgz`;
-		}
-	}
-
-	foreach $group (keys (%CONFIG_NAMES))
-	{
-		@filenames = ();
-		%BUILD_CONFIGS = ();
-		@BUILD_CONFIGS{split(/~/, $CONFIG_NAMES{$group})} = split(/~/, $CONFIG_STRINGS{$group});
-
-		foreach(keys (%BUILD_CONFIGS))
-		{
-			print "Building " . $_ . "...\n";
-
-			if($OS eq "WIN") {
-				if($CONFIG->{$OS}->{compiler} eq "MSVC2008") {
-					$command = $CONFIG->{$OS}->{build_program_path} . " /nocolor /nologo /rebuild Freespace2.sln \"" . $BUILD_CONFIGS{$_} . "\"";
-				}
-				elsif($CONFIG->{$OS}->{compiler} eq "MSVC6") {
-					$command = $CONFIG->{$OS}->{build_program_path} . " Freespace2.dsw /MAKE \"Freespace2 - " . $BUILD_CONFIGS{$_} . "\" /MAKE \"Fred2 - " . $BUILD_CONFIGS{$_} . "\" /REBUILD";
-				}
-				else {
-					# Compiler flag not set correctly
-					print "Unrecognized compiler setting, must be one of:  MSVC2008 MSVC6\n";
-					return 0;
-				}
-			}
-			elsif($OS eq "OSX") {
-				$command = $CONFIG->{$OS}->{build_program_path} . " -project FS2_Open.xcodeproj -configuration " . $BUILD_CONFIGS{$_} . " clean build";
-			}
-			elsif($OS eq "LINUX" || $OS eq "FREEBSD") {
-				$command = "./autogen.sh " . $BUILD_CONFIGS{$_} . " 2>&1 && " . $CONFIG->{$OS}->{build_program_path} . " clean 2>&1 && " . $CONFIG->{$OS}->{build_program_path};
-			}
-			else {
-				# How the fuck did you get this far with an unrecognized OS
-				print "Unrecognized OS detected.\n";
-				return 0;
-			}
-
-			$command = $command . " 2>&1";
-			print $command . "\n";
-			$output = `$command`;
-
-			push(@outputlist, $output);
-
-			# TODO:  Check @outputlist for actual changes, or if it just exited without doing anything
-			if(($OS eq "OSX" && $output =~ /\ BUILD\ FAILED\ /) ||
-				($OS eq "WIN" && !($output =~ /0\ Projects\ failed/)) ||
-				(($OS eq "LINUX" || $OS eq "FREEBSD") && $output =~ /\ Error\ 1\n$/)) {
-				print $output . "\n\n";
-				print "Building " . $_ . " failed, see output for more information.\n";
-				return 0;
-			}
-			push(@filenames, move_and_rename($_));
-		}
-
-		($archives{$group}, $md5s{$group}) = archive($group, @filenames);
-	}
-
-	chdir($currentdir);
-
-	return 1;
-}
-
-sub move_and_rename
-{
-	my $configname = shift;
-	my $oldname;
-	my $basename;
-	my $newname;
-	my $command;
-	my $foundext;
-	my @returnfiles = ();
-	my $currentdir = cwd();
-	my $this_build_drop = $CONFIG->{$OS}->{build_drop};
-	my $ext = $CONFIG->{$OS}->{build_extension};
-	$this_build_drop =~ s/##PROJECT##/$CONFIG->{$OS}->{project}/;
-	$this_build_drop =~ s/##CONFIG##/$configname/;
-	$this_build_drop =~ s/##EXPORTPATH##/$vcs->{exportpath}/;
-
-	unless(-d $this_build_drop)
-	{
-		die "Could not find build drop at " . $this_build_drop . ", terminating.\n";
-	}
-
-	chdir($this_build_drop);
-	my @temp = glob("*");
-	my @files;
-	foreach (@temp)
-	{
-		if($_ =~ /$CONFIG->{$OS}->{output_filename}/)
-		{
-			push(@files, $_);
-		}
-	}
-
-	if($#files == -1)
-	{
-		die "No files found to move and rename for " . $configname . ", terminating...\n";
-	}
-
-	chdir($currentdir);
-
-	print "Moving and renaming files...\n";
-
-	unless(-d $CONFIG->{$OS}->{archive_path})
-	{
-		print "Could not find archive path at " . $CONFIG->{$OS}->{archive_path} . ", attempting to create...\n";
-		mkpath( $CONFIG->{$OS}->{archive_path}, {verbose => 1} );
-
-		unless(-d $CONFIG->{$OS}->{archive_path})
-		{
-			die "Still could not find archive path at " . $CONFIG->{$OS}->{archive_path} . ", terminating.\n";
-		}
-	}
-
-	foreach (@files)
-	{
-		$foundext = "";
-		$oldname = $_;
-		$basename = $oldname;
-		if($ext ne "")
-		{
-			$basename =~ s/(${ext})$//;
-			$foundext = $1;
-		}
-
-		$newname = $basename . "-" . $DATE . "_" . $vcs->{buildrevision};
-
-		if($foundext ne "")
-		{
-			$newname .= $foundext;
-		}
-
-		push(@returnfiles, $newname);
-		print "Moving " . $this_build_drop . "/" . $oldname . " to " . $CONFIG->{$OS}->{archive_path} . "/" . $newname . "\n";
-		move($this_build_drop . "/" . $oldname, $CONFIG->{$OS}->{archive_path} . "/" . $newname);
-	}
-
-	return @returnfiles;
-}
-
-sub archive
-{
-	my $group = shift;
-	my @filenames = @_;
-	my $args = "";
-	my $command;
-	my $output;
-	my $command2;
-	my $output2;
-	my $basename;
-	my $archivename;
-	my $md5name;
-	my $currentdir = cwd();
-
-	if($#filenames == -1)
-	{
-		die "No filenames to archive, terminating...\n";
-	}
-
-	chdir($CONFIG->{$OS}->{archive_path});
-
-	foreach (@filenames)
-	{
-		unless(-s $_)
-		{
-			die "File " . $_ . " does not exist, terminating...\n";
-		}
-
-		$args .= " \"" . $_ . "\"";
-	}
-
-	if($args eq "")
-	{
-		print "Empty arguments for archiving, terminating...\n";
-	}
-
-	$basename = "fso-" . $OS . "-" . $group . "-" . $DATE . "_" . $vcs->{buildrevision};
-	$archivename = $basename . $CONFIG->{$OS}->{archive_ext};
-	$command = $CONFIG->{$OS}->{path_to_archiver} . " " . $CONFIG->{$OS}->{archiver_args} . " " . $archivename . $args;
-
-	$md5name = $basename . ".md5";
-	$command2 = $CONFIG->{$OS}->{md5} . " " . $archivename . " > " . $md5name;
-
-	# archive the files
-	print "Executing:  " . $command . "\n";
-	$output = `$command 2>&1`;
-#	print $output . "\n";
-	print "Executing:  " . $command2 . "\n";
-	#md5 the archive
-	$output2 = `$command2 2>&1`;
-#	print $output2 . "\n";
-
-	foreach (@filenames)
-	{
-		if(-e $_)
-		{
-			if(-f $_)
-			{
-				unlink $_ or print "Could not unlink $_: $!";
-			}
-			elsif(-d $_)
-			{
-				rmtree($_);
-			}
-		}
-		else
-		{
-			print "Was told $_ does not exist for removal.";
-		}
-	}
-
-	chdir($currentdir);
-
-	return ($archivename, $md5name);
-}
-
-sub upload
-{
-	# Upload $archive to the server, use Net::FTP.
-	my ($archivename, $md5name) = @_;
-	my $ftp;
-	my $currentdir = cwd();
-
-	chdir($CONFIG->{$OS}->{archive_path});
-
-	# Should have the full path to both files to upload, so upload them
-	# Connection info is in $CONFIG, read from config file.
-
-	if(!(-e $archivename && -s $archivename && -e $md5name && -s $md5name))
-	{
-		die "Could not find a file to upload, terminating...\n";
-	}
-
-	print "Uploading " . $CONFIG->{$OS}->{archive_path} . "/" . $archivename . " and " . $CONFIG->{$OS}->{archive_path} . "/" . $md5name . " to " . $CONFIG->{ftp}->{hostname} . "\n";
-
-	$ftp = Net::FTP->new($CONFIG->{ftp}->{hostname}, Debug=> 0, Passive=> 1) or die "Cannot connect to ".$CONFIG->{ftp}->{hostname}.": $@";
-	$ftp->login($CONFIG->{ftp}->{username}, $CONFIG->{ftp}->{password}) or die "Cannot login ", $ftp->message;
-	$ftp->cwd($CONFIG->{general}->{upload_path} . $OS) or die "Cannot change working directory ", $ftp->message;
-	$ftp->binary();
-	$ftp->put($archivename) or die "Upload of archive failed ", $ftp->message;
-	$ftp->ascii();
-	$ftp->put($md5name) or die "Upload of md5sum failed ", $ftp->message;
-	$ftp->quit;
-
-	chdir($currentdir);
-
-	return 1;
-}
-
 sub post
 {
 	my $subject;
@@ -412,6 +132,12 @@ sub post
 	my $logoutput;
 	my $archivename;
 	my $md5name;
+	my $group;
+	my $mirror;
+	my %MIRROR_DOWNLOAD_PATHS;
+	my @mirrors = split(/~/, $CONFIG->{general}->{Buildcore::get_mode() . '_mirrors'});
+	@MIRROR_DOWNLOAD_PATHS{split(/~/, $CONFIG->{mirrors}->{names})} = split(/::/, $CONFIG->{mirrors}->{download_paths});
+	my $n = 1;
 
 	print "In the post function, submitting post to builds area...\n";
 
@@ -423,13 +149,20 @@ sub post
 	$message = "Here is the nightly for " . $CONFIG->{$OS}->{os_name} . " on " . $mday . " " . $monthword . " " . $year . " - Revision " . $vcs->{displayrevision} . "\n\n";
 
 	# Make a post on the forums to the download
-	foreach (keys (%archives))
+	foreach $group (keys (%archives))
 	{
-		$archivename = $archives{$_};
-		$md5name = $md5s{$_};
-		$message .= "Group: " . $_ . "\n";
-		$message .= "[url=".$CONFIG->{general}->{download_path}.$OS."/".$archivename."]".$archivename."[/url]\n";
-		$message .= "[url=".$CONFIG->{general}->{download_path}.$OS."/".$md5name."]MD5Sum[/url]\n";
+		$archivename = $archives{$group};
+		$md5name = $md5s{$group};
+		$message .= "Group: " . $group . "\n";
+		foreach $mirror (@mirrors)
+		{
+			$message .= "[url=".$MIRROR_DOWNLOAD_PATHS{$mirror}.$OS."/".$archivename."]".$archivename."[/url]\n";
+			$message .= "[url=".$MIRROR_DOWNLOAD_PATHS{$mirror}.$OS."/".$md5name."]MD5Sum[/url]\n";
+			if( (0 + @mirrors) > $n++ )
+			{
+				$message .= "Mirror " . $n . "\n";
+			}
+		}
 		$message .= "\n";
 	}
 

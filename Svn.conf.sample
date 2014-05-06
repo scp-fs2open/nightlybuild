@@ -1,0 +1,4 @@
+[general]
+trunk_url=svn://svn.icculus.org/fs2open/trunk/fs2_open
+branches_url=svn://svn.icculus.org/fs2open/branches/
+branch_format=fs2_open_##VERSION##
