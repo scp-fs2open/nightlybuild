@@ -1,4 +1,4 @@
-#!/opt/local/bin/perl -W
+#!/usr/bin/perl -W
 
 # Nightly build script version 3.0.0
 # 3.0.0 - Remaining shared functionality with release script moved into common Buildcore plugin

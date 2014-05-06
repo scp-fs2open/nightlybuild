@@ -1,4 +1,4 @@
-#!/opt/local/bin/perl -W
+#!/usr/bin/perl -W
 
 # Release build script version 1.0.0
 # 1.0 - Initial release
