@@ -93,7 +93,7 @@ if($versions{nextsubversion})
 {
 	$naturalversion .= " " . $versions{nextsubversion};
 	$fullversion = $naturalversion;
-	$fullversion =~ s/\.\ /_/g;
+	$fullversion =~ s/[\.\ ]/_/g;
 }
 
 Buildcore::set_version($naturalversion);
@@ -197,7 +197,7 @@ sub post
 	my $archivename;
 	my $md5name;
 	my $underscoreversion = $naturalversion;
-	$underscoreversion =~ s/\.\ /_/g;
+	$underscoreversion =~ s/[\.\ ]/_/g;
 	my $periodversion = $naturalversion;
 	$periodversion =~ s/\ /_/g;
 
