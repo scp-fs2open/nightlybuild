@@ -235,16 +235,13 @@ Compiled on MSVC 2008 SP1
 [b]If you don't know which one to get, get the third one (no SSE).[/b]  [color=red]If you don't know what SSE means, read this: http://en.wikipedia.org/wiki/Streaming_SIMD_Extensions[/color]
 You can use freely available tools like [url=http://www.cpuid.com/softwares/cpu-z.html]CPU-Z[/url] to check which SSE capabilities your CPU has.
 
-[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $underscoreversion . ".zip]fs2_open_" . $underscoreversion . ".zip[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . ".zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . ".zip]Mirror[/url])
+[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . ".zip]fs2_open_" . $periodversion . ".zip[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . ".zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . ".zip]Mirror[/url])
 This one is based on the SSE2 Optimizations from the MSVC Compiler.
 
-[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.zip]fs2_open_" . $underscoreversion . "_SSE.zip[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.zip]Mirror[/url])
+[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_SSE.zip]fs2_open_" . $periodversion . "_SSE.zip[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.zip]Mirror[/url])
 This one is based on the SSE Optimizations from the MSVC Compiler.
 
-[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.zip]fs2_open_" . $underscoreversion . "_NO-SSE.zip[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.zip]Mirror[/url])
-
-[url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . "_WIN9X.zip]fs2_open_" . $underscoreversion . "_WIN9X.zip[/url]
-For Windows 98, Windows ME, and Windows 2000.
+[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_NO-SSE.zip]fs2_open_" . $periodversion . "_NO-SSE.zip[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.zip]Mirror[/url])
 
 [b]What are those SSE and SSE2 builds I keep seeing everywhere?[/b]
 [url=http://www.hard-light.net/forums/index.php?topic=65628.0]Your answer is in this topic.[/url]
@@ -253,7 +250,7 @@ For Windows 98, Windows ME, and Windows 2000.
 [img]http://scp.indiegames.us/img/mac-icon.png[/img] [color=green][size=12pt]OS X Universal (32/64-bit Intel)[/size][/color] ([color=yellow][url=http://swc.fs2downloads.com/builds/OSX/FS2_Open-" . $periodversion . ".md5]MD5s[/url][/color])
 Compiled on Xcode 5.1.1
 
-[url=http://swc.fs2downloads.com/builds/OSX/FS2_Open-" . $periodversion . ".dmg]FS2_Open-" . $periodversion . ".dmg[/url] ([url=http://scp.fsmods.net/builds/OSX/FS2_Open-" . $periodversion . ".dmg]Mirror[/url]) ([url=http://scp.indiegames.us/builds/OSX/FS2_Open-" . $periodversion . ".dmg]Mirror[/url])
+[url=http://swc.fs2downloads.com/builds/OSX/fs2_open-" . $periodversion . ".dmg]fs2_open-" . $periodversion . ".dmg[/url] ([url=http://scp.fsmods.net/builds/OSX/fs2_open-" . $periodversion . ".dmg]Mirror[/url]) ([url=http://scp.indiegames.us/builds/OSX/fs2_open-" . $periodversion . ".dmg]Mirror[/url])
 
 
 [img]http://scp.indiegames.us/img/linux-icon.png[/img] [color=green][size=12pt]Linux 32-bit[/size][/color] ([color=yellow][url=http://swc.fs2downloads.com/builds/LINUX/fs2_open_" . $periodversion . ".md5]MD5s[/url][/color])
