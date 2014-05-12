@@ -28,6 +28,8 @@
 use strict;
 # Switch top line to -w for production, -W for testing
 
+use File::Basename;
+use lib dirname (__FILE__);
 use Buildcore;
 use Smf;
 use Git;
@@ -37,8 +39,6 @@ use Data::Dumper;
 use Config::Tiny;
 use Getopt::Long;
 use File::Path;
-use File::Basename;
-use lib dirname (__FILE__);
 
 my $CONFIG = Config::Tiny->new();
 $CONFIG = Config::Tiny->read(dirname (__FILE__) . "/buildconfig.conf"); # Read in the ftp and forum authentication info

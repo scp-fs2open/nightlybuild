@@ -8,13 +8,14 @@ use strict;
 use warnings;
 
 use File::Basename;
+use lib dirname (__FILE__);
 use File::Spec::Functions;
 use Config::Tiny;
 require Vcs;
 use base 'Vcs';
 
 my $CONFIG = Config::Tiny->new();
-$CONFIG = Config::Tiny->read("Svn.conf"); # Read in the plugin config info
+$CONFIG = Config::Tiny->read(dirname (__FILE__) . "/Svn.conf"); # Read in the plugin config info
 if(!(Config::Tiny->errstr() eq "")) { die "Could not read config file, did you copy the sample to Svn.conf and edit it?\n"; }
 
 sub new

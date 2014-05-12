@@ -7,13 +7,15 @@ package Git;
 use strict;
 use warnings;
 
-use Config::Tiny;
+use File::Basename;
+use lib dirname (__FILE__);
 use File::Spec::Functions;
+use Config::Tiny;
 require Vcs;
 use base 'Vcs';
 
 my $CONFIG = Config::Tiny->new();
-$CONFIG = Config::Tiny->read("Git.conf"); # Read in the plugin config info
+$CONFIG = Config::Tiny->read(dirname (__FILE__) . "/Git.conf"); # Read in the plugin config info
 if(!(Config::Tiny->errstr() eq "")) { die "Could not read config file, did you copy the sample to Git.conf and edit it?\n"; }
 
 sub new
