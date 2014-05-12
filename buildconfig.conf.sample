@@ -38,8 +38,16 @@ md5=md5sum
 builds_forum=173.0
 release_forum=50.0
 
-; Set the compiler.  Accepted:  MSVC6, MSVC2008 - Be sure to set up compiler related options
+; Set the compiler.  Accepted:  MSVC6, MSVC2008, MSVC201x - Be sure to set up compiler related options
 compiler=MSVC2008
+
+;****MSVC201x Defaults****
+;build_program_path="C:\Windows\Microsoft.NET\Framework\4.0.30319\MSBuild.exe"
+; Need same number of names and strings!!!
+;config_groups=NO-SSE~SSE~Standard~AVX
+;config_names=Release~Debug::Release SSE~Debug SSE::Release SSE2~Debug SSE2::Release AVX~Debug AVX
+;config_strings=Release|Win32~Debug|Win32::Release SSE|Win32~Debug SSE|Win32::Release SSE2|Win32~Debug SSE2|Win32::Release AVX|Win32~Debug AVX|Win32
+;output_filename=f.*?2_open_[3-4]_[0-9]_[0-9][0-9]?.*?\.(exe|pdb|map)
 
 ;****MSVC2008 Defaults****
 build_program_path="C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\vcpackages\vcbuild"
