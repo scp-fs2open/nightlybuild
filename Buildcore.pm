@@ -134,6 +134,7 @@ sub compile
 				}
 				elsif($CONFIG->{$OS}->{compiler} eq "MSVC201x") {
 					$command = $CONFIG->{$OS}->{build_program_path} . " Freespace2.sln /t:Rebuild /p:Configuration=\"" . $BUILD_CONFIGS{$config} . "\"";
+				}
 				else {
 					# Compiler flag not set correctly
 					print STDERR "Unrecognized compiler setting, must be one of:  MSVC201x MSVC2008 MSVC6\n";
