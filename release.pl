@@ -229,40 +229,40 @@ Known issues:
 [/list]
 
 
-[img]http://scp.indiegames.us/img/windows-icon.png[/img] [color=green][size=12pt]Windows[/size][/color] ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $underscoreversion . ".md5]MD5s[/url][/color])
+[img]http://scp.indiegames.us/img/windows-icon.png[/img] [color=green][size=12pt]Windows[/size][/color]
 Compiled on MSVC 2008 SP1
 
 [b]If you don't know which one to get, get the third one (no SSE).[/b]  [color=red]If you don't know what SSE means, read this: http://en.wikipedia.org/wiki/Streaming_SIMD_Extensions[/color]
 You can use freely available tools like [url=http://www.cpuid.com/softwares/cpu-z.html]CPU-Z[/url] to check which SSE capabilities your CPU has.
 
-[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . ".zip]fs2_open_" . $periodversion . ".zip[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . ".zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . ".zip]Mirror[/url])
+[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . ".zip]fs2_open_" . $periodversion . ".zip[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . ".zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . ".zip]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $underscoreversion . ".md5]MD5[/url][/color])
 This one is based on the SSE2 Optimizations from the MSVC Compiler.
 
-[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_SSE.zip]fs2_open_" . $periodversion . "_SSE.zip[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.zip]Mirror[/url])
+[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_SSE.zip]fs2_open_" . $periodversion . "_SSE.zip[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.zip]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.md5]MD5[/url][/color])
 This one is based on the SSE Optimizations from the MSVC Compiler.
 
-[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_NO-SSE.zip]fs2_open_" . $periodversion . "_NO-SSE.zip[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.zip]Mirror[/url])
+[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_NO-SSE.zip]fs2_open_" . $periodversion . "_NO-SSE.zip[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.zip]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.md5]MD5[/url][/color])
 
 [b]What are those SSE and SSE2 builds I keep seeing everywhere?[/b]
 [url=http://www.hard-light.net/forums/index.php?topic=65628.0]Your answer is in this topic.[/url]
 
 
-[img]http://scp.indiegames.us/img/mac-icon.png[/img] [color=green][size=12pt]OS X Universal (32/64-bit Intel)[/size][/color] ([color=yellow][url=http://swc.fs2downloads.com/builds/OSX/FS2_Open-" . $periodversion . ".md5]MD5s[/url][/color])
+[img]http://scp.indiegames.us/img/mac-icon.png[/img] [color=green][size=12pt]OS X Universal (32/64-bit Intel)[/size][/color]
 Compiled on Xcode 5.1.1
 
-[url=http://swc.fs2downloads.com/builds/OSX/fs2_open-" . $periodversion . ".dmg]fs2_open-" . $periodversion . ".dmg[/url] ([url=http://scp.fsmods.net/builds/OSX/fs2_open-" . $periodversion . ".dmg]Mirror[/url]) ([url=http://scp.indiegames.us/builds/OSX/fs2_open-" . $periodversion . ".dmg]Mirror[/url])
+[url=http://swc.fs2downloads.com/builds/OSX/fs2_open-" . $periodversion . ".dmg]fs2_open-" . $periodversion . ".dmg[/url] ([url=http://scp.fsmods.net/builds/OSX/fs2_open-" . $periodversion . ".dmg]Mirror[/url]) ([url=http://scp.indiegames.us/builds/OSX/fs2_open-" . $periodversion . ".dmg]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/OSX/FS2_Open-" . $periodversion . ".md5]MD5[/url][/color])
 
 
-[img]http://scp.indiegames.us/img/linux-icon.png[/img] [color=green][size=12pt]Linux 32-bit[/size][/color] ([color=yellow][url=http://swc.fs2downloads.com/builds/LINUX/fs2_open_" . $periodversion . ".md5]MD5s[/url][/color])
+[img]http://scp.indiegames.us/img/linux-icon.png[/img] [color=green][size=12pt]Linux 32-bit[/size][/color]
 Compiled on Ubuntu 12.04 LTS 32bit, GCC 4.6.3
 
-[url=http://swc.fs2downloads.com/builds/LINUX/fs2_open_" . $periodversion . ".tar.bz2]fs2_open_" . $periodversion . ".tar.bz2[/url] ([url=http://scp.fsmods.net/builds/LINUX/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url]) ([url=http://scp.indiegames.us/builds/LINUX/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url])
+[url=http://swc.fs2downloads.com/builds/LINUX/fs2_open_" . $periodversion . ".tar.bz2]fs2_open_" . $periodversion . ".tar.bz2[/url] ([url=http://scp.fsmods.net/builds/LINUX/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url]) ([url=http://scp.indiegames.us/builds/LINUX/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/LINUX/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
 
 
-[img]http://scp.indiegames.us/img/freebsd-icon.png[/img] [color=green][size=12pt]FreeBSD 64-bit (experimental, limited support)[/size][/color] ([color=yellow][url=http://swc.fs2downloads.com/builds/FREEBSD/fs2_open_" . $periodversion . ".md5]MD5s[/url][/color])
+[img]http://scp.indiegames.us/img/freebsd-icon.png[/img] [color=green][size=12pt]FreeBSD 64-bit (experimental, limited support)[/size][/color]
 Compiled on GhostBSD LXDE 3.0 64-bit, GCC 4.2.1
 
-[url=http://swc.fs2downloads.com/builds/FREEBSD/fs2_open_" . $periodversion . ".tar.bz2]fs2_open_" . $periodversion . ".tar.bz2[/url] ([url=http://scp.fsmods.net/builds/FREEBSD/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url]) ([url=http://scp.indiegames.us/builds/FREEBSD/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url])
+[url=http://swc.fs2downloads.com/builds/FREEBSD/fs2_open_" . $periodversion . ".tar.bz2]fs2_open_" . $periodversion . ".tar.bz2[/url] ([url=http://scp.fsmods.net/builds/FREEBSD/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url]) ([url=http://scp.indiegames.us/builds/FREEBSD/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/FREEBSD/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
 
 [color=green][size=12pt]Source Code Export[/size][/color] ([color=yellow][url=http://swc.fs2downloads.com/builds/fs2_open_" . $underscoreversion . "_src.md5]MD5[/url][/color])
 [url=http://swc.fs2downloads.com/builds/fs2_open_" . $underscoreversion . "_src.tgz]fs2_open_" . $underscoreversion . "_src.tgz[/url] ([url=http://scp.fsmods.net/builds/fs2_open_" . $underscoreversion . "_src.tgz]Mirror[/url]) ([url=http://scp.indiegames.us/builds/fs2_open_" . $underscoreversion . "_src.tgz]Mirror[/url])";
