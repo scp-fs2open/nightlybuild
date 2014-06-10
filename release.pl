@@ -207,7 +207,7 @@ sub post
 	$subject = "Release: " . $versions{nextversion} . ' ' . ($versions{nextsubversion} ? $versions{nextsubversion} : "Final");
 	# Set up the message
 	$message .= "\n\n[size=12pt]Important!![/size]
-As always, you need OpenAL installed.  Linux and OS X come with it but Windows users will need to get Creative's [url=http://scp.indiegames.us/builds/oalinst.zip]OpenAL installer[/url].
+As always, you need OpenAL installed.  Linux and OS X come with it but Windows users will need to get Creative's [url=http://scp.indiegames.us/builds/oalinst.zip]OpenAL installer[/url]. Alternatively, if Creative's OpenAL doesn't work with your hardware, you can use [url=http://kcat.strangesoft.net/openal.html#download]OpenAL Soft[/url].
 
 [size=12pt]Important!![/size]
 Also, since the internal code linking for TrackIR was revised, an external DLL is now required for FSO to use TrackIR functions.
@@ -250,7 +250,7 @@ This one is based on the SSE Optimizations from the MSVC Compiler.
 [img]http://scp.indiegames.us/img/mac-icon.png[/img] [color=green][size=12pt]OS X Universal (32/64-bit Intel)[/size][/color]
 Compiled on Xcode 5.1.1
 
-[url=http://swc.fs2downloads.com/builds/OSX/fs2_open-" . $periodversion . ".dmg]fs2_open-" . $periodversion . ".dmg[/url] ([url=http://scp.fsmods.net/builds/OSX/fs2_open-" . $periodversion . ".dmg]Mirror[/url]) ([url=http://scp.indiegames.us/builds/OSX/fs2_open-" . $periodversion . ".dmg]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/OSX/FS2_Open-" . $periodversion . ".md5]MD5[/url][/color])
+[url=http://swc.fs2downloads.com/builds/OSX/fs2_open_" . $periodversion . ".dmg]fs2_open_" . $periodversion . ".dmg[/url] ([url=http://scp.fsmods.net/builds/OSX/fs2_open_" . $periodversion . ".dmg]Mirror[/url]) ([url=http://scp.indiegames.us/builds/OSX/fs2_open_" . $periodversion . ".dmg]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/OSX/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
 
 
 [img]http://scp.indiegames.us/img/linux-icon.png[/img] [color=green][size=12pt]Linux 32-bit[/size][/color]
