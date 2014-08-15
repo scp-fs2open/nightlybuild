@@ -22,6 +22,13 @@ nightly_mirrors=swc
 release_mirrors=swc~fsmods~scp
 release_primary=swc
 
+[mantis]
+installation_base_url=http://scp.indiegames.us/mantis/
+projectid=1
+username=
+password=
+open_issues_filter_id=611
+
 [WIN]
 os_name=Windows
 build_extension=(-DEBUG)?\.(exe|pdb|map)
@@ -31,7 +38,7 @@ archive_path=G:\FSO\Builds
 nightly_archive_ext=.7z
 nightly_archiver_args=a
 nightly_path_to_archiver="C:\Program Files\7-Zip\7z.exe"
-release_archive_ext=.zip
+release_archive_ext=.7z
 release_archiver_args=a
 release_path_to_archiver="C:\Program Files\7-Zip\7z.exe"
 md5=md5sum
@@ -83,9 +90,9 @@ archive_path=/Users/cliff.gordon/builds
 nightly_archive_ext=.tgz
 nightly_archiver_args=-cvzf
 nightly_path_to_archiver=tar
-release_archive_ext=.dmg
-release_archiver_args=create -srcfolder
-release_path_to_archiver=hdiutil
+release_archive_ext=.tgz
+release_archiver_args=-cvzf
+release_path_to_archiver=tar
 md5=md5
 builds_forum=173.0
 release_forum=50.0

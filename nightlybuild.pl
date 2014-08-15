@@ -1,6 +1,8 @@
-#!/usr/bin/perl -W
+#!/opt/local/bin/perl -W
 
-# Nightly build script version 3.0.0
+# Nightly build script version 3.2.0
+# 3.2.0 - Use new Mantis module to get number of currently open issues
+# 3.1.0 - Use Buildcore's new SHA-256 support
 # 3.0.0 - Remaining shared functionality with release script moved into common Buildcore plugin
 # 2.0.0 - Git support!  Moved VCS-related functions into plugins, including a parent plugin for all VCS modules.
 # 1.7.3 - Forgot to update default MSVC2008 build name pattern matching when the names changed a while back.
@@ -35,6 +37,7 @@ use Smf;
 use Git;
 use Svn;
 use Replacer;
+use Mantis;
 use Data::Dumper;
 use Config::Tiny;
 use Getopt::Long;
@@ -59,7 +62,9 @@ if($mday < 10)
 my $DATE = $year . $mon . $mday;
 
 my %archives;
+my %dmgs;
 my %md5s;
+my %shas;
 
 my $vcs = ucfirst($CONFIG->{general}->{vcs})->new( 'source_path' => $CONFIG->{$OS}->{source_path}, 'OS' => $OS );
 
@@ -73,6 +78,15 @@ my %versions = (
 	'lastreleaserevision' => '000000',
 	'nextreleaserevision' => '',
 );
+
+my $mantis = Mantis->new(
+	connecturl => $CONFIG->{mantis}->{installation_base_url} . 'api/soap/mantisconnect.php',
+	username => $CONFIG->{mantis}->{username},
+	password => $CONFIG->{mantis}->{password},
+	projectid => $CONFIG->{mantis}->{projectid}
+);
+
+my $open_issues = $mantis->get_issues_count($CONFIG->{mantis}->{open_issues_filter_id});
 
 GetOptions ('stoprevision=s' => \$vcs->{stoprevision});
 
@@ -107,7 +121,9 @@ if(Buildcore::compile($vcs->{exportpath}) != 1)
 }
 
 %archives = Buildcore::get_archives();
+%dmgs = Buildcore::get_dmgs();
 %md5s = Buildcore::get_md5s();
+%shas = Buildcore::get_shas();
 
 print "Compiling completed\n";
 # Code was compiled and updated, move the built files somewhere for archiving
@@ -115,7 +131,7 @@ rmtree($vcs->{exportpath});
 
 foreach (keys (%archives))
 {
-	Buildcore::upload($archives{$_}, $md5s{$_}, $CONFIG->{$OS}->{archive_path}, $OS);
+	Buildcore::upload($archives{$_}, $dmgs{$_}, $md5s{$_}, $shas{$_}, $CONFIG->{$OS}->{archive_path}, $OS);
 }
 
 post();
@@ -147,6 +163,7 @@ sub post
 	$subject = "Nightly (" . $CONFIG->{$OS}->{os_name} . "): " . $mday . " " . $monthword . " " . $year . " - Revision " . $vcs->{displayrevision};
 	# Set up the message
 	$message = "Here is the nightly for " . $CONFIG->{$OS}->{os_name} . " on " . $mday . " " . $monthword . " " . $year . " - Revision " . $vcs->{displayrevision} . "\n\n";
+	$message .= "Open non-feature issues in [url=" . $CONFIG->{general}->{mantis_installation} . "view_all_set.php?type=3&source_query_id=" . $CONFIG->{general}->{open_issues_filter_id} . "]Mantis[/url]: " . $mantis->get_issues_count($CONFIG->{general}->{open_issues_filter_id}) . "\n\n";
 
 	# Make a post on the forums to the download
 	foreach $group (keys (%archives))

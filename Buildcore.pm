@@ -1,7 +1,9 @@
 package Buildcore;
 
-# Buildcore plugin for nightly and release build system - common components 1.0.0
-# 1.0 - Initial release
+# Buildcore plugin for nightly and release build system - common components 1.1.0
+# 1.1.0 - Add SHA-256 output and upload for all files within a build, for the Installer.
+# 1.0.1 - MSVC 201x support
+# 1.0.0 - Initial release
 
 use strict;
 use warnings;
@@ -16,6 +18,7 @@ use File::Spec::Functions;
 use File::Basename;
 use lib dirname (__FILE__);
 use Digest::MD5 qw(md5_hex);
+use Digest::SHA;
 use feature 'switch';
 
 my $CONFIG = Config::Tiny->new();
@@ -26,7 +29,10 @@ my $OS = getOS();
 my $basename_suffix = '';
 my $version = '';
 my %archives;
+my %dmgs;
 my %md5s;
+my %shas;
+my %installer_hashes;
 
 sub getOS
 {
@@ -62,9 +68,19 @@ sub get_archives
 	return %archives;
 }
 
+sub get_dmgs
+{
+	return %dmgs;
+}
+
 sub get_md5s
 {
 	return %md5s;
+}
+
+sub get_shas
+{
+	return %shas;
 }
 
 sub get_mode
@@ -72,9 +88,9 @@ sub get_mode
 	return ($version ne '') ? 'release' : 'nightly';
 }
 
-sub use_dmg
+sub make_dmg
 {
-	return ( $CONFIG->{$OS}->{get_mode() . '_archive_ext'} eq '.dmg' );
+	return ($OS eq 'OSX' && get_mode() eq 'release');
 }
 
 sub compile
@@ -170,7 +186,7 @@ sub compile
 			push(@filenames, move_and_rename($exportpath, $config));
 		}
 
-		($archives{$group}, $md5s{$group}) = archive($group, @filenames);
+		($archives{$group}, $dmgs{$group}, $md5s{$group}, $shas{$group}) = archive($group, @filenames);
 	}
 
 	chdir($currentdir);
@@ -260,11 +276,14 @@ sub archive
 	my $output;
 	my $command2;
 	my $output2;
+	my $dmgcommand;
+	my $dmgoutput;
 	my $var_prefix;
 	my $basename;
 	my $archivename;
+	my $dmgname = '';
 	my $md5name;
-	my @deletefiles;
+	my $shaname = '';
 	my $srcfolder = 'FS2_Open ' . $version . ' ' . $group;
 	my $dirversion = $version;
 	$dirversion =~ s/\ /_/g;
@@ -277,11 +296,12 @@ sub archive
 
 	chdir($CONFIG->{$OS}->{archive_path});
 
-	if(use_dmg())
+	if(make_dmg())
 	{
 		mkdir($srcfolder);
 	}
 
+	%installer_hashes = ();
 	foreach (@filenames)
 	{
 		unless(-s $_)
@@ -291,9 +311,15 @@ sub archive
 
 		$args .= " \"" . $_ . "\"";
 
-		if(use_dmg())
+		if(get_mode() eq 'release')
 		{
-			move($_, catfile($srcfolder, $_));
+			# Get the hashes now, before moving any files.
+			processfiles($_);
+		}
+
+		if(make_dmg())
+		{
+			copy($_, catfile($srcfolder, $_));
 		}
 	}
 
@@ -311,15 +337,29 @@ sub archive
 	{
 		$basename = 'fs2_open_' . $dirversion;
 		$basename .= ($group ne 'Standard') ? '_' . $group : '';
+		# Dump the hashes we got earlier to a file in the archive location.
+		$shaname = dumphashes($basename);
 	}
-	$archivename = $basename . $CONFIG->{$OS}->{get_mode() . '_archive_ext'};
-	$command = $CONFIG->{$OS}->{get_mode() . '_path_to_archiver'} . " " . $CONFIG->{$OS}->{get_mode() . '_archiver_args'} . " ";
-	$command .= use_dmg() ? '"' . $srcfolder . '" ' . $archivename : $archivename . $args;
 
-	$md5name = $basename . ".md5";
-	$command2 = $CONFIG->{$OS}->{md5} . " " . $archivename . " > " . $md5name;
+	$archivename = $basename . $CONFIG->{$OS}->{get_mode() . '_archive_ext'};
+	$command = $CONFIG->{$OS}->{get_mode() . '_path_to_archiver'} . " " . $CONFIG->{$OS}->{get_mode() . '_archiver_args'} . " " . $archivename . $args;
+
+	if(make_dmg())
+	{
+		$dmgname = $basename . '.dmg';
+		$dmgcommand = 'hdiutil create -srcfolder "' . $srcfolder . '" ' . $dmgname;
+	}
+
+	$md5name = $basename . '.md5';
+	$command2 = $CONFIG->{$OS}->{md5} . " " . $archivename . (make_dmg() ? " " . $dmgname : "") . " > " . $md5name;
 
 	# archive the files
+	if(make_dmg())
+	{
+		print "Executing:  " . $dmgcommand . "\n";
+		$dmgoutput = `$dmgcommand 2>&1`;
+#		print $dmgoutput . "\n";
+	}
 	print "Executing:  " . $command . "\n";
 	$output = `$command 2>&1`;
 #	print $output . "\n";
@@ -328,9 +368,12 @@ sub archive
 	$output2 = `$command2 2>&1`;
 #	print $output2 . "\n";
 
-	@deletefiles = use_dmg() ? ($srcfolder) : @filenames;
+	if(make_dmg() && -d $srcfolder)
+	{
+		rmtree($srcfolder);
+	}
 
-	foreach (@deletefiles)
+	foreach (@filenames)
 	{
 		if(-e $_)
 		{
@@ -351,13 +394,87 @@ sub archive
 
 	chdir($currentdir);
 
-	return ($archivename, $md5name);
+	return ($archivename, $dmgname, $md5name, $shaname);
+}
+
+sub processfiles
+{
+	my $dirname = shift;
+
+	if(-f $dirname)
+	{
+		# Is file, just sha-256 the file
+		$installer_hashes{$dirname} = getchecksum($dirname);
+		return 0;
+	}
+
+	opendir(DIRH, $dirname);
+
+	#
+	# Read all the files and directories excluding the current
+	# '.' and parent directory '..'  
+	#
+
+	my @files = sort (grep { !/^\.|\.\.}$/ } readdir (DIRH));
+	closedir(DIRH);
+	my $file;
+	foreach $file (@files)
+	{
+		my $fullpath = $dirname . "/" . $file;
+		if (-d $fullpath)
+		{
+			processfiles($fullpath);
+		}
+		else
+		{
+			$installer_hashes{$fullpath} = getchecksum($fullpath);
+		}
+	}
+
+	return 0;
+}
+
+sub getchecksum
+{
+	my $file = shift;
+	my $hash = Digest::SHA->new(256);
+	if (! -r $file)
+	{
+		die "Could not read $file for hashing, terminating.\n";
+	}
+	open (my $fh, "<", $file) or die "Could not open $file for hashing, terminating.\n";
+	$hash->addfile($fh);
+	close($fh);
+	return $hash->hexdigest;
+}
+
+sub dumphashes
+{
+	my $shafile = $_[0] . '.sums';
+	my $file;
+	my $hash;
+
+	chdir($CONFIG->{$OS}->{archive_path});
+
+	if (-e $shafile)
+	{
+		unlink($shafile) or print STDERR "Could not unlink $shafile: $!";
+	}
+
+	open(my $fh, ">", $shafile);
+	while(($file, $hash) = each %installer_hashes)
+	{
+		print $fh "HASH\nSHA-256\n$file\n$hash\n";
+	}
+	close($fh);
+
+	return $shafile;
 }
 
 sub upload
 {
 	# Upload $archivename to the server, use Net::FTP.
-	my ($archivename, $md5name, $local_path, $upload_path) = @_;
+	my ($archivename, $dmgname, $md5name, $shaname, $local_path, $upload_path) = @_;
 	my $fh;
 	my $ftp;
 	my $currentdir = cwd();
@@ -388,7 +505,7 @@ sub upload
 
 	foreach $mirror (@mirrors)
 	{
-		print "Uploading " . $local_path . "/" . $archivename . " and " . $local_path . "/" . $md5name . " to " . $MIRROR_HOSTS{$mirror} . "\n";
+		print "Uploading " . $local_path . "/" . $archivename . ( ($dmgname ne '') ? (" and " . $local_path . "/" . $dmgname) : '' ) . " and " . $local_path . "/" . $md5name . ( ($shaname ne '') ? (" and " . $local_path . "/" . $shaname) : '' ) . " to " . $MIRROR_HOSTS{$mirror} . "\n";
 
 		given ($MIRROR_TYPES{$mirror})
 		{
@@ -399,8 +516,16 @@ sub upload
 				$ftp->cwd($MIRROR_BUILDS_PATHS{$mirror} . "/" . $upload_path) or die "Cannot change working directory ", $ftp->message;
 				$ftp->binary();
 				$ftp->put($archivename) or die "Upload of archive failed ", $ftp->message;
+				if($dmgname ne '')
+				{
+					$ftp->put($dmgname) or die "Upload of DMG archive failed ", $ftp->message;
+				}
 				$ftp->ascii();
 				$ftp->put($md5name) or die "Upload of md5sum failed ", $ftp->message;
+				if($shaname ne '')
+				{
+					$ftp->put($shaname) or die "Upload of SHA sum failed ", $ftp->message;
+				}
 				$ftp->quit;
 			}
 			when (/^sftp$/)
@@ -410,7 +535,15 @@ sub upload
 #				$ftp->error and die "Something bad happened connecting to " . $MIRROR_HOSTS{$mirror} . ": " . $ftp->error;
 #				$ftp->setcwd($MIRROR_BUILDS_PATHS{$mirror} . "/" . $upload_path);
 #				$ftp->put($archivename, $archivename);
+#				if($dmgname ne '')
+#				{
+#					$ftp->put($dmgname, $dmgname);
+#				}
 #				$ftp->put($md5name, $md5name);
+#				if($shaname ne '')
+#				{
+#					$ftp->put($shaname, $shaname);
+#				}
 #				$ftp->disconnect();
 
 				# Write certs to a file, upload file, remove file.  Sync script on primary FTP will finish distribution to mirrors.
@@ -422,7 +555,7 @@ sub upload
 				$ftp->ascii();
 				$ftp->put(md5_hex($mirror) . '.scert') or die "Upload of scert failed ", $ftp->message;
 				$ftp->quit;
-				unlink(md5_hex($mirror) . '.scert');
+				unlink(md5_hex($mirror) . '.scert')  or print STDERR "Could not unlink the scert file: $!";
 			}
 		}
 	}

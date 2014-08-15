@@ -1,6 +1,8 @@
-#!/usr/bin/perl -W
+#!/opt/local/bin/perl -W
 
-# Release build script version 1.0.0
+# Release build script version 1.2.0
+# 1.2.0 - Use new Mantis module to get number of currently open issues
+# 1.1.0 - Use Buildcore's new SHA-256 support
 # 1.0 - Initial release
 
 use strict;
@@ -11,6 +13,7 @@ use Smf;
 use Git;
 use Svn;
 use Replacer;
+use Mantis;
 use Cwd;
 use Data::Dumper;
 use Config::Tiny;
@@ -44,7 +47,9 @@ my %versions = (
 my $naturalversion;
 my $fullversion;
 my %archives;
+my %dmgs;
 my %md5s;
+my %shas;
 
 # The map of files to do replacements in, and what functions to run to do the replacements.
 my %files = (
@@ -73,6 +78,15 @@ my %files = (
 	"projects/Xcode4/English.lproj/InfoPlist.strings|encoding(UTF-16)" => ["replace_natural_version"],
 	"projects/Xcode4/FS2_Open.xcodeproj/project.pbxproj" => ["replace_natural_version"],
 );
+
+my $mantis = Mantis->new(
+	connecturl => $CONFIG->{mantis}->{installation_base_url} . 'api/soap/mantisconnect.php',
+	username => $CONFIG->{mantis}->{username},
+	password => $CONFIG->{mantis}->{password},
+	projectid => $CONFIG->{mantis}->{projectid}
+);
+
+my $open_issues = $mantis->get_issues_count($CONFIG->{mantis}->{open_issues_filter_id});
 
 GetOptions (
 	'createbranch=s' => \$createbranch,
@@ -133,7 +147,7 @@ if($doarchive)
 	print "Archiving source...\n";
 	archive_source();
 	print "Uploading source...\n";
-	Buildcore::upload("fs2_open_" . $fullversion . "_src.tgz", "fs2_open_" . $fullversion . "_src.md5", dirname($checkout_path), '');
+	Buildcore::upload("fs2_open_" . $fullversion . "_src.tgz", '', "fs2_open_" . $fullversion . "_src.md5", '', dirname($checkout_path), '');
 	print "Moving source...\n";
 	move_to_builds();
 }
@@ -145,7 +159,9 @@ if(Buildcore::compile($vcs->{exportpath}) != 1)
 }
 
 %archives = Buildcore::get_archives();
+%dmgs = Buildcore::get_dmgs();
 %md5s = Buildcore::get_md5s();
+%shas = Buildcore::get_shas();
 
 print "Compiling completed\n";
 # Code was compiled and updated, move the built files somewhere for archiving
@@ -155,7 +171,7 @@ rmtree($vcs->{exportpath});
 print "Uploading builds...\n";
 foreach (keys (%archives))
 {
-	Buildcore::upload($archives{$_}, $md5s{$_}, $CONFIG->{$OS}->{archive_path}, $OS);
+	Buildcore::upload($archives{$_}, $dmgs{$_}, $md5s{$_}, $shas{$_}, $CONFIG->{$OS}->{archive_path}, $OS);
 }
 
 if($message ne '')
@@ -224,6 +240,7 @@ Linux:  [url=http://www.hard-light.net/forums/index.php/topic,53206.0.html]YAL[/
 
 Known issues:
 [list]
+[li]Open non-feature issues in [url=" . $CONFIG->{general}->{mantis_installation} . "view_all_set.php?type=3&source_query_id=" . $CONFIG->{general}->{open_issues_filter_id} . "]Mantis[/url]: " . $open_issues . "[/li]
 [li]See the list of [url=http://scp.indiegames.us/mantis/search.php?project_id=1&status_id%5B%5D=10&status_id%5B%5D=20&status_id%5B%5D=30&status_id%5B%5D=40&status_id%5B%5D=50&priority_id%5B%5D=40&priority_id%5B%5D=50&priority_id%5B%5D=60&sticky_issues=on&sortby=last_updated&dir=DESC&per_page=200&hide_status_id=-2]Fix for next release[/url] bugs - mark a bug as an elevated priority (high, urgent, immediate) to get it included in that filter.[/li]
 [li]Here is the filter for [url=http://scp.indiegames.us/mantis/search.php?project_id=1&status_id%5B%5D=10&status_id%5B%5D=20&status_id%5B%5D=30&status_id%5B%5D=40&status_id%5B%5D=50&status_id%5B%5D=60&sticky_issues=on&target_version=" . $versions{nextversion} . "&sortby=last_updated&dir=DESC&hide_status_id=-2]Target " . $versions{nextversion} . "[/url] bugs.[/li]
 [/list]
