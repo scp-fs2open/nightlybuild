@@ -1,4 +1,4 @@
-#!/opt/local/bin/perl -W
+#!/usr/bin/perl -W
 
 # Nightly build script version 3.2.0
 # 3.2.0 - Use new Mantis module to get number of currently open issues

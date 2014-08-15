@@ -1,4 +1,4 @@
-#!/opt/local/bin/perl -W
+#!/usr/bin/perl -W
 
 # Release build script version 1.2.0
 # 1.2.0 - Use new Mantis module to get number of currently open issues
