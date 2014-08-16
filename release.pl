@@ -240,7 +240,7 @@ Linux:  [url=http://www.hard-light.net/forums/index.php/topic,53206.0.html]YAL[/
 
 Known issues:
 [list]
-[li]Open non-feature issues in [url=" . $CONFIG->{general}->{mantis_installation} . "view_all_set.php?type=3&source_query_id=" . $CONFIG->{general}->{open_issues_filter_id} . "]Mantis[/url]: " . $open_issues . "[/li]
+[li]Open non-feature issues in [url=" . $CONFIG->{mantis}->{installation_base_url} . "view_all_set.php?type=3&source_query_id=" . $CONFIG->{mantis}->{open_issues_filter_id} . "]Mantis[/url]: " . $open_issues . "[/li]
 [li]See the list of [url=http://scp.indiegames.us/mantis/search.php?project_id=1&status_id%5B%5D=10&status_id%5B%5D=20&status_id%5B%5D=30&status_id%5B%5D=40&status_id%5B%5D=50&priority_id%5B%5D=40&priority_id%5B%5D=50&priority_id%5B%5D=60&sticky_issues=on&sortby=last_updated&dir=DESC&per_page=200&hide_status_id=-2]Fix for next release[/url] bugs - mark a bug as an elevated priority (high, urgent, immediate) to get it included in that filter.[/li]
 [li]Here is the filter for [url=http://scp.indiegames.us/mantis/search.php?project_id=1&status_id%5B%5D=10&status_id%5B%5D=20&status_id%5B%5D=30&status_id%5B%5D=40&status_id%5B%5D=50&status_id%5B%5D=60&sticky_issues=on&target_version=" . $versions{nextversion} . "&sortby=last_updated&dir=DESC&hide_status_id=-2]Target " . $versions{nextversion} . "[/url] bugs.[/li]
 [/list]
@@ -252,13 +252,13 @@ Compiled on MSVC 2008 SP1
 [b]If you don't know which one to get, get the third one (no SSE).[/b]  [color=red]If you don't know what SSE means, read this: http://en.wikipedia.org/wiki/Streaming_SIMD_Extensions[/color]
 You can use freely available tools like [url=http://www.cpuid.com/softwares/cpu-z.html]CPU-Z[/url] to check which SSE capabilities your CPU has.
 
-[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . ".zip]fs2_open_" . $periodversion . ".zip[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . ".zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . ".zip]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $underscoreversion . ".md5]MD5[/url][/color])
+[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . ".7z]fs2_open_" . $periodversion . ".7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . ".7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . ".7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $underscoreversion . ".md5]MD5[/url][/color])
 This one is based on the SSE2 Optimizations from the MSVC Compiler.
 
-[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_SSE.zip]fs2_open_" . $periodversion . "_SSE.zip[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.zip]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.md5]MD5[/url][/color])
+[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_SSE.7z]fs2_open_" . $periodversion . "_SSE.7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.md5]MD5[/url][/color])
 This one is based on the SSE Optimizations from the MSVC Compiler.
 
-[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_NO-SSE.zip]fs2_open_" . $periodversion . "_NO-SSE.zip[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.zip]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.md5]MD5[/url][/color])
+[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_NO-SSE.7z]fs2_open_" . $periodversion . "_NO-SSE.7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.md5]MD5[/url][/color])
 
 [b]What are those SSE and SSE2 builds I keep seeing everywhere?[/b]
 [url=http://www.hard-light.net/forums/index.php?topic=65628.0]Your answer is in this topic.[/url]

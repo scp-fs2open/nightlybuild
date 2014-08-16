@@ -163,7 +163,7 @@ sub post
 	$subject = "Nightly (" . $CONFIG->{$OS}->{os_name} . "): " . $mday . " " . $monthword . " " . $year . " - Revision " . $vcs->{displayrevision};
 	# Set up the message
 	$message = "Here is the nightly for " . $CONFIG->{$OS}->{os_name} . " on " . $mday . " " . $monthword . " " . $year . " - Revision " . $vcs->{displayrevision} . "\n\n";
-	$message .= "Open non-feature issues in [url=" . $CONFIG->{general}->{mantis_installation} . "view_all_set.php?type=3&source_query_id=" . $CONFIG->{general}->{open_issues_filter_id} . "]Mantis[/url]: " . $mantis->get_issues_count($CONFIG->{general}->{open_issues_filter_id}) . "\n\n";
+	$message .= "Open non-feature issues in [url=" . $CONFIG->{mantis}->{installation_base_url} . "view_all_set.php?type=3&source_query_id=" . $CONFIG->{mantis}->{open_issues_filter_id} . "]Mantis[/url]: " . $open_issues . "\n\n";
 
 	# Make a post on the forums to the download
 	foreach $group (keys (%archives))
