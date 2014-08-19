@@ -13,6 +13,7 @@ use Config::Tiny;
 use Net::FTP;
 #use Net::SFTP::Foreign;
 use File::Copy;
+use File::Copy::Recursive qw(rcopy);
 use File::Path;
 use File::Spec::Functions;
 use File::Basename;
@@ -319,7 +320,7 @@ sub archive
 
 		if(make_dmg())
 		{
-			copy($_, catfile($srcfolder, $_));
+			rcopy($_, catfile($srcfolder, $_));
 		}
 	}
 
@@ -442,8 +443,8 @@ sub getchecksum
 	{
 		die "Could not read $file for hashing, terminating.\n";
 	}
-	open (my $fh, "<", $file) or die "Could not open $file for hashing, terminating.\n";
-	$hash->addfile($fh);
+	open (my $fh, "< :raw", $file) or die "Could not open $file for hashing, terminating.\n";
+	$hash->addfile($fh, "b");
 	close($fh);
 	return $hash->hexdigest;
 }
