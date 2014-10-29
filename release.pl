@@ -252,13 +252,13 @@ Compiled on MSVC 2008 SP1
 [b]If you don't know which one to get, get the third one (no SSE).[/b]  [color=red]If you don't know what SSE means, read this: http://en.wikipedia.org/wiki/Streaming_SIMD_Extensions[/color]
 You can use freely available tools like [url=http://www.cpuid.com/softwares/cpu-z.html]CPU-Z[/url] to check which SSE capabilities your CPU has.
 
-[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . ".7z]fs2_open_" . $periodversion . ".7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . ".7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . ".7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $underscoreversion . ".md5]MD5[/url][/color])
+[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . ".7z]fs2_open_" . $periodversion . ".7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $periodversion . ".7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $periodversion . ".7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
 This one is based on the SSE2 Optimizations from the MSVC Compiler.
 
-[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_SSE.7z]fs2_open_" . $periodversion . "_SSE.7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $underscoreversion . "_SSE.md5]MD5[/url][/color])
+[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_SSE.7z]fs2_open_" . $periodversion . "_SSE.7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $periodversion . "_SSE.7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $periodversion . "_SSE.7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_SSE.md5]MD5[/url][/color])
 This one is based on the SSE Optimizations from the MSVC Compiler.
 
-[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_NO-SSE.7z]fs2_open_" . $periodversion . "_NO-SSE.7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $underscoreversion . "_NO-SSE.md5]MD5[/url][/color])
+[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_NO-SSE.7z]fs2_open_" . $periodversion . "_NO-SSE.7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $periodversion . "_NO-SSE.7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $periodversion . "_NO-SSE.7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_NO-SSE.md5]MD5[/url][/color])
 
 [b]What are those SSE and SSE2 builds I keep seeing everywhere?[/b]
 [url=http://www.hard-light.net/forums/index.php?topic=65628.0]Your answer is in this topic.[/url]
