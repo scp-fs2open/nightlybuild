@@ -1,6 +1,7 @@
 package Git;
 
-# Git Nightlybuild Plugin 2.0
+# Git Nightlybuild Plugin 2.1
+# 2.1 - Generate the next build revision instead of passing it to the script.
 # 2.0 - Support for release building as well as nightly building
 # 1.0 - Initial release
 
@@ -65,6 +66,13 @@ sub getrevision
 	$output =~ s/^\s+|\s+$//g;
 
 	return $output;
+}
+
+sub get_next_release_revision
+{
+	my ($class) = @_;
+	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
+	return ($year + 1900).($mon + 1).$mday;
 }
 
 sub createbranch

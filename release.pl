@@ -1,6 +1,7 @@
 #!/usr/bin/perl -W
 
-# Release build script version 1.2.0
+# Release build script version 1.2.1
+# 1.2.1 - Generate the next build revision instead of passing it to the script.
 # 1.2.0 - Use new Mantis module to get number of currently open issues
 # 1.1.0 - Use Buildcore's new SHA-256 support
 # 1.0 - Initial release
@@ -95,7 +96,6 @@ GetOptions (
 	'lastreleaserevision=s' => \$versions{lastreleaserevision},
 	'nextversion=s' => \$versions{nextversion},
 	'nextsubversion=s' => \$versions{nextsubversion},
-	'nextreleaserevision=s' => \$versions{nextreleaserevision},
 	'doarchive' => \$doarchive,
 	'oldreleasepost=s' => \$oldreleasepost,
 	'message=s' => \$message,
@@ -131,6 +131,7 @@ if($versions{lastversion})
 	# There are only several formats for the version string, probably create a list of files to
 	# apply a regex replace to for each one.
 	print "Replacing versions...\n";
+	$versions{nextreleaserevision} = $vcs->get_next_release_revision($checkout_path);
 	Replacer::replace_versions(\%files, \%versions, $checkout_path);
 	print "Committing versions...\n";
 	$vcs->commit_versions($checkout_path, $versions{nextversion}, ($versions{nextsubversion} ? $versions{nextsubversion} : "Final"));

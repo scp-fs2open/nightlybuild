@@ -1,6 +1,7 @@
 package Svn;
 
-# SVN Nightlybuild Plugin 2.0
+# SVN Nightlybuild Plugin 2.1
+# 2.1 - Generate the next build revision instead of passing it to the script.
 # 2.0 - Support for release building as well as nightly building
 # 1.0 - Initial release
 
@@ -34,6 +35,14 @@ sub getrevision
 	my $command;
 	$command = "svnversion -n " . $class->{source_path};
 	return `$command 2>&1`;
+}
+
+sub get_next_release_revision
+{
+	my ($class, $checkout_path) = @_;
+	my $command;
+	$command = "svnversion -n " . $checkout_path;
+	return `$command 2>&1` + 1;
 }
 
 sub createbranch
