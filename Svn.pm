@@ -81,8 +81,9 @@ sub commit_versions
 {
 	my ($class, $checkout_path, $version, $subversion) = @_;
 	my $cmd;
+	my $fullversion = $version . ($subversion ? " " . $subversion : "");
 
-	$cmd = "svn commit -m 'Automated " . $version . " " . $subversion . " versioning commit' " . $checkout_path;
+	$cmd = "svn commit -m 'Automated " . $fullversion . " versioning commit' " . $checkout_path;
 	print $cmd . "\n";
 	`$cmd`;
 }

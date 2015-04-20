@@ -103,8 +103,9 @@ sub commit_versions
 {
 	my ($class, $checkout_path, $version, $subversion) = @_;
 	my $cmd;
+	my $fullversion = $version . ($subversion ? " " . $subversion : "");
 
-	$cmd = $class->{gitremotecmd} . " commit -am 'Automated " . $version . " " . $subversion . " versioning commit'";
+	$cmd = $class->{gitremotecmd} . " commit -am 'Automated " . $fullversion . " versioning commit'";
 	print $cmd . "\n";
 	`$cmd`;
 	$cmd = $class->{gitremotecmd} . " push origin " . Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format});
