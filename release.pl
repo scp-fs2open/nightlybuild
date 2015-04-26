@@ -112,9 +112,9 @@ $naturalversion = $versions{nextversion};
 if($versions{nextsubversion})
 {
 	$naturalversion .= " " . $versions{nextsubversion};
-	$fullversion = $naturalversion;
-	$fullversion =~ s/[\.\ ]/_/g;
 }
+$fullversion = $naturalversion;
+$fullversion =~ s/[\.\ ]/_/g;
 
 Buildcore::set_version($naturalversion);
 
