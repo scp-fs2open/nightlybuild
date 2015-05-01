@@ -1,6 +1,7 @@
 package Git;
 
-# Git Nightlybuild Plugin 2.1
+# Git Nightlybuild Plugin 2.2
+# 2.2 - Add some more types of revision for use with nightlies, fix an archiving bug on Windows.
 # 2.1 - Generate the next build revision instead of passing it to the script.
 # 2.0 - Support for release building as well as nightly building
 # 1.0 - Initial release
@@ -71,8 +72,16 @@ sub getrevision
 sub get_next_release_revision
 {
 	my ($class) = @_;
-	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
-	return ($year + 1900).($mon + 1).$mday;
+	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime;
+	my @months = qw(01 02 03 04 05 06 07 08 09 10 11 12);
+	my @abbr = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
+	$year += 1900;
+	$mon = $months[$mon];
+	if($mday < 10)
+	{
+		$mday = "0" . $mday;
+	}
+	return $year . $mon . $mday;
 }
 
 sub createbranch
@@ -137,6 +146,8 @@ sub update
 		# Update the local branch hash to the track branch hash.
 		$class->{buildrevision} = substr($class->{revision}, 0, 7);
 		$class->{displayrevision} = $class->{buildrevision};
+		$class->{ident} = $class->{buildrevision};
+		$class->{fsrevision} = $class->get_next_release_revision();
 		$command = $class->{gitremotecmd} . " update-ref refs/heads/" . $class->{nightly_branch} . " " . $class->{revision};
 		`$command 2>&1`;
 	}
@@ -149,6 +160,8 @@ sub export
 	my $class = shift;
 	my $source;
 	my $exportcommand;
+	my $tarpath;
+
 	unless($source = shift)
 	{
 		my $i = 0;
@@ -171,8 +184,12 @@ sub export
 	print "Going to export " . $source . " to directory " . $class->{exportpath} . "\n";
 
 	mkdir($class->{exportpath});
+	
+	$tarpath = $class->{exportpath};
+	# Hack for tar on Windows, it needs Unix style path separators.
+	$tarpath =~ s/\\/\//g;
 
-	$exportcommand = $class->{gitremotecmd} . " archive --format=tar " . $class->{nightly_branch} . " | tar -C " . $class->{exportpath} . " -xf -";
+	$exportcommand = $class->{gitremotecmd} . " archive --format=tar " . $class->{nightly_branch} . " | tar -C " . $tarpath . " -xf -";
 	system($exportcommand);
 	if($? >> 8 == 0)
 	{

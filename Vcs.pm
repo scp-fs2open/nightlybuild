@@ -1,6 +1,7 @@
 package Vcs;
 
-# Vcs Nightlybuild Plugin 2.0 - abstract class for VCS plugins to extend
+# Vcs Nightlybuild Plugin 2.1 - abstract class for VCS plugins to extend
+# 2.1 - Add some revision types for nightlies.
 # 2.0 - Support for release building as well as nightly building
 # 1.0 - Initial release
 
@@ -20,6 +21,8 @@ sub new
 	$this->{revision} = 'FAILURE';
 	$this->{buildrevision} = '';
 	$this->{displayrevision} = '';
+	$this->{ident} = '';
+	$this->{fsrevision} = '';
 	$this->{exportpath} = '';
 
 	bless $this, $type;       # Connect the hash to the package Vcs.

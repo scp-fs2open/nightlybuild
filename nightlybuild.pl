@@ -1,6 +1,7 @@
 #!/usr/bin/perl -W
 
-# Nightly build script version 3.2.0
+# Nightly build script version 3.3.0
+# 3.3.0 - Add support for replacing the FS_VERSION_IDENT in nightlies
 # 3.2.0 - Use new Mantis module to get number of currently open issues
 # 3.1.0 - Use Buildcore's new SHA-256 support
 # 3.0.0 - Remaining shared functionality with release script moved into common Buildcore plugin
@@ -71,12 +72,14 @@ my $vcs = ucfirst($CONFIG->{general}->{vcs})->new( 'source_path' => $CONFIG->{$O
 my %files = (
 	"code/fred2/fred.rc|raw" => ["inject_revision"],
 	"code/freespace2/freespace.rc|raw" => ["inject_revision"],
-	"code/globalincs/version.h" => ["inject_revision"],
+	"code/globalincs/version.h" => ["inject_revision", "inject_ident"],
 );
 
 my %versions = (
 	'lastreleaserevision' => '000000',
 	'nextreleaserevision' => '',
+	'lastident' => 'custom',
+	'nextident' => '',
 );
 
 my $mantis = Mantis->new(
@@ -104,7 +107,8 @@ if(!$vcs->verifyrepo() || $vcs->update() != 1)
 
 print "Repository has been updated to revision " . $vcs->{revision} . ", compiling...\n";
 
-$versions{nextreleaserevision} = $vcs->{revision};
+$versions{nextreleaserevision} = $vcs->{fsrevision};
+$versions{nextident} = $vcs->{ident};
 Buildcore::set_basename_suffix("_" . $DATE . "_" . $vcs->{buildrevision});
 
 if($vcs->export() != 1)

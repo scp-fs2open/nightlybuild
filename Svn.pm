@@ -1,6 +1,7 @@
 package Svn;
 
-# SVN Nightlybuild Plugin 2.1
+# SVN Nightlybuild Plugin 2.2
+# 2.2 - Add another type of revision for nightlies.
 # 2.1 - Generate the next build revision instead of passing it to the script.
 # 2.0 - Support for release building as well as nightly building
 # 1.0 - Initial release
@@ -120,6 +121,7 @@ sub update
 		$updateoutput =~ /Updated\ to\ revision\ (\d*)\./;
 		$class->{revision} = $1;
 		$class->{displayrevision} = $class->{revision};
+		$class->{fsrevision} = $class->{revision};
 		$class->{buildrevision} = 'r' . $class->{revision};
 		return 1;
 	}

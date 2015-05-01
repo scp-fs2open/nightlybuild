@@ -1,6 +1,7 @@
 package Replacer;
 
-# Replacer Nightlybuild Plugin 1.0
+# Replacer Nightlybuild Plugin 1.1
+# 1.1 - Add support for replacing the FS_VERSION_IDENT value when present in versions.
 # 1.0 - Initial release
 
 use strict;
@@ -55,6 +56,17 @@ sub inject_revision
 	my %versions = %$versions_ref;
 	my $search = '(FS_VERSION_REVIS |,|\.)' . $versions{lastreleaserevision};
 	my $replace = '${1}' . $versions{nextreleaserevision};
+	$raw_regex = 1;
+
+	return ($search, $replace);
+}
+
+sub inject_ident
+{
+	my $versions_ref = shift;
+	my %versions = %$versions_ref;
+	my $search = '\/\/(#define FS_VERSION_IDENT NOX\(")' . $versions{lastident};
+	my $replace = '${1}' . $versions{nextident};
 	$raw_regex = 1;
 
 	return ($search, $replace);
