@@ -26,7 +26,7 @@ sub new
 	my %parm = @_;
 	my $this = Vcs->new(%parm);  # Create an anonymous hash, and #self points to it.
 
-	$this->{gitremotecmd} = "git --git-dir=" . catfile($this->{source_path}, ".git") . " --work-tree=" . $this->{source_path};
+	$this->{gitremotecmd} = 'git --git-dir="' . catfile($this->{source_path}, ".git") . '" --work-tree="' . $this->{source_path} . '"';
 	$this->{nightly_branch} = $CONFIG->{general}->{nightly_branch};
 	$this->{nightly_branch} =~ s/##BRANCH##/$CONFIG->{general}->{track_branch}/;
 	$this->{nightly_branch} =~ s/##OS##/$this->{'OS'}/;
@@ -206,7 +206,7 @@ sub export
 sub get_log
 {
 	my ($class) = @_;
-	my $logcommand = $class->{gitremotecmd} . " log " . $class->{revision} . " ^" . $class->{oldrevision} . " --no-merges";
+	my $logcommand = $class->{gitremotecmd} . ' log "' . $class->{revision} . '" "^' . $class->{oldrevision} . '" --no-merges';
 	if($CONFIG->{general}->{log_pretty})
 	{
 		$logcommand = $logcommand . " --stat --pretty=" . $CONFIG->{general}->{log_pretty};
