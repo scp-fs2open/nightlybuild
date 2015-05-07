@@ -150,7 +150,7 @@ sub compile
 					$command = $CONFIG->{$OS}->{build_program_path} . " Freespace2.dsw /MAKE \"Freespace2 - " . $BUILD_CONFIGS{$config} . "\" /MAKE \"Fred2 - " . $BUILD_CONFIGS{$config} . "\" /REBUILD";
 				}
 				elsif($CONFIG->{$OS}->{compiler} eq "MSVC201x") {
-					$command = $CONFIG->{$OS}->{build_program_path} . " Freespace2.sln /t:Rebuild /p:Configuration=\"" . $BUILD_CONFIGS{$config} . "\"";
+					$command = $CONFIG->{$OS}->{build_program_path} . " Freespace2.sln /m /t:Rebuild /p:Configuration=\"" . $BUILD_CONFIGS{$config} . "\"";
 				}
 				else {
 					# Compiler flag not set correctly
@@ -178,7 +178,7 @@ sub compile
 
 			# TODO:  Check @outputlist for actual changes, or if it just exited without doing anything
 			if(($OS eq "OSX" && $output =~ /\ BUILD\ FAILED\ /) ||
-				($OS eq "WIN" && !($output =~ /0\ Projects\ failed/)) ||
+				($OS eq "WIN" && !($output =~ /0\ Projects\ failed/) && !($output =~ /0\ Error\(s\)/)) ||
 				(($OS eq "LINUX" || $OS eq "FREEBSD") && $output =~ /\ Error\ 1\n$/)) {
 				print $output . "\n\n";
 				print STDERR "Building " . $config . " failed, see output for more information.\n";
