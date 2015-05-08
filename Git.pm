@@ -41,7 +41,7 @@ sub getrevision
 	my $createcommand;
 	my $command;
 	my $output;
-	my $fetchcommand = $class->{gitremotecmd} . " fetch";
+	my $fetchcommand = $class->{gitremotecmd} . " fetch origin";
 	`$fetchcommand`;
 	# See if nightly_branch exists
 	system($class->{gitremotecmd} . " show-ref --verify --quiet refs/heads/" . $class->{nightly_branch});
