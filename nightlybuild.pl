@@ -101,7 +101,8 @@ if(!$vcs->verifyrepo() || $vcs->update() != 1)
 	}
 	else
 	{
-		die "Repository still at revision " . $vcs->{revision} . ", terminating.\n";
+		print "Repository still at revision " . $vcs->{revision} . ", terminating.\n";
+		exit;
 	}
 }
 
