@@ -129,11 +129,14 @@ sub update
 
 	if($class->{stoprevision})
 	{
-		die "Git does not understand -r yet.\n";
+		#Don't use the tracking branch, stop at the specified revision
+		$command = $class->{gitremotecmd} . " rev-parse " . $class->{stoprevision};
 	}
-
-	#Compare track_branch hash to nightly_branch hash
-	$command = $class->{gitremotecmd} . " rev-parse origin/" . $CONFIG->{general}->{track_branch};
+	else
+	{
+		#Compare track_branch hash to nightly_branch hash
+		$command = $class->{gitremotecmd} . " rev-parse origin/" . $CONFIG->{general}->{track_branch};
+	}
 	$class->{revision} = `$command 2>&1`;
 	$class->{revision} =~ s/^\s+|\s+$//g;
 	if($class->{revision} eq $class->{oldrevision})
@@ -184,7 +187,7 @@ sub export
 	print "Going to export " . $source . " to directory " . $class->{exportpath} . "\n";
 
 	mkdir($class->{exportpath});
-	
+
 	$tarpath = $class->{exportpath};
 	# Hack for tar on Windows, it needs Unix style path separators.
 	$tarpath =~ s/\\/\//g;
