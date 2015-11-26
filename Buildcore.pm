@@ -1,6 +1,7 @@
 package Buildcore;
 
-# Buildcore plugin for nightly and release build system - common components 1.1.0
+# Buildcore plugin for nightly and release build system - common components 1.2.0
+# 1.2.0 - Stop adding $basename_suffix to all files on Windows; just apply it to the archives.
 # 1.1.0 - Add SHA-256 output and upload for all files within a build, for the Installer.
 # 1.0.1 - MSVC 201x support
 # 1.0.0 - Initial release
@@ -258,7 +259,11 @@ sub move_and_rename
 			$foundext = $1;
 		}
 
-		$newname = $basename . $basename_suffix . $foundext;
+		if ($OS eq "WIN") {
+			$newname = $basename . $foundext;
+		} else {
+			$newname = $basename . $basename_suffix . $foundext;
+		}
 
 		push(@returnfiles, $newname);
 		print "Moving " . $this_build_drop . "/" . $oldname . " to " . $CONFIG->{$OS}->{archive_path} . "/" . $newname . "\n";

@@ -1,6 +1,7 @@
 #!/usr/bin/perl -W
 
-# Nightly build script version 3.3.0
+# Nightly build script version 3.4.0
+# 3.4.0 - Rename the executable before compilation instead of after (should result in Nightlies being able to find their symbol files now)
 # 3.3.0 - Add support for replacing the FS_VERSION_IDENT in nightlies
 # 3.2.0 - Use new Mantis module to get number of currently open issues
 # 3.1.0 - Use Buildcore's new SHA-256 support
@@ -73,6 +74,27 @@ my %files = (
 	"code/fred2/fred.rc|raw" => ["inject_revision"],
 	"code/freespace2/freespace.rc|raw" => ["inject_revision"],
 	"code/globalincs/version.h" => ["inject_revision", "inject_ident"],
+	"projects/codeblocks/Freespace2/Freespace2.cbp" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2005/Fred2.vcproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2005/Freespace2.vcproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2005/wxFRED2.vcproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2008/Fred2.vcproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2008/Freespace2.vcproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2010/Fred2.vcxproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2010/Freespace2.vcxproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2010/wxFRED2.vcxproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2012/Fred2.vcxproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2012/Freespace2.vcxproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2012/wxFRED2.vcxproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2013/Fred2.vcxproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2013/Freespace2.vcxproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2013/wxFRED2.vcxproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2015/Fred2.vcxproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2015/Freespace2.vcxproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_2015/wxFRED2.vcxproj" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_6/Fred2.dsp" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_6/Freespace2.dsp" => ["replace_msvc_version_nightly"],
+	"projects/MSVC_6/wxFRED2.dsp" => ["replace_msvc_version_nightly"],
 );
 
 my %versions = (
