@@ -41,16 +41,16 @@ sub getrevision
 	my $createcommand;
 	my $command;
 	my $output;
-	my $fetchcommand = $class->{gitremotecmd} . " fetch origin";
+	my $fetchcommand = $class->{gitremotecmd} . " fetch " . $CONFIG->{general}->{track_remote};
 	`$fetchcommand`;
 	# See if nightly_branch exists
 	system($class->{gitremotecmd} . " show-ref --verify --quiet refs/heads/" . $class->{nightly_branch});
 	if($? >> 8 != 0)
 	{
 		# Branch does not exist yet.  Create a new one based on the remote branch,
-		# or on origin/master~ if it doesn't exist yet.
-		$createcommand = $class->{gitremotecmd} . " update-ref refs/heads/" . $class->{nightly_branch} . " origin/";
-		system($class->{gitremotecmd} . " show-ref --verify --quiet refs/remotes/origin/" . $class->{nightly_branch});
+		# or on [TRACKING_REMOTE]/master~ if it doesn't exist yet.
+		$createcommand = $class->{gitremotecmd} . " update-ref refs/heads/" . $class->{nightly_branch} . " " . $CONFIG->{general}->{track_remote} . "/";
+		system($class->{gitremotecmd} . " show-ref --verify --quiet refs/remotes/" . $CONFIG->{general}->{track_remote} . "/" . $class->{nightly_branch});
 		if($? >> 8 != 0)
 		{
 			# Remote branch is non-existent too.
@@ -62,7 +62,7 @@ sub getrevision
 		}
 		`$createcommand 2>&1`;
 	}
-	$command = $class->{gitremotecmd} . " rev-parse " . $class->{nightly_branch};
+	$command = $class->{gitremotecmd} . " rev-parse " . $CONFIG->{general}->{track_remote} . "/" . $class->{nightly_branch};
 	$output = `$command 2>&1`;
 	$output =~ s/^\s+|\s+$//g;
 
@@ -90,7 +90,7 @@ sub createbranch
 	my $cmd = $class->{gitremotecmd} . " update-ref refs/heads/" . Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format}) . " " . $revision;
 	print $cmd . "\n";
 	`$cmd`;
-	$cmd = $class->{gitremotecmd} . " push origin " . Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format});
+	$cmd = $class->{gitremotecmd} . " push " . $CONFIG->{general}->{track_remote} . " " . Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format});
 	print $cmd . "\n";
 	`$cmd`;
 }
@@ -117,7 +117,7 @@ sub commit_versions
 	$cmd = $class->{gitremotecmd} . " commit -am 'Automated " . $fullversion . " versioning commit'";
 	print $cmd . "\n";
 	`$cmd`;
-	$cmd = $class->{gitremotecmd} . " push origin " . Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format});
+	$cmd = $class->{gitremotecmd} . " push " . $CONFIG->{general}->{track_remote} . " " . Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format});
 	print $cmd . "\n";
 	`$cmd`;
 }
@@ -135,7 +135,7 @@ sub update
 	else
 	{
 		#Compare track_branch hash to nightly_branch hash
-		$command = $class->{gitremotecmd} . " rev-parse origin/" . $CONFIG->{general}->{track_branch};
+		$command = $class->{gitremotecmd} . " rev-parse " . $CONFIG->{general}->{track_remote} . "/" . $CONFIG->{general}->{track_branch};
 	}
 	$class->{revision} = `$command 2>&1`;
 	$class->{revision} =~ s/^\s+|\s+$//g;
@@ -151,8 +151,6 @@ sub update
 		$class->{displayrevision} = $class->{buildrevision};
 		$class->{ident} = $class->{buildrevision};
 		$class->{fsrevision} = $class->get_next_release_revision();
-		$command = $class->{gitremotecmd} . " update-ref refs/heads/" . $class->{nightly_branch} . " " . $class->{revision};
-		`$command 2>&1`;
 	}
 
 	return 1;
@@ -192,7 +190,7 @@ sub export
 	# Hack for tar on Windows, it needs Unix style path separators.
 	$tarpath =~ s/\\/\//g;
 
-	$exportcommand = $class->{gitremotecmd} . " archive --format=tar " . $class->{nightly_branch} . " | tar -C " . $tarpath . " -xf -";
+	$exportcommand = $class->{gitremotecmd} . " archive --format=tar " . $CONFIG->{general}->{track_remote} . "/" . $class->{track_branch} . " | tar -C " . $tarpath . " -xf -";
 	system($exportcommand);
 	if($? >> 8 == 0)
 	{
@@ -220,10 +218,13 @@ sub get_log
 sub finalize
 {
 	my ($class) = @_;
-	# Git needs to update the remote branch and push it up.
-	my $command = $class->{gitremotecmd} . " push origin " . $class->{nightly_branch};
+	# Update the local branch hash to the track branch hash.
+	my $command = $class->{gitremotecmd} . " update-ref refs/heads/" . $class->{nightly_branch} . " " . $class->{revision};
 	`$command 2>&1`;
-	$command = $class->{gitremotecmd} . " branch --set-upstream " . $class->{nightly_branch} . " origin/" . $class->{nightly_branch};
+	# Git needs to update the remote branch and push it up.
+	$command = $class->{gitremotecmd} . " push " . $CONFIG->{general}->{track_remote} . " " . $class->{nightly_branch};
+	`$command 2>&1`;
+	$command = $class->{gitremotecmd} . " branch --set-upstream " . $class->{nightly_branch} . " " . $CONFIG->{general}->{track_remote} . "/" . $class->{nightly_branch};
 	`$command 2>&1`;
 }
 
