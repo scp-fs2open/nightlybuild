@@ -105,7 +105,7 @@ project=
 ; Need same number of names and strings!!!
 config_groups=Standard
 config_names=Release~Debug
-config_strings=~--enable-debug
+config_strings=--enable-generic-architecture~--enable-debug --enable-generic-architecture
 output_filename=(fs|wxFRED)2_open_.*(_DEBUG)?
 build_extension=(_DEBUG)?
 source_path=/home/cliff/fs2_open_git
