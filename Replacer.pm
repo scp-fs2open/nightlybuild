@@ -1,6 +1,7 @@
 package Replacer;
 
-# Replacer Nightlybuild Plugin 1.1
+# Replacer Nightlybuild Plugin 1.2
+# 1.2 - Add support for nightly builds renaming the executable in the project files.
 # 1.1 - Add support for replacing the FS_VERSION_IDENT value when present in versions.
 # 1.0 - Initial release
 
@@ -173,6 +174,18 @@ sub replace_msvc_version
 	$search = "2_open_" . $search;
 	$replace =~ s/[\.\ ]/_/g;
 	$replace = "2_open_" . $replace;
+
+	return ($search, $replace);
+}
+
+sub replace_msvc_version_nightly
+{
+	my $versions_ref = shift;
+	my %versions = %$versions_ref;
+	my $replace = $versions{nextreleaserevision} . "_" . $versions{nextident};
+	my $search = '2_open_(\d_\d_\d\d?(_(AVX|SSE2|SSE))?)';
+	$replace = '2_open_${1}_' . $replace;
+	$raw_regex = 1;
 
 	return ($search, $replace);
 }
