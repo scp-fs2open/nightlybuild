@@ -24,11 +24,6 @@ sub replace_versions
 	my $functions;
 	for $file ( keys %files )
 	{
-		if(!(-e $file && -w $file))
-		{
-			die "Could not find " . $file . " for version replacement.";
-		}
-
 		@value = @{$files{$file}};
 		while ($functions = shift(@value))
 		{
@@ -242,6 +237,11 @@ sub replace_msvc2008_voicer
 sub replace_in_file
 {
 	my ($filename, $encoding, $search, $replace) = @_;
+
+	if(!(-e $filename && -w $filename))
+	{
+		die "Could not find " . $filename . " for version replacement.";
+	}
 
 	my $data = Replacer::read_file($filename, $encoding);
 	unless($raw_regex)
