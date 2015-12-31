@@ -1,6 +1,7 @@
 package Git;
 
-# Git Nightlybuild Plugin 2.2
+# Git Nightlybuild Plugin 2.3
+# 2.3 - Fix issue where the branch would have to be reset when a build failed by utilizing the remote branch more often.
 # 2.2 - Add some more types of revision for use with nightlies, fix an archiving bug on Windows.
 # 2.1 - Generate the next build revision instead of passing it to the script.
 # 2.0 - Support for release building as well as nightly building
