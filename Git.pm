@@ -191,7 +191,7 @@ sub export
 	# Hack for tar on Windows, it needs Unix style path separators.
 	$tarpath =~ s/\\/\//g;
 
-	$exportcommand = $class->{gitremotecmd} . " archive --format=tar " . $CONFIG->{general}->{track_remote} . "/" . $class->{track_branch} . " | tar -C " . $tarpath . " -xf -";
+	$exportcommand = $class->{gitremotecmd} . " archive --format=tar " . $CONFIG->{general}->{track_remote} . "/" . $CONFIG->{general}->{track_branch} . " | tar -C " . $tarpath . " -xf -";
 	system($exportcommand);
 	if($? >> 8 == 0)
 	{
