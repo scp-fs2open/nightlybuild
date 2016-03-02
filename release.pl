@@ -232,21 +232,23 @@ sub post
 	$message .= "\n\n[size=12pt]Important!![/size]
 As always, you need OpenAL installed.  Linux and OS X come with it but Windows users will need to get Creative's [url=http://scp.indiegames.us/builds/oalinst.zip]OpenAL installer[/url]. Alternatively, if Creative's OpenAL doesn't work with your hardware, you can use [url=http://kcat.strangesoft.net/openal.html#download]OpenAL Soft[/url].
 
+[hidden=TrackIR Users]
 [size=12pt]Important!![/size]
-Also, since the internal code linking for TrackIR was revised, an external DLL is now required for FSO to use TrackIR functions.
-The following DLL is simply unpacked in to you main FreeSpace2 root dir.
+An external DLL is required for FSO to use TrackIR functions.  The following DLL is simply unpacked in to your main FreeSpace2 root dir.
 TrackIR is only supported on Windows.
-[url=http://www.mediafire.com/download.php?ihzkihqj2ky]TrackIR SCP DLL[/url] ([url=http://swc.fs2downloads.com/builds/scptrackir.zip]Mirror[/url]) ([url=http://scp.fsmods.net/builds/scptrackir.zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/scptrackir.zip]Mirror[/url])
+[url=http://www.mediafire.com/download.php?ihzkihqj2ky]TrackIR SCP DLL[/url] ([url=http://swc.fs2downloads.com/builds/scptrackir.zip]Mirror[/url]) ([url=http://scp.fsmods.net/builds/scptrackir.zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/scptrackir.zip]Mirror[/url])[/hidden]
 
 Launchers, if you don't have one already:
 All platforms:  [url=http://www.hard-light.net/forums/index.php?topic=67950.0]wxLauncher[/url] (ongoing project for a unified launcher)
--or-
+
+[hidden=Alternative Launchers]
 Windows:  [url=http://swc.fs2downloads.com/files/Launcher55g.zip]Launcher 5.5g[/url] ([url=http://scp.fsmods.net/builds/Launcher55g.zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/Launcher55g.zip]Mirror[/url]) ([url=http://www.mediafire.com/?wdvzn7hhhzh418m]Mirror[/url]) Not compatible with Windows 8, use wxLauncher above
 OS X:  Soulstorm's [url=http://www.hard-light.net/forums/index.php/topic,51391.0.html]OS X Launcher 3.0[/url]
-Linux:  [url=http://www.hard-light.net/forums/index.php/topic,53206.0.html]YAL[/url] or [url=http://www.hard-light.net/wiki/index.php/Fs2_open_on_Linux/Graphics_Settings]by hand[/url] or whatever you can figure out.
+Linux:  [url=http://www.hard-light.net/forums/index.php/topic,53206.0.html]YAL[/url] or [url=http://www.hard-light.net/wiki/index.php/Fs2_open_on_Linux/Graphics_Settings]by hand[/url] or whatever you can figure out.[/hidden]
 
 Known issues:
 [list]
+[li][url=https://github.com/scp-fs2open/fs2open.github.com/issues]Github issues[/url] and [url=https://github.com/scp-fs2open/fs2open.github.com/pulls]pending pull requests[/url][/li]
 [li]Open non-feature issues in [url=" . $CONFIG->{mantis}->{installation_base_url} . "view_all_set.php?type=3&source_query_id=" . $CONFIG->{mantis}->{open_issues_filter_id} . "]Mantis[/url]: " . $open_issues . "[/li]
 [li]See the list of [url=http://scp.indiegames.us/mantis/search.php?project_id=1&status_id%5B%5D=10&status_id%5B%5D=20&status_id%5B%5D=30&status_id%5B%5D=40&status_id%5B%5D=50&priority_id%5B%5D=40&priority_id%5B%5D=50&priority_id%5B%5D=60&sticky_issues=on&sortby=last_updated&dir=DESC&per_page=200&hide_status_id=-2]Fix for next release[/url] bugs - mark a bug as an elevated priority (high, urgent, immediate) to get it included in that filter.[/li]
 [li]Here is the filter for [url=http://scp.indiegames.us/mantis/search.php?project_id=1&status_id%5B%5D=10&status_id%5B%5D=20&status_id%5B%5D=30&status_id%5B%5D=40&status_id%5B%5D=50&status_id%5B%5D=60&sticky_issues=on&target_version=" . $versions{nextversion} . "&sortby=last_updated&dir=DESC&hide_status_id=-2]Target " . $versions{nextversion} . "[/url] bugs.[/li]
@@ -254,13 +256,14 @@ Known issues:
 
 
 [img]http://scp.indiegames.us/img/windows-icon.png[/img] [color=green][size=12pt]Windows[/size][/color]
-Compiled on MSVC Community 2015
-
-[b]If you don't know which one to get, get the third one (no SSE).[/b]  [color=red]If you don't know what SSE means, read this: http://en.wikipedia.org/wiki/Streaming_SIMD_Extensions[/color]
-You can use freely available tools like [url=http://www.cpuid.com/softwares/cpu-z.html]CPU-Z[/url] to check which SSE capabilities your CPU has.
+Compiled on Windows 7 SP1 64-bit, MSVC Community 2015
 
 [url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . ".7z]fs2_open_" . $periodversion . ".7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $periodversion . ".7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $periodversion . ".7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
 This one is based on the SSE2 Optimizations from the MSVC Compiler.
+
+[hidden=Alternative builds]
+[b]If you don't know which one to get, get the third one (no SSE).[/b]  [color=red]If you don't know what SSE means, read this: http://en.wikipedia.org/wiki/Streaming_SIMD_Extensions[/color]
+You can use freely available tools like [url=http://www.cpuid.com/softwares/cpu-z.html]CPU-Z[/url] to check which SSE capabilities your CPU has.
 
 [url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_SSE.7z]fs2_open_" . $periodversion . "_SSE.7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $periodversion . "_SSE.7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $periodversion . "_SSE.7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_SSE.md5]MD5[/url][/color])
 This one is based on the SSE Optimizations from the MSVC Compiler.
@@ -269,16 +272,18 @@ This one is based on the SSE Optimizations from the MSVC Compiler.
 
 [b]What are those SSE and SSE2 builds I keep seeing everywhere?[/b]
 [url=http://www.hard-light.net/forums/index.php?topic=65628.0]Your answer is in this topic.[/url]
+[/hidden]
 
 
 [img]http://scp.indiegames.us/img/mac-icon.png[/img] [color=green][size=12pt]OS X Universal (32/64-bit Intel)[/size][/color]
-Compiled on Xcode 6.4 ([url=https://gist.github.com/yamaya/2924292]Apple LLVM version cross-reference[/url])
+Compiled on OS X 10.11.3, Xcode 7.2.1 ([url=https://gist.github.com/yamaya/2924292]Apple LLVM version cross-reference[/url])
 
 [url=http://swc.fs2downloads.com/builds/OSX/fs2_open_" . $periodversion . ".dmg]fs2_open_" . $periodversion . ".dmg[/url] ([url=http://scp.fsmods.net/builds/OSX/fs2_open_" . $periodversion . ".dmg]Mirror[/url]) ([url=http://scp.indiegames.us/builds/OSX/fs2_open_" . $periodversion . ".dmg]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/OSX/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
 
 
+[hidden=Other Platforms, Source Code]
 [img]http://scp.indiegames.us/img/linux-icon.png[/img] [color=green][size=12pt]Linux 32-bit[/size][/color]
-Compiled on Ubuntu 14.04.3 LTS 32bit, GCC 4.8.4
+Compiled on Ubuntu 14.04.4 LTS 32-bit, GCC 4.8.4
 
 [url=http://swc.fs2downloads.com/builds/LINUX/fs2_open_" . $periodversion . ".tar.bz2]fs2_open_" . $periodversion . ".tar.bz2[/url] ([url=http://scp.fsmods.net/builds/LINUX/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url]) ([url=http://scp.indiegames.us/builds/LINUX/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/LINUX/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
 
@@ -289,7 +294,8 @@ Compiled on PCBSD 10.2 64-bit, clang 3.4.1
 [url=http://swc.fs2downloads.com/builds/FREEBSD/fs2_open_" . $periodversion . ".tar.bz2]fs2_open_" . $periodversion . ".tar.bz2[/url] ([url=http://scp.fsmods.net/builds/FREEBSD/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url]) ([url=http://scp.indiegames.us/builds/FREEBSD/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/FREEBSD/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
 
 [color=green][size=12pt]Source Code Export[/size][/color] ([color=yellow][url=http://swc.fs2downloads.com/builds/fs2_open_" . $underscoreversion . "_src.md5]MD5[/url][/color])
-[url=http://swc.fs2downloads.com/builds/fs2_open_" . $underscoreversion . "_src.tgz]fs2_open_" . $underscoreversion . "_src.tgz[/url] ([url=http://scp.fsmods.net/builds/fs2_open_" . $underscoreversion . "_src.tgz]Mirror[/url]) ([url=http://scp.indiegames.us/builds/fs2_open_" . $underscoreversion . "_src.tgz]Mirror[/url])";
+[url=http://swc.fs2downloads.com/builds/fs2_open_" . $underscoreversion . "_src.tgz]fs2_open_" . $underscoreversion . "_src.tgz[/url] ([url=http://scp.fsmods.net/builds/fs2_open_" . $underscoreversion . "_src.tgz]Mirror[/url]) ([url=http://scp.indiegames.us/builds/fs2_open_" . $underscoreversion . "_src.tgz]Mirror[/url])
+[/hidden]";
 
 	Smf::set_homeurl($CONFIG->{general}->{forum_url});
 	Smf::set_board($CONFIG->{$OS}->{release_forum});
