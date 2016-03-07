@@ -390,6 +390,12 @@ sub processfiles
 {
 	my $dirname = shift;
 
+	if(-l $dirname)
+	{
+		# Is symlink, don't do anything with it.
+		return 0;
+	}
+
 	if(-f $dirname)
 	{
 		# Is file, just sha-256 the file
@@ -401,7 +407,7 @@ sub processfiles
 
 	#
 	# Read all the files and directories excluding the current
-	# '.' and parent directory '..'  
+	# '.' and parent directory '..'
 	#
 
 	my @files = sort (grep { !/^\.|\.\.}$/ } readdir (DIRH));
