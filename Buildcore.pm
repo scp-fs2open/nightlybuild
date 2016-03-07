@@ -457,8 +457,9 @@ sub dumphashes
 	}
 
 	open(my $fh, ">", $shafile);
-	while(($file, $hash) = each %installer_hashes)
+	foreach $file (sort keys %installer_hashes)
 	{
+		$hash = $installer_hashes{$file};
 		print $fh "HASH\nSHA-256\n$file\n$hash\n";
 	}
 	close($fh);
