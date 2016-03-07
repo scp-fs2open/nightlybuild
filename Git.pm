@@ -94,6 +94,9 @@ sub createbranch
 	$cmd = $class->{gitremotecmd} . " push " . $CONFIG->{general}->{track_remote} . " " . Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format});
 	print $cmd . "\n";
 	`$cmd`;
+	$cmd = $class->{gitremotecmd} . " branch -u " . $CONFIG->{general}->{track_remote} . "/" . Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format}) . " " . Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format});
+	print $cmd . "\n";
+	`$cmd`;
 }
 
 sub checkout_update
