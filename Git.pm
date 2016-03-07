@@ -102,7 +102,10 @@ sub createbranch
 sub checkout_update
 {
 	my ($class, $version) = @_;
-	my $cmd = $class->{gitremotecmd} . " checkout " . Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format});
+	my $cmd = $class->{gitremotecmd} . " fetch " . $CONFIG->{general}->{track_remote};
+	print $cmd . "\n";
+	`$cmd`;
+	$cmd = $class->{gitremotecmd} . " checkout " . Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format});
 	print $cmd . "\n";
 	`$cmd`;
 	$cmd = $class->{gitremotecmd} . " pull";
@@ -166,6 +169,7 @@ sub export
 	my $source;
 	my $exportcommand;
 	my $tarpath;
+	my $export_branch;
 
 	unless($source = shift)
 	{
@@ -175,6 +179,8 @@ sub export
 		do {
 			$class->{exportpath} = $source . "_" . $i++;
 		} while (-d $class->{exportpath});
+
+		$export_branch = $CONFIG->{general}->{track_branch};
 	}
 	else
 	{
@@ -184,6 +190,8 @@ sub export
 		{
 			$class->{exportpath} .= "_" . $subversion;
 		}
+
+		$export_branch = Vcs::get_dirbranch($version, $CONFIG->{general}->{branch_format});
 	}
 
 	print "Going to export " . $source . " to directory " . $class->{exportpath} . "\n";
@@ -194,7 +202,7 @@ sub export
 	# Hack for tar on Windows, it needs Unix style path separators.
 	$tarpath =~ s/\\/\//g;
 
-	$exportcommand = $class->{gitremotecmd} . " archive --format=tar " . $CONFIG->{general}->{track_remote} . "/" . $CONFIG->{general}->{track_branch} . " | tar -C " . $tarpath . " -xf -";
+	$exportcommand = $class->{gitremotecmd} . " archive --format=tar " . $CONFIG->{general}->{track_remote} . "/" . $export_branch . " | tar -C " . $tarpath . " -xf -";
 	system($exportcommand);
 	if($? >> 8 == 0)
 	{
