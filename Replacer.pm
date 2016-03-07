@@ -257,15 +257,15 @@ sub replace_in_file
 
 sub read_file {
 	my ($filename, $encoding) = @_;
-	
+
 	open my $in, '<:' . $encoding, $filename or die "Could not open '$filename' for reading $!";
 	local $/ = undef;
 	my $all = <$in>;
 	close $in;
-	
+
 	return $all;
 }
- 
+
 sub write_file {
 	my ($filename, $encoding, $content) = @_;
 
