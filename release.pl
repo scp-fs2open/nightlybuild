@@ -242,7 +242,7 @@ Known issues:
 
 
 [img]http://scp.indiegames.us/img/windows-icon.png[/img] [color=green][size=12pt]Windows[/size][/color]
-Compiled on Windows 7 SP1 64-bit, MSVC Community 2015
+Compiled on Windows 7 SP1 64-bit, MSVC Community 2015 Update 1
 
 [url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . ".7z]fs2_open_" . $periodversion . ".7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $periodversion . ".7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $periodversion . ".7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
 This one is based on the SSE2 Optimizations from the MSVC Compiler.
