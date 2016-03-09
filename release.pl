@@ -271,7 +271,7 @@ You can use freely available tools like [url=http://www.cpuid.com/softwares/cpu-
 
 
 [hidden=Other Platforms, Source Code]
-[img]http://scp.indiegames.us/img/linux-icon.png[/img] [color=green][size=12pt]Linux 32-bit[/size][/color]
+[img]http://scp.indiegames.us/img/linux-icon.png[/img] [color=green][size=12pt]Ubuntu Linux 32-bit[/size][/color]
 [size=8pt]Compiled on Ubuntu 14.04.4 LTS 32-bit, GCC 4.8.4[/size]
 The Ubuntu builds are built and provided as a reference, and also because Ubuntu is a very common Desktop Linux distribution.  We usually recommend Linux users compile their own builds, but if you happen to be running 32-bit Ubuntu, or 64-bit Ubuntu with 32-bit libraries installed, these may work fine for you.  There have been reports of package managers maintaining FSO packages in various Linux distributions, if you plan to package an FSO release for a distribution please let use know and we will include a reference to it in our release posts.
 
