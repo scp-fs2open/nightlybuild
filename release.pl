@@ -228,7 +228,7 @@ Launchers, if you don't have one already:
 All platforms:  [url=http://www.hard-light.net/forums/index.php?topic=67950.0]wxLauncher[/url] (ongoing project for a unified launcher)
 
 [hidden=Alternative Launchers]
-Windows:  [url=http://swc.fs2downloads.com/files/Launcher55g.zip]Launcher 5.5g[/url] ([url=http://scp.fsmods.net/builds/Launcher55g.zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/Launcher55g.zip]Mirror[/url]) ([url=http://www.mediafire.com/?wdvzn7hhhzh418m]Mirror[/url]) Not compatible with Windows 8, use wxLauncher above
+Windows:  [url=http://swc.fs2downloads.com/files/Launcher55g.zip]Launcher 5.5g[/url] ([url=http://scp.fsmods.net/builds/Launcher55g.zip]Mirror[/url]) ([url=http://scp.indiegames.us/builds/Launcher55g.zip]Mirror[/url]) ([url=http://www.mediafire.com/?wdvzn7hhhzh418m]Mirror[/url]) Not compatible with Windows 8+, use wxLauncher above
 OS X:  Soulstorm's [url=http://www.hard-light.net/forums/index.php/topic,51391.0.html]OS X Launcher 3.0[/url]
 Linux:  [url=http://www.hard-light.net/forums/index.php/topic,53206.0.html]YAL[/url] or [url=http://www.hard-light.net/wiki/index.php/Fs2_open_on_Linux/Graphics_Settings]by hand[/url] or whatever you can figure out.[/hidden]
 
@@ -242,20 +242,20 @@ Known issues:
 
 
 [img]http://scp.indiegames.us/img/windows-icon.png[/img] [color=green][size=12pt]Windows[/size][/color]
-Compiled on Windows 7 SP1 64-bit, MSVC Community 2015 Update 1
+[size=8pt]Compiled on Windows 7 SP1 64-bit, MSVC Community 2015 Update 1[/size]
 
 [url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . ".7z]fs2_open_" . $periodversion . ".7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $periodversion . ".7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $periodversion . ".7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
-This one is based on the SSE2 Optimizations from the MSVC Compiler.
+[size=8pt]This one is based on the SSE2 Optimizations from the MSVC Compiler.[/size]
 
 [hidden=Alternative builds]
 [b]If you don't know which one to get, get the third one (no SSE).[/b]  [color=red]If you don't know what SSE means, read this: http://en.wikipedia.org/wiki/Streaming_SIMD_Extensions[/color]
 You can use freely available tools like [url=http://www.cpuid.com/softwares/cpu-z.html]CPU-Z[/url] to check which SSE capabilities your CPU has.
 
 [url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_AVX.7z]fs2_open_" . $periodversion . "_AVX.7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $periodversion . "_AVX.7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $periodversion . "_AVX.7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_AVX.md5]MD5[/url][/color])
-This one is based on the AVX Optimizations from the MSVC Compiler (fastest build if your CPU supports AVX instructions).
+[size=8pt]This one is based on the AVX Optimizations from the MSVC Compiler (fastest build if your CPU supports AVX instructions).[/size]
 
 [url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_SSE.7z]fs2_open_" . $periodversion . "_SSE.7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $periodversion . "_SSE.7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $periodversion . "_SSE.7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_SSE.md5]MD5[/url][/color])
-This one is based on the SSE Optimizations from the MSVC Compiler.
+[size=8pt]This one is based on the SSE Optimizations from the MSVC Compiler.[/size]
 
 [url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_NO-SSE.7z]fs2_open_" . $periodversion . "_NO-SSE.7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $periodversion . "_NO-SSE.7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $periodversion . "_NO-SSE.7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_NO-SSE.md5]MD5[/url][/color])
 
@@ -265,20 +265,22 @@ This one is based on the SSE Optimizations from the MSVC Compiler.
 
 
 [img]http://scp.indiegames.us/img/mac-icon.png[/img] [color=green][size=12pt]OS X Universal (32/64-bit Intel)[/size][/color]
-Compiled on OS X 10.11.3, Xcode 7.2.1 ([url=https://gist.github.com/yamaya/2924292]Apple LLVM version cross-reference[/url])
+[size=8pt]Compiled on OS X 10.11.3, Xcode 7.2.1 ([url=https://gist.github.com/yamaya/2924292]Apple LLVM version cross-reference[/url])[/size]
 
 [url=http://swc.fs2downloads.com/builds/OSX/fs2_open_" . $periodversion . ".dmg]fs2_open_" . $periodversion . ".dmg[/url] ([url=http://scp.fsmods.net/builds/OSX/fs2_open_" . $periodversion . ".dmg]Mirror[/url]) ([url=http://scp.indiegames.us/builds/OSX/fs2_open_" . $periodversion . ".dmg]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/OSX/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
 
 
 [hidden=Other Platforms, Source Code]
 [img]http://scp.indiegames.us/img/linux-icon.png[/img] [color=green][size=12pt]Linux 32-bit[/size][/color]
-Compiled on Ubuntu 14.04.4 LTS 32-bit, GCC 4.8.4
+[size=8pt]Compiled on Ubuntu 14.04.4 LTS 32-bit, GCC 4.8.4[/size]
+The Ubuntu builds are built and provided as a reference, and also because Ubuntu is a very common Desktop Linux distribution.  We usually recommend Linux users compile their own builds, but if you happen to be running 32-bit Ubuntu, or 64-bit Ubuntu with 32-bit libraries installed, these may work fine for you.  There have been reports of package managers maintaining FSO packages in various Linux distributions, if you plan to package an FSO release for a distribution please let use know and we will include a reference to it in our release posts.
 
 [url=http://swc.fs2downloads.com/builds/LINUX/fs2_open_" . $periodversion . ".tar.bz2]fs2_open_" . $periodversion . ".tar.bz2[/url] ([url=http://scp.fsmods.net/builds/LINUX/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url]) ([url=http://scp.indiegames.us/builds/LINUX/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/LINUX/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
 
 
 [img]http://scp.indiegames.us/img/freebsd-icon.png[/img] [color=green][size=12pt]FreeBSD 64-bit (experimental, limited support)[/size][/color]
-Compiled on PCBSD 10.2 64-bit, clang 3.4.1
+[size=8pt]Compiled on PCBSD 10.2 64-bit, clang 3.4.1[/size]
+As FreeBSD is still a small player in the desktop space, but PC-BSD is becoming a much more user-friendly platform, we were able to get it reliably working with our build system.  The limited user base for these builds will likely keep them in the experimental realm, so if you do have any issues or successes with them, please report your experiences here.
 
 [url=http://swc.fs2downloads.com/builds/FREEBSD/fs2_open_" . $periodversion . ".tar.bz2]fs2_open_" . $periodversion . ".tar.bz2[/url] ([url=http://scp.fsmods.net/builds/FREEBSD/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url]) ([url=http://scp.indiegames.us/builds/FREEBSD/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/FREEBSD/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
 
