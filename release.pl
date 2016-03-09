@@ -251,6 +251,9 @@ This one is based on the SSE2 Optimizations from the MSVC Compiler.
 [b]If you don't know which one to get, get the third one (no SSE).[/b]  [color=red]If you don't know what SSE means, read this: http://en.wikipedia.org/wiki/Streaming_SIMD_Extensions[/color]
 You can use freely available tools like [url=http://www.cpuid.com/softwares/cpu-z.html]CPU-Z[/url] to check which SSE capabilities your CPU has.
 
+[url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_AVX.7z]fs2_open_" . $periodversion . "_AVX.7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $periodversion . "_AVX.7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $periodversion . "_AVX.7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_AVX.md5]MD5[/url][/color])
+This one is based on the AVX Optimizations from the MSVC Compiler (fastest build if your CPU supports AVX instructions).
+
 [url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_SSE.7z]fs2_open_" . $periodversion . "_SSE.7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $periodversion . "_SSE.7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $periodversion . "_SSE.7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . "_SSE.md5]MD5[/url][/color])
 This one is based on the SSE Optimizations from the MSVC Compiler.
 
