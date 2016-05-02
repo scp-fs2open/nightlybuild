@@ -242,7 +242,7 @@ Known issues:
 
 
 [img]http://scp.indiegames.us/img/windows-icon.png[/img] [color=green][size=12pt]Windows[/size][/color]
-[size=8pt]Compiled on Windows 7 SP1 64-bit, MSVC Community 2015 Update 1[/size]
+[size=8pt]Compiled on Windows 7 SP1 64-bit, MSVC Community 2015 Update 2[/size]
 
 [url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . ".7z]fs2_open_" . $periodversion . ".7z[/url] ([url=http://scp.fsmods.net/builds/WIN/fs2_open_" . $periodversion . ".7z]Mirror[/url]) ([url=http://scp.indiegames.us/builds/WIN/fs2_open_" . $periodversion . ".7z]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/WIN/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
 [size=8pt]This one is based on the SSE2 Optimizations from the MSVC Compiler.[/size]
@@ -265,7 +265,7 @@ You can use freely available tools like [url=http://www.cpuid.com/softwares/cpu-
 
 
 [img]http://scp.indiegames.us/img/mac-icon.png[/img] [color=green][size=12pt]OS X Universal (32/64-bit Intel)[/size][/color]
-[size=8pt]Compiled on OS X 10.11.3, Xcode 7.2.1 ([url=https://gist.github.com/yamaya/2924292]Apple LLVM version cross-reference[/url])[/size]
+[size=8pt]Compiled on OS X 10.11.4, Xcode 7.3 ([url=https://gist.github.com/yamaya/2924292]Apple LLVM version cross-reference[/url])[/size]
 
 [url=http://swc.fs2downloads.com/builds/OSX/fs2_open_" . $periodversion . ".dmg]fs2_open_" . $periodversion . ".dmg[/url] ([url=http://scp.fsmods.net/builds/OSX/fs2_open_" . $periodversion . ".dmg]Mirror[/url]) ([url=http://scp.indiegames.us/builds/OSX/fs2_open_" . $periodversion . ".dmg]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/OSX/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
 
