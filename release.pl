@@ -265,14 +265,14 @@ You can use freely available tools like [url=http://www.cpuid.com/softwares/cpu-
 
 
 [img]http://scp.indiegames.us/img/mac-icon.png[/img] [color=green][size=12pt]OS X Universal (32/64-bit Intel)[/size][/color]
-[size=8pt]Compiled on OS X 10.11.4, Xcode 7.3 ([url=https://gist.github.com/yamaya/2924292]Apple LLVM version cross-reference[/url])[/size]
+[size=8pt]Compiled on OS X 10.11.5, Xcode 7.3 ([url=https://gist.github.com/yamaya/2924292]Apple LLVM version cross-reference[/url])[/size]
 
 [url=http://swc.fs2downloads.com/builds/OSX/fs2_open_" . $periodversion . ".dmg]fs2_open_" . $periodversion . ".dmg[/url] ([url=http://scp.fsmods.net/builds/OSX/fs2_open_" . $periodversion . ".dmg]Mirror[/url]) ([url=http://scp.indiegames.us/builds/OSX/fs2_open_" . $periodversion . ".dmg]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/OSX/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
 
 
 [hidden=Other Platforms, Source Code]
 [img]http://scp.indiegames.us/img/linux-icon.png[/img] [color=green][size=12pt]Ubuntu Linux 32-bit[/size][/color]
-[size=8pt]Compiled on Ubuntu 14.04.4 LTS 32-bit, GCC 4.8.4[/size]
+[size=8pt]Compiled on Ubuntu 14.04.4 LTS 32-bit, GCC 4.8.4, glibc 2.19[/size]
 The Ubuntu builds are built and provided as a reference, and also because Ubuntu is a very common Desktop Linux distribution.  We usually recommend Linux users compile their own builds, but if you happen to be running 32-bit Ubuntu, or 64-bit Ubuntu with 32-bit libraries installed, these may work fine for you.  There have been reports of package managers maintaining FSO packages in various Linux distributions, if you plan to package an FSO release for a distribution please let use know and we will include a reference to it in our release posts.
 
 [url=http://swc.fs2downloads.com/builds/LINUX/fs2_open_" . $periodversion . ".tar.bz2]fs2_open_" . $periodversion . ".tar.bz2[/url] ([url=http://scp.fsmods.net/builds/LINUX/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url]) ([url=http://scp.indiegames.us/builds/LINUX/fs2_open_" . $periodversion . ".tar.bz2]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/LINUX/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
