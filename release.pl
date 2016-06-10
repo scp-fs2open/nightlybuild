@@ -265,7 +265,7 @@ You can use freely available tools like [url=http://www.cpuid.com/softwares/cpu-
 
 
 [img]http://scp.indiegames.us/img/mac-icon.png[/img] [color=green][size=12pt]OS X Universal (32/64-bit Intel)[/size][/color]
-[size=8pt]Compiled on OS X 10.11.5, Xcode 7.3 ([url=https://gist.github.com/yamaya/2924292]Apple LLVM version cross-reference[/url])[/size]
+[size=8pt]Compiled on OS X 10.11.5, Xcode 7.3.1 ([url=https://gist.github.com/yamaya/2924292]Apple LLVM version cross-reference[/url])[/size]
 
 [url=http://swc.fs2downloads.com/builds/OSX/fs2_open_" . $periodversion . ".dmg]fs2_open_" . $periodversion . ".dmg[/url] ([url=http://scp.fsmods.net/builds/OSX/fs2_open_" . $periodversion . ".dmg]Mirror[/url]) ([url=http://scp.indiegames.us/builds/OSX/fs2_open_" . $periodversion . ".dmg]Mirror[/url]) ([color=yellow][url=http://swc.fs2downloads.com/builds/OSX/fs2_open_" . $periodversion . ".md5]MD5[/url][/color])
 
