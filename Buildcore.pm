@@ -416,14 +416,7 @@ sub processfiles
 	foreach $file (@files)
 	{
 		my $fullpath = $dirname . "/" . $file;
-		if (-d $fullpath)
-		{
-			processfiles($fullpath);
-		}
-		else
-		{
-			$installer_hashes{$fullpath} = getchecksum($fullpath);
-		}
+		processfiles($fullpath);
 	}
 
 	return 0;
