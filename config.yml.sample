@@ -9,3 +9,10 @@ appveyor:
     token:
     user: asarium
     repo: fs2open-github-com
+
+bintray:
+    user:
+    token:
+    subject:
+    repo:
+    package:
