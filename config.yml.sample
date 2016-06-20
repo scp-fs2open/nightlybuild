@@ -1,0 +1,11 @@
+git:
+    repo: /freespace
+    branch: master
+
+travis:
+    slug: scp-fs2open/fs2open.github.com
+
+appveyor:
+    token:
+    user: asarium
+    repo: fs2open-github-com

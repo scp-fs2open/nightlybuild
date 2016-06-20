@@ -15,7 +15,7 @@ git checkout "$GIT_BRANCH"
 
 STASHED_CHANGES=false
 if ! git diff-index --quiet HEAD --; then
-    # Stash changes so we can recover them laster
+    # Stash changes so we can recover them later
     echo "Stashing local changes for later recovery"
     git stash -u -a
     
@@ -33,9 +33,11 @@ git checkout --detach
 # We have a clean working copy, do the changes
 echo "dnl Test change" >> configure.ac
 
+TAG_NAME="nightly_$BUILD_NAME"
+
 git add .
 git commit -m "Automated nightly commit" --author="Nightly script <nightly@example.com>"
-git tag -a "nightly_$BUILD_NAME" -m "Nightly script tag"
+git tag -a "$TAG_NAME" -m "Nightly script tag"
 git push --tags
 
 # Go back to the actual branch
@@ -46,3 +48,6 @@ if [ "$STASHED_CHANGES" = true ]; then
     git stash pop
 fi
 cd "$PREVIOUS_DIR"
+
+# Start monitoring the build
+./build_monitor.py "$TAG_NAME"
