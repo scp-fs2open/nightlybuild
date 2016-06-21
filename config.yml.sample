@@ -2,6 +2,9 @@ git:
     repo: /freespace
     branch: master
 
+monitor:
+    check_interval: 20
+
 travis:
     slug: scp-fs2open/fs2open.github.com
 

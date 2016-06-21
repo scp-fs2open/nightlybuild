@@ -2,13 +2,9 @@
 
 set -ex
 
-GIT_PATH=$(cat config.yml | shyaml get-value git.repo)
-GIT_BRANCH=$(cat config.yml | shyaml get-value git.branch)
-
-echo $GIT_PATH
-echo $GIT_BRANCH
-
-PREVIOUS_DIR=$(pwd)
+GIT_PATH=$1
+GIT_BRANCH=$2
+TAG_NAME=$3
 
 cd "$GIT_PATH"
 git checkout "$GIT_BRANCH"
@@ -22,18 +18,11 @@ if ! git diff-index --quiet HEAD --; then
     STASHED_CHANGES=true
 fi
 
-COMMIT_HASH="$(git rev-parse --short HEAD)"
-CURRENT_DATE="$(date +%Y%m%d)"
-
-BUILD_NAME="${CURRENT_DATE}_$COMMIT_HASH"
-
 # Detach HEAD so we don't change the branch we are on
 git checkout --detach
 
 # We have a clean working copy, do the changes
 echo "dnl Test change" >> configure.ac
-
-TAG_NAME="nightly_$BUILD_NAME"
 
 git add .
 git commit -m "Automated nightly commit" --author="Nightly script <nightly@example.com>"
@@ -47,7 +36,3 @@ if [ "$STASHED_CHANGES" = true ]; then
     echo "Restoring previous changes"
     git stash pop
 fi
-cd "$PREVIOUS_DIR"
-
-# Start monitoring the build
-./build_monitor.py "$TAG_NAME"
