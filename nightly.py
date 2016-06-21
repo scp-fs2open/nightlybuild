@@ -135,9 +135,6 @@ def state_runner(state, initial_state):
     os.remove("state.pickle")
 
 
-with open("state.pickle", "wb") as f:
-    pickle.dump((ScriptState.STATE_BUILDS_FINISHED, "nightly_20160621_a633ab9"), f)
-
 script_state = ScriptState()
 next_state = None
 
