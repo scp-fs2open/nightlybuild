@@ -6,6 +6,7 @@ import pickle
 import subprocess
 import sys
 import time
+import git
 
 import datetime
 import yaml
@@ -38,36 +39,13 @@ class ScriptState:
 
     def __init__(self):
         self.tag_name = None
+        self.repo = git.GitRepository(config["git"]["repo"], config["git"]["branch"])
 
     def load_state(self):
         with open("state.pickle", "rb") as f:
             loaded_state = pickle.load(f)
             self.tag_name = loaded_state[1]
             return loaded_state[0]
-
-    def _exec_git_cmd(self, cmd):
-        git_path = config["git"]["repo"]
-
-        return subprocess.check_output(
-            "git --git-dir={} --work-tree={} {}".format(os.path.join(git_path, ".git"), git_path, cmd),
-            shell=True).strip().decode("ASCII")
-
-    def _get_commit(self):
-        git_branch = config["git"]["branch"]
-
-        return self._exec_git_cmd("rev-parse --short {}".format(git_branch)).lower()
-
-    def _get_log(self, pattern):
-        tags = self._exec_git_cmd("for-each-ref --sort=-taggerdate --format '%(tag)' refs/tags | grep '{}' | head -n2"
-                                  .format(pattern)).splitlines()
-
-        log = self._exec_git_cmd("log {}^..{}^ --no-merges --stat"
-                                 " --pretty=format:"
-                                 "\"------------------------------------------------------------------------%n"
-                                 "commit %h%nAuthor: %an <%ad>%n"
-                                 "Commit: %cn <%cd>%n%n    %s\"".format(tags[1], tags[0]))
-
-        return log
 
     def _go_to_state(self, state):
         """
@@ -76,17 +54,27 @@ class ScriptState:
         :return: The next state that should be used for this function
         """
         if state == ScriptState.STATE_INITIAL:
+            self.repo.update_repository()
+
+            latest_commit = self.repo.get_latest_tag_commit("nightly_*")
+            current_commit = self.repo.get_commit()
+
+            if current_commit == latest_commit:
+                print("Latest commit already has a nightly tag")
+                return ScriptState.STATE_FINISHED
+
             date = datetime.datetime.now().strftime("%Y%m%d")
 
-            self.tag_name = "nightly_{}_{}".format(date, self._get_commit())
+            self.tag_name = "nightly_{}_{}".format(date, current_commit)
 
-            git_path = config["git"]["repo"]
-            git_branch = config["git"]["branch"]
+            restore_state = self.repo.prepare_repo()
 
-            # create the tag
-            subprocess.call("./tag_nightly.sh '{}' '{}' '{}'".format(git_path, git_branch, self.tag_name), shell=True,
-                            stdout=sys.stdout,
-                            stderr=sys.stderr)
+            with open(os.path.join(config["git"]["repo"], "configure.ac"), "a") as test:
+                test.write("dnl Test change")
+
+                self.repo.commit_and_tag(self.tag_name)
+
+            self.repo.restore_repo(restore_state)
 
             return ScriptState.STATE_TAG_PUSHED
         elif state == ScriptState.STATE_TAG_PUSHED:
@@ -101,9 +89,9 @@ class ScriptState:
             # Get the file list
             files = bintray.get_file_list(self.tag_name, config)
 
-            commit = self._get_commit()
+            commit = self.repo.get_commit()
             date = datetime.datetime.now().strftime("%d %B %Y")
-            log = self._get_log("nightly_*")
+            log = self.repo.get_log("nightly_*")
 
             post_nightly(date, commit, files, log)
 
