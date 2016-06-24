@@ -3,7 +3,6 @@
 import argparse
 import os
 import pickle
-import subprocess
 import sys
 import time
 import git
@@ -70,7 +69,7 @@ class ScriptState:
             restore_state = self.repo.prepare_repo()
 
             with open(os.path.join(config["git"]["repo"], "configure.ac"), "a") as test:
-                test.write("dnl Test change")
+                test.write("dnl Test change\n")
 
             self.repo.commit_and_tag(self.tag_name)
 
