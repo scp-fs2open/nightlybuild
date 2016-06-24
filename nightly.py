@@ -72,7 +72,7 @@ class ScriptState:
             with open(os.path.join(config["git"]["repo"], "configure.ac"), "a") as test:
                 test.write("dnl Test change")
 
-                self.repo.commit_and_tag(self.tag_name)
+            self.repo.commit_and_tag(self.tag_name)
 
             self.repo.restore_repo(restore_state)
 
@@ -123,12 +123,15 @@ def state_runner(state, initial_state):
     os.remove("state.pickle")
 
 
-script_state = ScriptState()
-next_state = None
+def main():
+    script_state = ScriptState()
+    if os.path.isfile("state.pickle"):
+        next_state = script_state.load_state()
+    else:
+        next_state = ScriptState.STATE_INITIAL
 
-if os.path.isfile("state.pickle"):
-    next_state = script_state.load_state()
-else:
-    next_state = ScriptState.STATE_INITIAL
+    state_runner(script_state, next_state)
 
-state_runner(script_state, next_state)
+
+if __name__ == "__main__":
+    main()
