@@ -67,8 +67,8 @@ class GitRepository:
     def commit_and_tag(self, tag_name):
         self._git_redirected_success("add .")
         self._git_redirected_success(
-            "commit -m 'Automated nightly commit' --author='Nightly script <nightly@example.com>'")
-        self._git_redirected_success("tag -a '{}' -m 'Nightly script tag'".format(tag_name))
+            "commit -m 'Automated build commit' --author='Build script <builds@example.com>'")
+        self._git_redirected_success("tag -a '{}' -m 'Build script tag'".format(tag_name))
         self._git_redirected_success("push --tags")
 
     def restore_repo(self, stashed_changes):

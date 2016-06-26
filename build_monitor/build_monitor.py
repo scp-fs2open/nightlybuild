@@ -5,9 +5,10 @@ from build_monitor import monitors
 
 
 def monitor_builds(tag_name, options):
-    monitor_list = [monitors.TravisMonitor(options, tag_name), monitors.AppveyorMonitor(options, tag_name)]
+    used_monitors = [monitors.TravisMonitor(options, tag_name), monitors.AppveyorMonitor(options, tag_name)]
     interval = options["monitor"]["check_interval"]
 
+    monitor_list = used_monitors
     while True:
         next_check = datetime.datetime.now() + datetime.timedelta(0, interval)
 
@@ -39,3 +40,5 @@ def monitor_builds(tag_name, options):
         sleep_seconds = max(0, sleep_time.total_seconds())
         if sleep_seconds > 0.:
             time.sleep(sleep_seconds)
+
+    return all((m.success for m in used_monitors))

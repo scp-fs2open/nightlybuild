@@ -47,7 +47,7 @@ class TravisMonitor(Monitor):
 
     @property
     def success(self):
-        return self.branch.finished
+        return self.branch.passed
 
     @property
     def errored(self):
