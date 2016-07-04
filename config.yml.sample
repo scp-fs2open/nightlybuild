@@ -2,6 +2,10 @@ git:
     repo: /freespace
     branch: master
 
+github:
+    user:
+    repo:
+
 monitor:
     check_interval: 20
 

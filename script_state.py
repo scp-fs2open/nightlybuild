@@ -43,7 +43,7 @@ class ScriptState:
             current_commit = self.repo.get_commit()
 
             if current_commit == latest_commit:
-                print("Latest commit already has a nightly tag")
+                print("Latest commit already has a build tag!")
                 return ScriptState.STATE_FINISHED
 
             date = datetime.datetime.now().strftime("%Y%m%d")
@@ -53,7 +53,7 @@ class ScriptState:
                 "commit": current_commit
             }
 
-            self.tag_name = self.get_tag_format().format(**format_args)
+            self.tag_name = self.get_tag_name(format_args)
 
             restore_state = self.repo.prepare_repo()
 
@@ -112,7 +112,7 @@ class ScriptState:
     def get_tag_pattern(self):
         raise NotImplementedError()
 
-    def get_tag_format(self):
+    def get_tag_name(self, params):
         raise NotImplementedError()
 
     def do_replacements(self):
