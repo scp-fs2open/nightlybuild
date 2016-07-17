@@ -23,3 +23,13 @@ bintray:
     subject:
     repo:
     package:
+
+hlp:
+    user:
+    pass:
+    board_url_format: http://www.hard-light.net/forums/index.php?action=post;board={board}
+    post_action: http://www.hard-light.net/forums/index.php?action=post2;start=0;board={board}
+    login_url: http://www.hard-light.net/forums/index.php?action=login2
+
+nightly:
+    hlp_board: 92

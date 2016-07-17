@@ -8,8 +8,8 @@ import time
 import datetime
 import yaml
 
+from forum import ForumAPI
 import bintray
-from forum import post_nightly
 from script_state import ScriptState
 
 parser = argparse.ArgumentParser()
@@ -41,10 +41,11 @@ class NightlyState(ScriptState):
         date = datetime.datetime.now().strftime("%d %B %Y")
         log = self.repo.get_log("nightly_*")
 
-        post_nightly(date, commit, files, log)
+        forum = ForumAPI(self.config)
+        forum.post_nightly(date, commit, files, log)
 
     def get_tag_name(self, params):
-        return "nightly_{date}_{commit}".format(params)
+        return "nightly_{date}_{commit}".format(**params)
 
     def get_tag_pattern(self):
         return "nightly_*"
