@@ -13,7 +13,7 @@ class GitRepository:
         return "git --git-dir='{}' --work-tree='{}' {}".format(os.path.join(self.path, ".git"), self.path, cmd)
 
     def _git_get_output(self, cmd):
-        return subprocess.check_output(self._format_git_cmd(cmd), shell=True).strip().decode("ASCII")
+        return subprocess.check_output(self._format_git_cmd(cmd), shell=True).strip().decode("UTF-8")
 
     def _git_redirected(self, cmd):
         print(">> git " + cmd)

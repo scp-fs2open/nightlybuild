@@ -57,7 +57,7 @@ class ScriptState:
 
             restore_state = self.repo.prepare_repo()
 
-            self.do_replacements()
+            self.do_replacements(date, current_commit)
 
             self.repo.commit_and_tag(self.tag_name)
 
@@ -115,5 +115,5 @@ class ScriptState:
     def get_tag_name(self, params):
         raise NotImplementedError()
 
-    def do_replacements(self):
+    def do_replacements(self, date, current_commit):
         raise NotImplementedError()

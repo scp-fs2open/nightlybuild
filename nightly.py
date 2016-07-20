@@ -50,9 +50,10 @@ class NightlyState(ScriptState):
     def get_tag_pattern(self):
         return "nightly_*"
 
-    def do_replacements(self):
-        with open(os.path.join(self.config["git"]["repo"], "configure.ac"), "a") as test:
-            test.write("dnl Test change\n")
+    def do_replacements(self, date, current_commit):
+        with open(os.path.join(self.config["git"]["repo"], "version_override.cmake"), "a") as test:
+            test.write("set(FSO_VERSION_REVISION {})\n".format(date))
+            test.write("set(FSO_VERSION_REVISION_STR {}_{})\n".format(date, current_commit))
 
 
 def main():
@@ -61,6 +62,8 @@ def main():
         # An existing script state overrides the commandline argument
         if args.tag_name is not None:
             script_state = NightlyState()
+            script_state.do_replacements(1123, "abcd")
+            sys.exit(0)
             script_state.state = ScriptState.STATE_TAG_PUSHED
             script_state.tag_name = args.tag_name
         else:
