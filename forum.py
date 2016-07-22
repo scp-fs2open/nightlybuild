@@ -61,7 +61,7 @@ class ForumAPI:
 
             title = "[TESTING] Nightly: {} - Revision {}".format(date, revision)
 
-            template = Template(read_text("templates/nightly.txt"))
+            template = Template(read_text("templates/nightly.mako"))
             rendered = template.render(**{
                 "date": date,
                 "revision": revision,
