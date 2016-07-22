@@ -62,9 +62,13 @@ class ReleaseState(ScriptState):
     def get_tag_pattern(self):
         return "release_*"
 
-    def do_replacements(self):
-        with open(os.path.join(self.config["git"]["repo"], "configure.ac"), "a") as test:
-            test.write("dnl Test change\n")
+    def do_replacements(self, date, current_commit):
+        with open(os.path.join(self.config["git"]["repo"], "version_override.cmake"), "a") as test:
+            test.write("set(FSO_VERSION_MAJOR {})\n".format(self.version.major))
+            test.write("set(FSO_VERSION_MINOR {})\n".format(self.version.minor))
+            test.write("set(FSO_VERSION_BUILD {})\n".format(self.version.patch))
+            test.write("set(FSO_VERSION_REVISION 0)\n")
+            test.write("set(FSO_VERSION_REVISION_STR {})\n".format("-".join(self.version.prerelease)))
 
 
 def main():
