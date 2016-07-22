@@ -47,8 +47,7 @@ class ForumAPI:
                  'additional_options': '0', sesVar: sesID, 'seqnum': seq}
 
         print("Posting to " + self.config["hlp"]["post_action"].format(board=board))
-        print(content)
-        #response = session.post(self.config["hlp"]["post_action"].format(board=board), data=field)
+        return session.post(self.config["hlp"]["post_action"].format(board=board), data=field)
 
     def post_nightly(self, date, revision, files, log):
         print("Posting nightly thread...")
