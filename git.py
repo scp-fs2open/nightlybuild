@@ -67,7 +67,7 @@ class GitRepository:
     def commit_and_tag(self, tag_name):
         self._git_redirected_success("add .")
         self._git_redirected_success(
-            "commit -m 'Automated build commit' --author='Build script <builds@example.com>'")
+            "commit -m 'Automated build commit' --author='SirKnightly <SirKnightlySCP@gmail.com>'")
         self._git_redirected_success("tag -a '{}' -m 'Build script tag'".format(tag_name))
         self._git_redirected_success("push --tags")
 
