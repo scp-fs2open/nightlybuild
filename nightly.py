@@ -39,7 +39,7 @@ class NightlyState(ScriptState):
 
         commit = self.repo.get_commit()
         date = datetime.datetime.now().strftime("%d %B %Y")
-        log = self.repo.get_log("nightly_*")
+        log = self.repo.get_log("nightly_*", self.tag_name)
 
         forum = ForumAPI(self.config)
         forum.post_nightly(date, commit, files, log)

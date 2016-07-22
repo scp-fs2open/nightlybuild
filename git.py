@@ -28,9 +28,9 @@ class GitRepository:
     def get_commit(self):
         return self._git_get_output("rev-parse --short {}".format(self.branch)).lower()
 
-    def get_log(self, pattern):
-        tags = self._git_get_output("for-each-ref --sort=-taggerdate --format '%(tag)' refs/tags | grep '{}' | head -n2"
-                                    .format(pattern)).splitlines()
+    def get_log(self, pattern, tag_name):
+        tags = self._git_get_output("for-each-ref --sort=-taggerdate --format '%(tag)' refs/tags | grep '{}' | grep -A 1 {}"
+                                    .format(pattern, tag_name)).splitlines()
 
         return self._git_get_output("log {}^..{}^ --no-merges --stat"
                                     " --pretty=format:"
