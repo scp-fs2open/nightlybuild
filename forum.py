@@ -58,7 +58,7 @@ class ForumAPI:
 
             time.sleep(10.)
 
-            title = "[TESTING] Nightly: {} - Revision {}".format(date, revision)
+            title = "Nightly: {} - Revision {}".format(date, revision)
 
             template = Template(read_text("templates/nightly.mako"))
             rendered = template.render(**{
