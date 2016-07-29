@@ -31,7 +31,10 @@ class GitRepository:
     def get_log(self, pattern, tag_name):
         tags = self._git_get_output("for-each-ref --sort=-taggerdate --format '%(tag)' refs/tags | grep '{}' | grep -A 1 {}"
                                     .format(pattern, tag_name)).splitlines()
-
+        
+        if len(tags) < 2:
+            return "No log available"
+        
         return self._git_get_output("log {}^..{}^ --no-merges --stat"
                                     " --pretty=format:"
                                     "\"------------------------------------------------------------------------%n"
@@ -41,6 +44,9 @@ class GitRepository:
     def get_latest_tag_commit(self, pattern):
         tag = self._git_get_output("for-each-ref --sort=-taggerdate --format '%(tag)' refs/tags | grep '{}' | head -n1"
                                    .format(pattern))
+
+        if len(tag) < 1:
+            return ""
 
         return self._git_get_output("rev-parse --short {}^".format(tag))
 
