@@ -1,6 +1,0 @@
-[general]
-track_remote=origin
-track_branch=master
-nightly_branch=nightly-##BRANCH##-##OS##
-log_pretty=format:"------------------------------------------------------------------------%ncommit %h%nAuthor: %an <%ad>%nCommit: %cn <%cd>%n%n    %s"
-branch_format=fs2_open_##VERSION##

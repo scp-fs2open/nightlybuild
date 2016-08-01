@@ -1,1 +1,9 @@
-*.conf
+
+# Ignore the actual config file
+config.yml
+
+# Pycharm project files
+.idea
+
+# Cached python files
+__pycache__

@@ -1,0 +1,35 @@
+git:
+    repo: /freespace
+    branch: master
+
+github:
+    user:
+    repo:
+
+monitor:
+    check_interval: 20
+
+travis:
+    slug: scp-fs2open/fs2open.github.com
+
+appveyor:
+    token:
+    user: asarium
+    repo: fs2open-github-com
+
+bintray:
+    user:
+    token:
+    subject:
+    repo:
+    package:
+
+hlp:
+    user:
+    pass:
+    board_url_format: http://www.hard-light.net/forums/index.php?action=post;board={board}
+    post_action: http://www.hard-light.net/forums/index.php?action=post2;start=0;board={board}
+    login_url: http://www.hard-light.net/forums/index.php?action=login2
+
+nightly:
+    hlp_board: 92
