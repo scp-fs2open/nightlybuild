@@ -33,3 +33,6 @@ hlp:
 
 nightly:
     hlp_board: 92
+
+templates:
+    nightly: templates/nightly.mako

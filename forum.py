@@ -60,7 +60,7 @@ class ForumAPI:
 
             title = "Nightly: {} - Revision {}".format(date, revision)
 
-            template = Template(read_text("templates/nightly.mako"))
+            template = Template(read_text(self.config["templates"]["nightly"]))
             rendered = template.render(**{
                 "date": date,
                 "revision": revision,
