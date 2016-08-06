@@ -12,6 +12,10 @@ from forum import ForumAPI
 import bintray
 from script_state import ScriptState
 
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--config", help="Sets the config file", default="config.yml")
 parser.add_argument("tag_name", help="Overrides the tag name to check. This skips the tag and push phase of the script",
