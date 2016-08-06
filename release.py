@@ -13,8 +13,9 @@ import bintray
 import github
 from script_state import ScriptState
 
-
-
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--config", help="Sets the config file", default="config.yml")
