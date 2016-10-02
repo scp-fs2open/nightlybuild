@@ -49,7 +49,7 @@ class ForumAPI:
         print("Posting to " + self.config["hlp"]["post_action"].format(board=board))
         return session.post(self.config["hlp"]["post_action"].format(board=board), data=field)
 
-    def post_nightly(self, date, revision, files, log):
+    def post_nightly(self, date, revision, files, log, success):
         print("Posting nightly thread...")
 
         with requests.session() as session:
@@ -65,7 +65,8 @@ class ForumAPI:
                 "date": date,
                 "revision": revision,
                 "files": files,
-                "log": log
+                "log": log,
+                "success": success
             })
 
             print("Creating post...")

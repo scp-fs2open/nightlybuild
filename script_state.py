@@ -68,18 +68,15 @@ class ScriptState:
             # Monitor the created build...
             self.success = build_monitor.monitor_builds(self.tag_name, self.config)
 
-            if not self.success:
-                print("At least one of the builds has failed!")
-                return ScriptState.STATE_FINISHED
-
             return ScriptState.STATE_BUILDS_FINISHED
         elif state == ScriptState.STATE_BUILDS_FINISHED:
             # If the build has just finished then the file hosters may need some time to actually return all the files
             time.sleep(10.)
 
-            self.post_build_actions()
-
-            return ScriptState.STATE_POST_CREATED
+            if self.post_build_actions():
+                return ScriptState.STATE_POST_CREATED
+            else:
+                return ScriptState.STATE_FINISHED
         elif state == ScriptState.STATE_POST_CREATED:
             return ScriptState.STATE_FINISHED
 
