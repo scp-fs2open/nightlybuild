@@ -41,6 +41,10 @@ class ReleaseState(ScriptState):
         self.version = version
 
     def post_build_actions(self):
+        if not self.success:
+            print("A release build failed to compile!")
+            return False
+
         # Get the file list
         files = github.get_release_files(self.tag_name, config)
 
@@ -51,6 +55,7 @@ class ReleaseState(ScriptState):
         log = self.repo.get_log("nightly_*")
 
         #post_nightly(date, commit, files, log)
+        return True
 
     def get_tag_name(self, params):
         base = "release_{}_{}_{}".format(self.version.major, self.version.minor, self.version.patch)

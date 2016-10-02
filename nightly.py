@@ -46,7 +46,9 @@ class NightlyState(ScriptState):
         log = self.repo.get_log("nightly_*", self.tag_name)
 
         forum = ForumAPI(self.config)
-        forum.post_nightly(date, commit, files, log)
+        forum.post_nightly(date, commit, files, log, self.success)
+
+        return True
 
     def get_tag_name(self, params):
         return "nightly_{date}_{commit}".format(**params)
