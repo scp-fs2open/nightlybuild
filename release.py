@@ -11,6 +11,7 @@ import semantic_version
 
 import bintray
 import github
+from forum import ForumAPI
 from script_state import ScriptState
 
 abspath = os.path.abspath(__file__)
@@ -48,13 +49,10 @@ class ReleaseState(ScriptState):
         # Get the file list
         files = github.get_release_files(self.tag_name, config)
 
-        print(files)
-
-        commit = self.repo.get_commit()
         date = datetime.datetime.now().strftime("%d %B %Y")
-        log = self.repo.get_log("nightly_*")
 
-        #post_nightly(date, commit, files, log)
+        forum = ForumAPI(self.config)
+        forum.post_release(date, self.version, files)
         return True
 
     def get_tag_name(self, params):

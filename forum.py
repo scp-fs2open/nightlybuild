@@ -1,7 +1,30 @@
 import re
 import time
+from itertools import groupby
+
 from mako.template import Template
+from mako import exceptions
 import requests
+
+
+class FileGroup:
+    def __init__(self, name, files):
+        self.files = files
+        self.name = name
+
+        if len(files) == 1:
+            self.mainFile = files[0]
+            self.subFiles = {}
+        else:
+            self.mainFile = None
+            subFiles = []
+            for file in files:
+                if file.subgroup is None:
+                    self.mainFile = file
+                else:
+                    subFiles.append(file)
+
+            self.subFiles = dict(((x[0], next(x[1])) for x in groupby(subFiles, lambda f: f.subgroup)))
 
 
 def read_text(file):
@@ -60,7 +83,7 @@ class ForumAPI:
 
             title = "Nightly: {} - Revision {}".format(date, revision)
 
-            template = Template(read_text(self.config["templates"]["nightly"]))
+            template = Template(filename=self.config["templates"]["nightly"])
             rendered = template.render(**{
                 "date": date,
                 "revision": revision,
@@ -72,5 +95,28 @@ class ForumAPI:
             print("Creating post...")
             self.create_post(session, title, rendered, self.config["nightly"]["hlp_board"])
 
-    def post_release(self):
-        raise NotImplementedError()
+    def post_release(self, date, version, files):
+        print("Posting release thread...")
+
+        # Construct the file groups
+        groups = dict(((x[0], FileGroup(x[0], list(x[1]))) for x in groupby(files, lambda g: g.group)))
+
+        with requests.session() as session:
+            print("Logging in...")
+            self.login(session)
+
+            time.sleep(10.)
+
+            title = "Release: {}".format(version)
+
+            template = Template(filename=self.config["templates"]["release"], module_directory='/tmp/mako_modules')
+            rendered = template.render(**{
+                "date": date,
+                "version": version,
+                "files": files,
+                "groups": groups,
+            }).strip("\n")
+
+            print("Creating post...")
+
+            self.create_post(session, title, rendered, self.config["release"]["hlp_board"])

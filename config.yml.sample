@@ -32,7 +32,11 @@ hlp:
     login_url: http://www.hard-light.net/forums/index.php?action=login2
 
 nightly:
-    hlp_board: 92
+    hlp_board: 173
+
+release:
+    hlp_board: 50
 
 templates:
-    nightly: templates/nightly.mako
+    nightly: /media/diverses/Code/Sources/linux/asarium/nightlybuild/templates/nightly.mako
+    release: /media/diverses/Code/Sources/linux/asarium/nightlybuild/templates/release.mako
