@@ -4,6 +4,8 @@ import re
 
 import requests
 
+from files import ReleaseFile
+
 
 def get_file_list(tag_name, config):
     def execute_request(path):
@@ -40,12 +42,6 @@ def get_file_list(tag_name, config):
             "file_path": file["path"]
         })
 
-        data = {
-            "name": file["name"],
-            "url": download_url,
-            "sha1": file["sha1"],
-            "group": group_match
-        }
-        out_data.append(data)
+        out_data.append(ReleaseFile(file["name"], download_url, file["sha1"], group_match))
 
-    return sorted(out_data, key=lambda x: x["group"])
+    return sorted(out_data, key=lambda x: x.group)

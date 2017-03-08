@@ -1,6 +1,8 @@
 import requests
 import re
 
+from files import ReleaseFile
+
 
 def get_release_files(tag_name, config):
     def execute_request(path):
@@ -15,12 +17,12 @@ def get_release_files(tag_name, config):
 
         return response.json()
 
-    tag_regex = re.compile("release_(.*)")
     build_group_regex = re.compile("fs2_open_.*-builds-([^.-]*)(-([^.]*))?.*")
 
     response = execute_request(
         "/repos/{}/{}/releases/tags/{}".format(config["github"]["user"], config["github"]["repo"], tag_name))
 
+    tarball = response["tarball_url"]
     out_data = []
     for asset in response["assets"]:
         url = asset["browser_download_url"]
@@ -28,12 +30,6 @@ def get_release_files(tag_name, config):
 
         group_match = build_group_regex.match(name)
 
-        data = {
-            "name": name,
-            "url": url,
-            "group": group_match.group(1),
-            "subgroup": group_match.group(3)
-        }
-        out_data.append(data)
+        out_data.append(ReleaseFile(name, url, None, group_match.group(1), group_match.group(3), tarball))
 
     return out_data
