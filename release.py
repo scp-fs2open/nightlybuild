@@ -102,6 +102,8 @@ def main():
             print("State object is not a nightly state! Delete 'state.pickle' or execute right script.")
             return
 
+    # Always use the loaded values to allow changing the config while a script has a serialized state on disk
+    script_state.config = config
     script_state.execute()
 
 
