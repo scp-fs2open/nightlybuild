@@ -38,5 +38,5 @@ release:
     hlp_board: 50
 
 templates:
-    nightly: /media/diverses/Code/Sources/linux/asarium/nightlybuild/templates/nightly.mako
-    release: /media/diverses/Code/Sources/linux/asarium/nightlybuild/templates/release.mako
+    nightly: templates/nightly.mako
+    release: templates/release.mako
