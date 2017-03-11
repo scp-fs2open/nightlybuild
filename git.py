@@ -72,7 +72,6 @@ class GitRepository:
         return stashed_changes
 
     def commit_and_tag(self, tag_name):
-        return
         self._git_redirected_success("add .")
         self._git_redirected_success(
             "commit -m 'Automated build commit' --author='SirKnightly <SirKnightlySCP@gmail.com>'")
