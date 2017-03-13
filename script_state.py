@@ -42,9 +42,9 @@ class ScriptState:
             latest_commit = self.repo.get_latest_tag_commit(self.get_tag_pattern())
             current_commit = self.repo.get_commit()
 
-            #if current_commit == latest_commit:
-            #    print("Latest commit already has a build tag!")
-            #    return ScriptState.STATE_FINISHED
+            if current_commit == latest_commit:
+                print("Latest commit already has a build tag!")
+                return ScriptState.STATE_FINISHED
 
             date = datetime.datetime.now().strftime("%Y%m%d")
 
