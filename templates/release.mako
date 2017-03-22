@@ -53,7 +53,8 @@ Known issues:
 [size=8pt]This one is based on the SSE2 Optimizations from the MSVC Compiler.[/size]
 
 [b]64-bit:[/b] ${build(groups["Win64"].mainFile)}
-[color=red][b]WARNING:[/b][/color] 64-bit builds are still experimental.
+[color=red][b]WARNING:[/b][/color] 64-bit builds are still experimental. These builds have been tested but there may still be issues that are not present in the 32-bit builds. Make sure you read the installation instructions below.
+[b]Installation:[/b] If you use the 64-bit executables you have to make sure that you install all files from the zip file and that there are no remaining 32-bit DLLs left in your FSO directory. Some users have installed the 32-bit OpenAL DLLs directly into your FSO directory which is a common cause for errors. If the launcher fails to use the 64-bit executable this is the first thing you should check.
 
 [hidden=Alternative builds]
 
@@ -64,7 +65,7 @@ Known issues:
 [color=red][b]WARNING:[/b][/color] 64-bit builds are still experimental.
 [size=8pt]This one is based on the AVX Optimizations from the MSVC Compiler.[/size]
 
-[b]What are those SSE and SSE2 builds I keep seeing everywhere?[/b]
+[b]What are those SSE, SSE2 and AVX builds I keep seeing everywhere?[/b]
 [url=http://www.hard-light.net/forums/index.php?topic=65628.0]Your answer is in this topic.[/url]
 [/hidden]
 
