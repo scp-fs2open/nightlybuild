@@ -12,6 +12,8 @@ SHA1: ${file.sha1}
 
 % endfor
 
+Download hosting is provided by [url=https://bintray.com/]JFrog Bintray[/url].
+
 [code]
 ${log}
 [/code]
