@@ -76,11 +76,6 @@ class ForumAPI:
         print("Posting nightly thread...")
 
         with requests.session() as session:
-            print("Logging in...")
-            self.login(session)
-
-            time.sleep(10.)
-
             title = "Nightly: {} - Revision {}".format(date, revision)
 
             template = Template(filename=self.config["templates"]["nightly"])
@@ -91,6 +86,13 @@ class ForumAPI:
                 "log": log,
                 "success": success
             })
+
+            print(rendered)
+
+            print("Logging in...")
+            self.login(session)
+
+            time.sleep(10.)
 
             print("Creating post...")
             self.create_post(session, title, rendered, self.config["nightly"]["hlp_board"])

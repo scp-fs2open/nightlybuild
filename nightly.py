@@ -3,13 +3,13 @@
 import argparse
 import os
 import sys
-import time
 
 import datetime
+
 import yaml
 
+import ftp
 from forum import ForumAPI
-import bintray
 from script_state import ScriptState
 
 abspath = os.path.abspath(__file__)
@@ -39,7 +39,7 @@ class NightlyState(ScriptState):
 
     def post_build_actions(self):
         # Get the file list
-        files = bintray.get_file_list(self.tag_name, config)
+        files = ftp.get_files("nightly", self.tag_name, config)
 
         commit = self.repo.get_commit()
         date = datetime.datetime.now().strftime("%d %B %Y")
