@@ -47,5 +47,5 @@ ftp:
     pass: xyz
     path: public_html/builds/{type}/{version}/
     mirrors:
-      - http://scp.indiegames.us/builds/{type}/{version}/{file}
       - http://swc.fs2downloads.com/builds/{type}/{version}/{file}
+      - http://scp.indiegames.us/builds/{type}/{version}/{file}
