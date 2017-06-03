@@ -22,8 +22,6 @@ Group: ${file.group}
 
 % endfor
 
-Download hosting is provided by [url=https://bintray.com/]JFrog Bintray[/url].
-
 [code]
 ${log}
 [/code]
