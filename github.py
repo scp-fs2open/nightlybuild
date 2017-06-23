@@ -30,6 +30,6 @@ def get_release_files(tag_name, config):
 
         group_match = build_group_regex.match(name)
 
-        out_data.append(ReleaseFile(name, url, None, group_match.group(1), group_match.group(3), tarball))
+        out_data.append(ReleaseFile(name, url, group_match.group(1), group_match.group(3), tarball))
 
     return out_data
