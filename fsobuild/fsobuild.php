@@ -14,7 +14,7 @@ spl_autoload_register(function ($class_name) {
 
 
 // Establish our primary DB connection
-define('DBNAME', 'fsobuild.db');
+define('DBNAME', 'data/fsobuild.db');
 if (file_exists(DBNAME)) {
     $db = new PDO('sqlite:'.DBNAME);
 } else {
