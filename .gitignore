@@ -7,3 +7,6 @@ config.yml
 
 # Cached python files
 __pycache__
+
+# Web frontend database files
+fsobuild/data
