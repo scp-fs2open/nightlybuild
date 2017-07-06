@@ -1,0 +1,12 @@
+#buildstatus table {
+    border-collapse: collapse;
+}
+#buildstatus table, #buildstatus td, #buildstatus th {
+    border: 1px solid black;
+}
+div {
+    margin-bottom: 20px;
+}
+h4 {
+    margin-bottom: 5px;
+}
