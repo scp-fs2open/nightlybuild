@@ -12,41 +12,56 @@ spl_autoload_register(function ($class_name) {
     require_once($class_name . '.php');
 });
 
+function checkUserForm()
+{
+    if (empty($_POST['name'])) {
+        $errors[] = "Enter a username.";
+    }
+    if (empty($_POST['password'])) {
+        $errors[] = "Enter a password.";
+    }
+    if (empty($_POST['password_confirm'])) {
+        $errors[] = "Enter a confirmation password.";
+    }
+    if ($_POST['password'] != $_POST['password_confirm']) {
+        $errors[] = "Password and confirmation password must match.";
+    }
+
+    return $errors;
+}
+
+function insertUser($db, $name, $password)
+{
+    $db->prepare('INSERT INTO users (name, password_hash, admin) VALUES (:name, :password_hash, 1);')
+        ->execute(array(
+            ':name' => $name,
+            ':password_hash' => password_hash($password, PASSWORD_DEFAULT),
+        ));
+}
+
+function createTables($db)
+{
+    $db->prepare('CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, password_hash TEXT, admin INTEGER);')
+        ->execute();
+    $db->prepare('CREATE TABLE jobs
+        (id INTEGER PRIMARY KEY, version TEXT, tag_name TEXT, config TEXT, pid INTEGER,
+        started DATETIME, completed DATETIME, status TEXT, output TEXT);')->execute();
+}
+
 
 // Establish our primary DB connection
 define('DBNAME', 'data/fsobuild.db');
 if (file_exists(DBNAME)) {
     $db = new PDO('sqlite:'.DBNAME);
 } else {
-    if (!empty($_POST['setup'])) {
-        // Check the form
-        $errors = array();
-        if (empty($_POST['name'])) {
-            $errors[] = "Enter a username.";
-        }
-        if (empty($_POST['password'])) {
-            $errors[] = "Enter a password.";
-        }
-        if (empty($_POST['password_confirm'])) {
-            $errors[] = "Enter a confirmation password.";
-        }
-        if ($_POST['password'] != $_POST['password_confirm']) {
-            $errors[] = "Password and confirmation password must match.";
-        }
+    if (!empty($_POST['add_user'])) {
+        $errors = checkUserForm();
 
         if (empty($errors)) {
             // Create and populate new database.
             $db = new PDO('sqlite:'.DBNAME);
-            $db->prepare('CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, password_hash TEXT, admin INTEGER);')
-                ->execute();
-            $db->prepare('CREATE TABLE jobs
-                (id INTEGER PRIMARY KEY, version TEXT, tag_name TEXT, config TEXT, pid INTEGER,
-                started DATETIME, completed DATETIME, status TEXT, output TEXT);')->execute();
-            $db->prepare('INSERT INTO users (name, password_hash, admin) VALUES (:name, :password_hash, 1);')
-                ->execute(array(
-                    ':name' => $_POST['name'],
-                    ':password_hash' => password_hash($_POST['password'], PASSWORD_DEFAULT),
-                ));
+            createTables($db);
+            insertUser($db, $_POST['name'], $_POST['password']);
 
             header('Location: '.$_SERVER['PHP_SELF']);
             exit;
@@ -83,6 +98,23 @@ if (empty($_SESSION['loggedin'])) {
     exit;
 }
 session_write_close();
+
+if (!empty($_GET['adduser'])) {
+    if (!empty($_POST['add_user'])) {
+        $errors = checkUserForm();
+
+        if (empty($errors)) {
+            insertUser($db, $_POST['name'], $_POST['password']);
+
+            header('Location: '.$_SERVER['PHP_SELF']);
+            exit;
+        }
+    }
+
+    // Include the setup template since we have no DB.
+    include('templates/setup.php');
+    exit;
+}
 
 // Handle output requests
 if (!empty($_GET['buildid'])) {

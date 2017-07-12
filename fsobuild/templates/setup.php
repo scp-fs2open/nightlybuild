@@ -2,14 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>FSO Build Runner - Setup</title>
+    <title>FSO Build Runner - Add User</title>
     <meta name="description" content="The SCP Build Runner for FSO">
     <meta name="author" content="Cliff 'chief1983' Gordon">
 </head>
 <body>
-    <h2>Setup</h2>
+    <h2>Add User</h2>
+    <?php if (!empty($errors)): ?>
     <?=implode("<br />\n", $errors)?>
-    <form action="<?=$_SERVER['PHP_SELF']?>" method="POST">
+    <?php endif; ?>
+    <form action="<?=$_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']?>" method="POST">
         <table>
             <tr>
                 <td><label for="name">Name</label></td>
@@ -24,7 +26,7 @@
                 <td><input type="password" id="password_confirm" name="password_confirm" /></td>
             </tr>
             <tr>
-                <td colspan="2"><input type="submit" name="setup" id="setup" value="Install" /></td>
+                <td colspan="2"><input type="submit" name="add_user" id="add_user" value="Add User" /></td>
             </tr>
         </table>
     </form>
