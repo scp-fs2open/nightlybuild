@@ -47,12 +47,12 @@ class ReleaseState(ScriptState):
             return False
 
         # Get the file list
-        files = github.get_release_files(self.tag_name, config)
+        files, sources = github.get_release_files(self.tag_name, config)
 
         date = datetime.datetime.now().strftime("%d %B %Y")
 
         forum = ForumAPI(self.config)
-        forum.post_release(date, self.version, files)
+        forum.post_release(date, self.version, files, sources)
         return True
 
     def get_tag_name(self, params):

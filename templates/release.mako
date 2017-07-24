@@ -85,5 +85,7 @@ Alternatively, if there is a package in your software repository then you should
 
 [hidden=Other Platforms, Source Code]
 [color=green][size=12pt]Source Code Export[/size][/color]
-[url=${groups["Win32"].mainFile.tarball}]Source Code[/url]
+[url=${sources["Unix"].url}]Source Code (Unix line endings)[/url]
+
+[url=${sources["Win"].url}]Source Code (Windows line endings)[/url]
 [/hidden]
