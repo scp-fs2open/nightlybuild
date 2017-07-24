@@ -97,7 +97,7 @@ class ForumAPI:
             print("Creating post...")
             self.create_post(session, title, rendered, self.config["nightly"]["hlp_board"])
 
-    def post_release(self, date, version, files):
+    def post_release(self, date, version, files, sources):
         print("Posting release thread...")
 
         # Construct the file groups
@@ -117,6 +117,7 @@ class ForumAPI:
                 "version": version,
                 "files": files,
                 "groups": groups,
+                "sources": sources
             }).strip("\n")
 
             print("Creating post...")
