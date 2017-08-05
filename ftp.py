@@ -38,6 +38,6 @@ def get_files(build_type, tag_name, config):
             else:
                 mirrors.append(download_url)
 
-        out_data.append(ReleaseFile(file, primary_url, group_match, None, None, mirrors))
+        out_data.append(ReleaseFile(file, primary_url, group_match, None, mirrors))
 
     return out_data
