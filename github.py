@@ -33,9 +33,12 @@ def get_release_files(tag_name, config):
         group_match = build_group_regex.match(name)
 
         if group_match is not None:
-            binary_files.append(ReleaseFile(name, url, group_match.group(1), group_match.group(3), tarball))
+            binary_files.append(ReleaseFile(name, url, group_match.group(1), group_match.group(3)))
         else:
             group_match = source_file_regex.match(name)
+
+            if group_match is None:
+                continue
 
             group = group_match.group(1)
 
