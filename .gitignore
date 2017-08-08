@@ -10,3 +10,5 @@ __pycache__
 
 # Web frontend database files
 fsobuild/data
+
+**/.cache
