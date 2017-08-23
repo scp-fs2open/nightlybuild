@@ -11,6 +11,7 @@ import semantic_version
 
 import bintray
 import github
+import installer
 from forum import ForumAPI
 from script_state import ScriptState
 
@@ -48,6 +49,10 @@ class ReleaseState(ScriptState):
 
         # Get the file list
         files, sources = github.get_release_files(self.tag_name, config)
+
+        print("Generating installer manifests")
+        for file in files:
+            print(installer.get_installer_config(file))
 
         date = datetime.datetime.now().strftime("%d %B %Y")
 
