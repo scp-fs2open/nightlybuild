@@ -5,6 +5,7 @@ from tempfile import NamedTemporaryFile
 from zipfile import ZipFile
 
 import requests
+from mako.template import Template
 
 from files import ReleaseFile
 
@@ -69,17 +70,9 @@ def get_file_list(file: ReleaseFile, hash_alg: str = "sha256"):
         raise NotImplementedError("Unsupported archive type!")
 
 
-def get_installer_config(file: ReleaseFile):
-    lines = [
-        "URL",
-        file.base_url,
-        file.filename
-    ]
-
-    for hash_tuple in get_file_list(file):
-        lines.append("HASH")
-        lines.append("SHA-256")
-        lines.append(hash_tuple[0])
-        lines.append(hash_tuple[1])
-
-    return "\n".join(lines)
+def render_installer_config(version, groups, config):
+    template = Template(filename=config["templates"]["installer"], module_directory='/tmp/mako_modules')
+    return template.render(**{
+        "version": version,
+        "groups": groups,
+    }).strip("\n")

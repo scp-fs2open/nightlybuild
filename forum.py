@@ -97,11 +97,8 @@ class ForumAPI:
             print("Creating post...")
             self.create_post(session, title, rendered, self.config["nightly"]["hlp_board"])
 
-    def post_release(self, date, version, files, sources):
+    def post_release(self, date, version, groups, sources):
         print("Posting release thread...")
-
-        # Construct the file groups
-        groups = dict(((x[0], FileGroup(x[0], list(x[1]))) for x in groupby(files, lambda g: g.group)))
 
         with requests.session() as session:
             print("Logging in...")

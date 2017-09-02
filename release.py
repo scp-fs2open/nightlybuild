@@ -6,13 +6,15 @@ import sys
 import time
 
 import datetime
+from itertools import groupby
+
 import yaml
 import semantic_version
 
 import bintray
 import github
 import installer
-from forum import ForumAPI
+from forum import ForumAPI, FileGroup
 from script_state import ScriptState
 
 abspath = os.path.abspath(__file__)
@@ -52,12 +54,17 @@ class ReleaseState(ScriptState):
 
         print("Generating installer manifests")
         for file in files:
-            print(installer.get_installer_config(file))
+            file.content_hashes = installer.get_file_list(file)
+
+        # Construct the file groups
+        groups = dict(((x[0], FileGroup(x[0], list(x[1]))) for x in groupby(files, lambda g: g.group)))
+
+        print(installer.render_installer_config(self.version, groups, self.config))
 
         date = datetime.datetime.now().strftime("%d %B %Y")
 
         forum = ForumAPI(self.config)
-        forum.post_release(date, self.version, files, sources)
+        forum.post_release(date, self.version, groups, sources)
         return True
 
     def get_tag_name(self, params):
