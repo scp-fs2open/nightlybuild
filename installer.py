@@ -10,51 +10,32 @@ from mako.template import Template
 from files import ReleaseFile
 
 
-def _download_file(url):
+def _download_file(url, dest_file):
     print("Downloading " + url)
-    local_filename = url.split('/')[-1]
     # NOTE the stream=True parameter
     r = requests.get(url, stream=True)
-    with NamedTemporaryFile('wb', delete=False, suffix=local_filename) as f:
-        for chunk in r.iter_content(chunk_size=1024):
-            if chunk:  # filter out keep-alive new chunks
-                f.write(chunk)
-        return f.name
+    for chunk in r.iter_content(chunk_size=1024):
+        if chunk:  # filter out keep-alive new chunks
+            dest_file.write(chunk)
+    dest_file.flush()
 
 
 def get_file_list(file: ReleaseFile, hash_alg: str = "sha256"):
-    filename = _download_file(file.url)
-    hash_list = []
+    with NamedTemporaryFile('wb', suffix=file.filename) as local_file:
+        _download_file(file.url, local_file)
 
-    if tarfile.is_tarfile(filename):
-        with tarfile.open(filename) as archive:
-            for entry in archive:
-                if not entry.isfile():
-                    continue
+        filename = local_file.name
+        hash_list = []
 
-                fileobj = archive.extractfile(entry)
+        if tarfile.is_tarfile(filename):
+            with tarfile.open(filename) as archive:
+                for entry in archive:
+                    if not entry.isfile():
+                        continue
 
-                h = hashlib.new(hash_alg)
-                while True:
-                    data = fileobj.read(4096)
+                    fileobj = archive.extractfile(entry)
 
-                    if not data:
-                        break
-
-                    h.update(data)
-
-                hash_list.append((entry.path, h.hexdigest()))
-
-            return hash_list
-    elif zipfile.is_zipfile(filename):
-        with ZipFile(filename) as archive:
-            for entry in archive.infolist():
-                # Python 3.6 has is_dir but that version is relatively new so we'll use the "safe" version here
-                if entry.filename.endswith('/'):
-                    continue
-
-                h = hashlib.new(hash_alg)
-                with archive.open(entry) as fileobj:
+                    h = hashlib.new(hash_alg)
                     while True:
                         data = fileobj.read(4096)
 
@@ -63,11 +44,31 @@ def get_file_list(file: ReleaseFile, hash_alg: str = "sha256"):
 
                         h.update(data)
 
-                hash_list.append((entry.filename, h.hexdigest()))
+                    hash_list.append((entry.path, h.hexdigest()))
 
-            return hash_list
-    else:
-        raise NotImplementedError("Unsupported archive type!")
+                return hash_list
+        elif zipfile.is_zipfile(filename):
+            with ZipFile(filename) as archive:
+                for entry in archive.infolist():
+                    # Python 3.6 has is_dir but that version is relatively new so we'll use the "safe" version here
+                    if entry.filename.endswith('/'):
+                        continue
+
+                    h = hashlib.new(hash_alg)
+                    with archive.open(entry) as fileobj:
+                        while True:
+                            data = fileobj.read(4096)
+
+                            if not data:
+                                break
+
+                            h.update(data)
+
+                    hash_list.append((entry.filename, h.hexdigest()))
+
+                return hash_list
+        else:
+            raise NotImplementedError("Unsupported archive type!")
 
 
 def render_installer_config(version, groups, config):
