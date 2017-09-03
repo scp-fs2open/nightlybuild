@@ -112,7 +112,6 @@ class ForumAPI:
             rendered = template.render(**{
                 "date": date,
                 "version": version,
-                "files": files,
                 "groups": groups,
                 "sources": sources
             }).strip("\n")
