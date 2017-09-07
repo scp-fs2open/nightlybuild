@@ -1,3 +1,5 @@
+from typing import List, Tuple, Dict
+
 import requests
 import re
 
@@ -5,7 +7,7 @@ from files import ReleaseFile
 from files import SourceFile
 
 
-def get_release_files(tag_name, config):
+def get_release_files(tag_name, config) -> Tuple[List[ReleaseFile], Dict[str, SourceFile]]:
     def execute_request(path):
         headers = {
             "Accept": "application/vnd.github.v3+json"

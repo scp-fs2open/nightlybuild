@@ -7,7 +7,12 @@ class ReleaseFile:
         self.group = group
         self.url = url
         self.name = name
+
+        self.base_url = "/".join(url.split('/')[0:-1]) + "/"
         self.filename = url.split('/')[-1]
+
+        # A list of tuples of (filename, hash)
+        self.content_hashes = None
 
 
 class SourceFile:

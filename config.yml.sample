@@ -40,6 +40,7 @@ release:
 templates:
     nightly: templates/nightly.mako
     release: templates/release.mako
+    installer: templates/installer.mako
 
 ftp:
     host: example.com

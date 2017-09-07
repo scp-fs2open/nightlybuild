@@ -70,9 +70,6 @@ class ScriptState:
 
             return ScriptState.STATE_BUILDS_FINISHED
         elif state == ScriptState.STATE_BUILDS_FINISHED:
-            # If the build has just finished then the file hosters may need some time to actually return all the files
-            time.sleep(10.)
-
             if self.post_build_actions():
                 return ScriptState.STATE_POST_CREATED
             else:
