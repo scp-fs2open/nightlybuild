@@ -14,6 +14,9 @@ class ReleaseFile:
         # A list of tuples of (filename, hash)
         self.content_hashes = None
 
+        self.hash = None
+        self.size = 0
+
 
 class SourceFile:
     def __init__(self, name, url, group):

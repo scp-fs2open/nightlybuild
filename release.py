@@ -54,7 +54,7 @@ class ReleaseState(ScriptState):
 
         print("Generating installer manifests")
         for file in files:
-            file.content_hashes = installer.get_file_list(file)
+            installer.get_file_list(file)
 
         # Construct the file groups
         groups = dict(((x[0], FileGroup(x[0], list(x[1]))) for x in groupby(files, lambda g: g.group)))
