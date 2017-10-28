@@ -15,7 +15,8 @@ metadata = {
     'logo': None,
     'release_thread': None,
     'description': '',
-    'id': 'FSO'
+    'id': 'FSO',
+    'packages': [],
 }
 
 envs = {
@@ -37,7 +38,7 @@ subdirs = {
 
 def render_nebula_release(version, stability, files, config):
     meta = metadata.copy()
-    meta['version'] = version
+    meta['version'] = str(version)
     meta['stability'] = stability  # This can be one of ('stable', 'rc', 'nightly')
 
     for file in files:
@@ -86,7 +87,7 @@ def render_nebula_release(version, stability, files, config):
                     label = None
 
                 pkg['executables'].append({
-                    'file': fn,
+                    'file': dest_fn,
                     'label': label
                 })
             elif group == 'MacOSX' and fn.startswith(os.path.basename(fn) + '.app/'):
@@ -96,7 +97,7 @@ def render_nebula_release(version, stability, files, config):
                     label = None
 
                 pkg['executables'].append({
-                    'file': fn,
+                    'file': dest_fn,
                     'label': label
                 })
             elif group.startswith('Win') and fn.endswith('.exe'):
@@ -113,9 +114,11 @@ def render_nebula_release(version, stability, files, config):
                         label = None
 
                 pkg['executables'].append({
-                    'file': fn,
+                    'file': dest_fn,
                     'label': label
                 })
+
+        meta["packages"].append(pkg)
 
     return meta
 

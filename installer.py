@@ -35,7 +35,7 @@ def _gen_hash(fileobj, hash_alg):
 
 
 def get_file_list(file: ReleaseFile, hash_alg: str = "sha256"):
-    with NamedTemporaryFile('wb', suffix=file.filename) as local_file:
+    with NamedTemporaryFile('w+b', suffix=file.filename) as local_file:
         _download_file(file.url, local_file)
 
         filename = local_file.name
@@ -43,7 +43,7 @@ def get_file_list(file: ReleaseFile, hash_alg: str = "sha256"):
 
         local_file.seek(0)
         file.hash = _gen_hash(local_file, hash_alg)
-        file.size = os.stat(local_file).st_size
+        file.size = os.stat(filename).st_size
 
         if tarfile.is_tarfile(filename):
             with tarfile.open(filename) as archive:
@@ -51,6 +51,7 @@ def get_file_list(file: ReleaseFile, hash_alg: str = "sha256"):
                     if not entry.isfile():
                         continue
 
+                    print("Computing hash for " + entry.name)
                     fileobj = archive.extractfile(entry)
                     hash_list.append((entry.path, _gen_hash(fileobj, hash_alg)))
         elif zipfile.is_zipfile(filename):
@@ -60,6 +61,7 @@ def get_file_list(file: ReleaseFile, hash_alg: str = "sha256"):
                     if entry.filename.endswith('/'):
                         continue
 
+                    print("Computing hash for " + entry.filename)
                     with archive.open(entry) as fileobj:
                         hash_list.append((entry.filename, _gen_hash(fileobj, hash_alg)))
         else:

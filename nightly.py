@@ -6,9 +6,14 @@ import sys
 
 import datetime
 
+import re
+
+import semantic_version
 import yaml
 
 import ftp
+import installer
+import nebula
 from forum import ForumAPI
 from script_state import ScriptState
 
@@ -25,6 +30,27 @@ args = parser.parse_args()
 
 config = {}
 
+MAJOR_VERSION_PATTERN = re.compile("set_if_not_defined\(FSO_VERSION_MAJOR (\d+)\)")
+MINOR_VERSION_PATTERN = re.compile("set_if_not_defined\(FSO_VERSION_MINOR (\d+)\)")
+BUILD_VERSION_PATTERN = re.compile("set_if_not_defined\(FSO_VERSION_BUILD (\d+)\)")
+
+
+def _match_version_number(text, regex):
+    match = regex.search(text)
+    return int(match.group(1))
+
+
+def get_source_version(config, date_version):
+    with open(os.path.join(config["git"]["repo"], "cmake", "version.cmake"), "r") as f:
+        filetext = f.read()
+
+        major = _match_version_number(filetext, MAJOR_VERSION_PATTERN)
+        minor = _match_version_number(filetext, MINOR_VERSION_PATTERN)
+        build = _match_version_number(filetext, BUILD_VERSION_PATTERN)
+
+        return semantic_version.Version("{}.{}.{}-{}".format(major, minor, build, date_version))
+
+
 with open(args.config, "r") as f:
     try:
         config = yaml.load(f)
@@ -40,6 +66,13 @@ class NightlyState(ScriptState):
     def post_build_actions(self):
         # Get the file list
         files = ftp.get_files("nightly", self.tag_name, config)
+
+        print("Generating installer manifests")
+        for file in files:
+            installer.get_file_list(file)
+
+        version = get_source_version(self.config, datetime.datetime.now().strftime("%Y%m%d"))
+        nebula.submit_release(nebula.render_nebula_release(version, "nightly", files, config), config)
 
         commit = self.repo.get_commit()
         date = datetime.datetime.now().strftime("%d %B %Y")
