@@ -35,14 +35,15 @@ subdirs = {
 }
 
 
-def render_nebula_release(version, files, config):
+def render_nebula_release(version, stability, files, config):
     meta = metadata.copy()
-
-    metadata['version'] = version
+    meta['version'] = version
+    meta['stability'] = stability  # This can be one of ('stable', 'rc', 'nightly')
 
     for file in files:
         group = file.group
 
+        # release.py sets subgroup but nightly.py doesn't which means we have to normalize group here.
         if file.subgroup:
             group += '-' + file.subgroup
 
