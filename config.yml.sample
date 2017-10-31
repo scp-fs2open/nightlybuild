@@ -50,3 +50,7 @@ ftp:
     mirrors:
       - http://swc.fs2downloads.com/builds/{type}/{version}/{file}
       - http://scp.indiegames.us/builds/{type}/{version}/{file}
+
+nebula:
+    user: test
+    password: test
