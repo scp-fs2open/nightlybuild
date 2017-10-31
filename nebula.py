@@ -19,6 +19,15 @@ metadata = {
     'packages': [],
 }
 
+platforms = {
+    'Linux': 'linux',
+    'MacOSX': 'macosx',
+    'Win32': 'windows',
+    'Win64': 'windows',
+    'Win32-AVX': 'windows',
+    'Win64-AVX': 'windows'
+}
+
 envs = {
     'Linux': 'linux && x86_64',  # Linux only has 64bit builds
     'MacOSX': 'macosx',
@@ -72,6 +81,10 @@ def render_nebula_release(version, stability, files, config):
                 dest_fn = subdirs[group] + '/' + fn
             else:
                 dest_fn = fn
+
+            # If the group is a known platform then we put the binaries into a separate subfolder for each platform
+            if group in platforms:
+                dest_fn = platforms[group] + '/' + dest_fn
 
             pkg['filelist'].append({
                 'orig_name': fn,
