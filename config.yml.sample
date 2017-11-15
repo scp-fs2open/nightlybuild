@@ -54,3 +54,6 @@ ftp:
 nebula:
     user: test
     password: test
+
+phantomjs:
+    path: /opt/phantomjs/bin/phantomjs
