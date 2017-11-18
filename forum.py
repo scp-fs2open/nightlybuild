@@ -1,10 +1,10 @@
-import re
+
 import time
 from itertools import groupby
 
 from mako.template import Template
-from mako import exceptions
-import requests
+from selenium import webdriver
+from selenium.webdriver.remote.webdriver import WebDriver
 
 
 class FileGroup:
@@ -48,74 +48,86 @@ class ForumAPI:
     def __init__(self, config):
         self.config = config
 
-    def login(self, session):
-        data = {
-            "user": self.config["hlp"]["user"],
-            "passwrd": self.config["hlp"]["pass"]
-        }
-        session.post("http://www.hard-light.net/forums/index.php?action=login2", data=data)
+    def _create_driver(self):
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
 
-        time.sleep(10.)
+        return webdriver.PhantomJS(executable_path=self.config["phantomjs"]["path"])
 
-    def create_post(self, session, title, content, board):
-        response = session.get(self.config["hlp"]["board_url_format"].format(board=board))
+    def login(self, driver: WebDriver):
+        driver.get("http://www.hard-light.net/forums/index.php?action=login")
 
-        # This part of the code was taken from https://github.com/Chaturaphut/Python-SMF-Auto-Post/blob/master/smf_post.py
-        seq = re.search('name="seqnum" value="(.+?)"', response.text).group(1)
-        sesVar = re.search('sSessionVar: \'(.+?)\'', response.text).group(1)
-        sesID = re.search('sSessionId: \'(.+?)\'', response.text).group(1)
+        driver.save_screenshot("/tmp/pre_login.png")
 
-        field = {'topic': '0', 'subject': title, 'icon': 'xx', 'sel_face': '', 'sel_size': '', 'sell_color': '',
-                 'message': content, 'message_mode': '0', 'notify': '0', 'lock': '0', 'sticky': '0', 'move': '0',
-                 'additional_options': '0', sesVar: sesID, 'seqnum': seq}
+        form = driver.find_element_by_id("frmLogin")
 
-        print("Posting to " + self.config["hlp"]["post_action"].format(board=board))
-        return session.post(self.config["hlp"]["post_action"].format(board=board), data=field)
+        form.find_element_by_name("user").send_keys(self.config["hlp"]["user"])
+        form.find_element_by_name("passwrd").send_keys(self.config["hlp"]["pass"])
+
+        form.submit()
+
+        driver.save_screenshot("/tmp/post_login.png")
+
+        time.sleep(3.)
+
+    def create_post(self, driver: WebDriver, title, content, board):
+        driver.get(self.config["hlp"]["board_url_format"].format(board=board))
+
+        form = driver.find_element_by_id("postmodify")
+        form.find_element_by_name("subject").send_keys(title)
+        form.find_element_by_name("message").send_keys(content)
+
+        driver.save_screenshot("/tmp/pre_post.png")
+
+        form.submit()
+
+        driver.save_screenshot("/tmp/post_post.png")
 
     def post_nightly(self, date, revision, files, log, success):
         print("Posting nightly thread...")
 
-        with requests.session() as session:
-            title = "Nightly: {} - Revision {}".format(date, revision)
+        driver = self._create_driver()
+        print("Logging in...")
 
-            template = Template(filename=self.config["templates"]["nightly"])
-            rendered = template.render(**{
-                "date": date,
-                "revision": revision,
-                "files": files,
-                "log": log,
-                "success": success
-            })
+        self.login(driver)
 
-            print(rendered)
+        title = "Nightly: {} - Revision {}".format(date, revision)
 
-            print("Logging in...")
-            self.login(session)
+        template = Template(filename=self.config["templates"]["nightly"])
+        rendered = template.render(**{
+            "date": date,
+            "revision": revision,
+            "files": files,
+            "log": log,
+            "success": success
+        })
 
-            time.sleep(10.)
+        print(rendered)
 
-            print("Creating post...")
-            self.create_post(session, title, rendered, self.config["nightly"]["hlp_board"])
+        print("Creating post...")
+        self.create_post(driver, title, rendered, self.config["nightly"]["hlp_board"])
+
+        driver.close()
 
     def post_release(self, date, version, groups, sources):
         print("Posting release thread...")
 
-        with requests.session() as session:
-            print("Logging in...")
-            self.login(session)
+        driver = self._create_driver()
+        print("Logging in...")
 
-            time.sleep(10.)
+        self.login(driver)
 
-            title = "Release: {}".format(version)
+        title = "Release: {}".format(version)
 
-            template = Template(filename=self.config["templates"]["release"], module_directory='/tmp/mako_modules')
-            rendered = template.render(**{
-                "date": date,
-                "version": version,
-                "groups": groups,
-                "sources": sources
-            }).strip("\n")
+        template = Template(filename=self.config["templates"]["release"], module_directory='/tmp/mako_modules')
+        rendered = template.render(**{
+            "date": date,
+            "version": version,
+            "groups": groups,
+            "sources": sources
+        }).strip("\n")
 
-            print("Creating post...")
+        print("Creating post...")
 
-            self.create_post(session, title, rendered, self.config["release"]["hlp_board"])
+        self.create_post(driver, title, rendered, self.config["release"]["hlp_board"])
