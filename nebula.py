@@ -51,6 +51,10 @@ def render_nebula_release(version, stability, files, config):
     meta['stability'] = stability  # This can be one of ('stable', 'rc', 'nightly')
 
     for file in files:
+        if file.content_hashes is None:
+            # The extraction probably failed which is why we don't have any hashes
+            continue
+
         group = file.group
 
         # release.py sets subgroup but nightly.py doesn't which means we have to normalize group here.
