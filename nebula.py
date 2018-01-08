@@ -1,5 +1,8 @@
 import os.path
+import traceback
+
 import requests
+import sys
 
 metadata = {
     'type': 'engine',
@@ -141,35 +144,40 @@ def render_nebula_release(version, stability, files, config):
 
 
 def submit_release(meta, config):
-    with requests.session() as session:
-        print('Logging into Nebula...')
-        result = session.post('https://fsnebula.org/api/1/login', data={
-            'user': config['nebula']['user'],
-            'password': config['nebula']['password']
-        })
+    try:
+        with requests.session() as session:
+            print('Logging into Nebula...')
+            result = session.post('https://fsnebula.org/api/1/login', data={
+                'user': config['nebula']['user'],
+                'password': config['nebula']['password']
+            })
 
-        if result.status_code != 200:
-            print('Login failed!')
-            return False
+            if result.status_code != 200:
+                print('Login failed!')
+                return False
 
-        data = result.json()
-        if not data['result']:
-            print('Login failed!')
-            return False
+            data = result.json()
+            if not data['result']:
+                print('Login failed!')
+                return False
 
-        print('Submitting release...')
-        result = session.post('https://fsnebula.org/api/1/mod/release', headers={
-            'X-KN-TOKEN': data['token']
-        }, json=meta)
+            print('Submitting release...')
+            result = session.post('https://fsnebula.org/api/1/mod/release', headers={
+                'X-KN-TOKEN': data['token']
+            }, json=meta)
 
-        if result.status_code != 200:
-            print('Request failed!')
-            return False
+            if result.status_code != 200:
+                print('Request failed!')
+                return False
 
-        data = result.json()
-        if not data['result']:
-            print('ERROR: ' + data['reason'])
-            return False
+            data = result.json()
+            if not data['result']:
+                print('ERROR: ' + data['reason'])
+                return False
 
-        print('Success!')
-        return True
+            print('Success!')
+            return True
+    except Exception:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback)
+        return False
