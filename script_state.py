@@ -29,6 +29,7 @@ class ScriptState:
         self.success = False
         self.state = ScriptState.STATE_INITIAL
         self.repo = git.GitRepository(config["git"]["repo"], config["git"]["branch"])
+        self.date = None
 
     def _go_to_state(self, state):
         """
@@ -46,10 +47,10 @@ class ScriptState:
                 print("Latest commit already has a build tag!")
                 return ScriptState.STATE_FINISHED
 
-            date = datetime.datetime.now().strftime("%Y%m%d")
+            self.date = datetime.datetime.now().strftime("%Y%m%d")
 
             format_args = {
-                "date": date,
+                "date": self.date,
                 "commit": current_commit
             }
 
@@ -57,7 +58,7 @@ class ScriptState:
 
             restore_state = self.repo.prepare_repo()
 
-            self.do_replacements(date, current_commit)
+            self.do_replacements(self.date, current_commit)
 
             self.repo.commit_and_tag(self.tag_name)
 

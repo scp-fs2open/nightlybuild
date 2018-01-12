@@ -71,7 +71,7 @@ class NightlyState(ScriptState):
         for file in files:
             installer.get_file_list(file)
 
-        version = get_source_version(self.config, datetime.datetime.now().strftime("%Y%m%d"))
+        version = get_source_version(self.config, self.date)
         nebula.submit_release(nebula.render_nebula_release(version, "nightly", files, config), config)
 
         commit = self.repo.get_commit()
