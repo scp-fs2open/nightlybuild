@@ -66,7 +66,7 @@ class ReleaseState(ScriptState):
             nebula.render_nebula_release(self.version, "rc" if self.version.prerelease else "stable", files, config),
             config)
 
-        date = datetime.datetime.now().strftime("%d %B %Y")
+        date = self.date.strftime(ScriptState.DATEFORMAT_FORUM)
 
         forum = ForumAPI(self.config)
         forum.post_release(date, self.version, groups, sources)
