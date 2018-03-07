@@ -14,6 +14,7 @@ import semantic_version
 import bintray
 import github
 import installer
+import nebula
 from forum import ForumAPI, FileGroup
 from script_state import ScriptState
 
@@ -60,6 +61,10 @@ class ReleaseState(ScriptState):
         groups = dict(((x[0], FileGroup(x[0], list(x[1]))) for x in groupby(files, lambda g: g.group)))
 
         print(installer.render_installer_config(self.version, groups, self.config))
+
+        nebula.submit_release(
+            nebula.render_nebula_release(self.version, "rc" if self.version.prerelease else "stable", files, config),
+            config)
 
         date = datetime.datetime.now().strftime("%d %B %Y")
 
