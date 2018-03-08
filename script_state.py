@@ -15,6 +15,9 @@ class ScriptState:
     STATE_POST_CREATED = "post_created"
     STATE_FINISHED = "finished"
 
+    DATEFORMAT_VERSION = "%Y%m%d"
+    DATEFORMAT_FORUM = "%d %B %Y"
+
     @staticmethod
     def load_from_file():
         if not os.path.isfile("state.pickle"):
@@ -47,10 +50,10 @@ class ScriptState:
                 print("Latest commit already has a build tag!")
                 return ScriptState.STATE_FINISHED
 
-            self.date = datetime.datetime.now().strftime("%Y%m%d")
+            self.date = datetime.datetime.now()
 
             format_args = {
-                "date": self.date,
+                "date": self.date.strftime(ScriptState.DATEFORMAT_VERSION),
                 "commit": current_commit
             }
 
@@ -58,7 +61,7 @@ class ScriptState:
 
             restore_state = self.repo.prepare_repo()
 
-            self.do_replacements(self.date, current_commit)
+            self.do_replacements(self.date.strftime(ScriptState.DATEFORMAT_VERSION), current_commit)
 
             self.repo.commit_and_tag(self.tag_name)
 
