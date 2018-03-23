@@ -69,7 +69,7 @@ def render_nebula_release(version, stability, files, config):
             'notes': '',
             'is_vp': False,
             'files': [{
-                'dest': '',
+                'dest': platforms[group] + '/' + subdirs.get(group, ''),
                 'filesize': file.size,
                 'checksum': ['sha256', file.hash],
                 'urls': [file.url] + file.mirrors,
