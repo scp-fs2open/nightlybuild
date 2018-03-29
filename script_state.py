@@ -69,6 +69,11 @@ class ScriptState:
 
             return ScriptState.STATE_TAG_PUSHED
         elif state == ScriptState.STATE_TAG_PUSHED:
+            if self.date is None:
+                # We are probably running with a tag that was already pushed in which case date has not been initialized
+                # yet
+                self.date = datetime.datetime.now()
+
             # Monitor the created build...
             self.success = build_monitor.monitor_builds(self.tag_name, self.config)
 
