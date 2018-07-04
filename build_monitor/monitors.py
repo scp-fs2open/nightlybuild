@@ -1,6 +1,8 @@
 import requests
 import travispy
 
+from util import GLOBAL_TIMEOUT
+
 
 class Monitor:
     def __init__(self, config, tag_name):
@@ -81,7 +83,7 @@ class AppveyorMonitor(Monitor):
         }
         url = "https://ci.appveyor.com/api" + path
 
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=GLOBAL_TIMEOUT)
 
         response.raise_for_status()
 
