@@ -11,12 +11,13 @@ import sys
 from mako.template import Template
 
 from files import ReleaseFile
+from util import GLOBAL_TIMEOUT
 
 
 def _download_file(url, dest_file, session):
     print("Downloading " + url)
     # NOTE the stream=True parameter
-    r = session.get(url, stream=True)
+    r = session.get(url, stream=True, timeout=GLOBAL_TIMEOUT)
     for chunk in r.iter_content(chunk_size=1024):
         if chunk:  # filter out keep-alive new chunks
             dest_file.write(chunk)

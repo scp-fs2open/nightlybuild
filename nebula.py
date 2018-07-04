@@ -1,8 +1,10 @@
 import os.path
+import sys
 import traceback
 
 import requests
-import sys
+
+from util import retry_multi, GLOBAL_TIMEOUT
 
 metadata = {
     'type': 'engine',
@@ -143,11 +145,23 @@ def render_nebula_release(version, stability, files, config):
     return meta
 
 
+@retry_multi(5)
+def nebula_request(session, kind, path, **kwargs):
+    uri = "https://fsnebula.org/api/1/{}".format(path)
+
+    request_args = {
+        "timeout": GLOBAL_TIMEOUT
+    }
+    request_args.update(kwargs)
+
+    return session.request(kind, uri, **request_args)
+
+
 def submit_release(meta, config):
     try:
-        with requests.session() as session:
+        with requests.Session() as session:
             print('Logging into Nebula...')
-            result = session.post('https://fsnebula.org/api/1/login', data={
+            result = nebula_request(session, 'post', 'login', data={
                 'user': config['nebula']['user'],
                 'password': config['nebula']['password']
             })
@@ -162,7 +176,7 @@ def submit_release(meta, config):
                 return False
 
             print('Submitting release...')
-            result = session.post('https://fsnebula.org/api/1/mod/release', headers={
+            result = nebula_request(session, 'post', 'mod/release', headers={
                 'X-KN-TOKEN': data['token']
             }, json=meta)
 

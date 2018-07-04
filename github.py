@@ -5,16 +5,18 @@ import re
 
 from files import ReleaseFile
 from files import SourceFile
+from util import retry_multi, GLOBAL_TIMEOUT
 
 
 def get_release_files(tag_name, config) -> Tuple[List[ReleaseFile], Dict[str, SourceFile]]:
+    @retry_multi(5)
     def execute_request(path):
         headers = {
             "Accept": "application/vnd.github.v3+json"
         }
         url = "https://api.github.com" + path
 
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=GLOBAL_TIMEOUT)
 
         response.raise_for_status()
 

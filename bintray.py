@@ -5,15 +5,17 @@ import re
 import requests
 
 from files import ReleaseFile
+from util import retry_multi, GLOBAL_TIMEOUT
 
 
 def get_file_list(tag_name, config):
+    @retry_multi(5)
     def execute_request(path):
         headers = {
         }
         url = "https://bintray.com/api/v1" + path
 
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=GLOBAL_TIMEOUT)
 
         response.raise_for_status()
 
