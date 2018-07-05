@@ -108,9 +108,17 @@ def render_nebula_release(version, stability, files, config):
                 else:
                     label = None
 
+                props = {
+                    "x64": True,  # All Linux builds are 64-bit
+                    "sse2": True,  # Linux builds are forced to compile with SSE2 but not AVX
+                    "avx": False,
+                    "avx2": False,
+                }
+
                 pkg['executables'].append({
                     'file': dest_fn,
-                    'label': label
+                    'label': label,
+                    'properties': props,
                 })
             elif group == 'MacOSX' and fn.startswith(os.path.basename(fn) + '.app/'):
                 if '-FASTDBG' in fn:
@@ -118,9 +126,17 @@ def render_nebula_release(version, stability, files, config):
                 else:
                     label = None
 
+                props = {
+                    "x64": True,  # All Mac builds are 64-bit
+                    "sse2": True,  # There are no forced options on mac but 64-bit always implies SSE2 so we set that here
+                    "avx": False,
+                    "avx2": False,
+                }
+
                 pkg['executables'].append({
                     'file': dest_fn,
-                    'label': label
+                    'label': label,
+                    'properties': props,
                 })
             elif group.startswith('Win') and fn.endswith('.exe'):
                 if 'fred2' in fn:
@@ -135,9 +151,17 @@ def render_nebula_release(version, stability, files, config):
                     else:
                         label = None
 
+                props = {
+                    "x64": group == "Win64",
+                    "sse2": "SSE2" in fn or "AVX" in fn,  # AVX implies SSE2
+                    "avx": "AVX" in fn,  # This conveniently also covers the AVX2 case since AVX2 implies AVX
+                    "avx2": "AVX2" in fn,
+                }
+
                 pkg['executables'].append({
                     'file': dest_fn,
-                    'label': label
+                    'label': label,
+                    'properties': props,
                 })
 
         meta["packages"].append(pkg)
