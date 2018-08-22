@@ -103,10 +103,17 @@ def render_nebula_release(version, stability, files, config):
             })
 
             if group == 'Linux' and fn.endswith('.AppImage'):
-                if '-FASTDBG' in fn:
-                    label = 'Fast Debug'
+                if 'qtfred' in fn:
+                    if '-FASTDBG' in fn:
+                        label = 'QtFRED Debug'
+                    else:
+                        label = 'QtFRED'
+
                 else:
-                    label = None
+                    if '-FASTDBG' in fn:
+                        label = 'Fast Debug'
+                    else:
+                        label = None
 
                 props = {
                     "x64": True,  # All Linux builds are 64-bit
@@ -121,10 +128,16 @@ def render_nebula_release(version, stability, files, config):
                     'properties': props,
                 })
             elif group == 'MacOSX' and fn.startswith(os.path.basename(fn) + '.app/'):
-                if '-FASTDBG' in fn:
-                    label = 'Fast Debug'
+                if 'qtfred' in fn:
+                    if '-FASTDBG' in fn:
+                        label = 'QtFRED Debug'
+                    else:
+                        label = 'QtFRED'
                 else:
-                    label = None
+                    if '-FASTDBG' in fn:
+                        label = 'Fast Debug'
+                    else:
+                        label = None
 
                 props = {
                     "x64": True,  # All Mac builds are 64-bit
@@ -144,6 +157,12 @@ def render_nebula_release(version, stability, files, config):
                         label = 'FRED2 Debug'
                     else:
                         label = 'FRED2'
+
+                elif 'qtfred' in fn:
+                    if '-FASTDBG' in fn:
+                        label = 'QtFRED Debug'
+                    else:
+                        label = 'QtFRED'
 
                 else:
                     if '-FASTDBG' in fn:
