@@ -1,4 +1,4 @@
-from ftplib import FTP
+from ftplib import FTP, error_perm
 
 import re
 
@@ -10,16 +10,20 @@ def get_files(build_type, tag_name, config):
     build_group_regex = re.compile("nightly_.*-builds-([^.]*).*")
 
     files = []
-    with FTP(config["ftp"]["host"], config["ftp"]["user"], config["ftp"]["pass"]) as ftp:
-        version_str = tag_regex.match(tag_name).group(1)
+    try:
+        with FTP(config["ftp"]["host"], config["ftp"]["user"], config["ftp"]["pass"]) as ftp:
+            version_str = tag_regex.match(tag_name).group(1)
 
-        path_template = config["ftp"]["path"]
-        path = path_template.format(type=build_type, version=version_str)
-        file_entries = list(ftp.mlsd(path, ["type"]))
+            path_template = config["ftp"]["path"]
+            path = path_template.format(type=build_type, version=version_str)
+            file_entries = list(ftp.mlsd(path, ["type"]))
 
-        for entry in file_entries:
-            if entry[1]["type"] == "file":
-                files.append(entry[0])
+            for entry in file_entries:
+                if entry[1]["type"] == "file":
+                    files.append(entry[0])
+    except error_perm:
+        print("Received permanent FTP error!")
+        return []
 
     out_data = []
     for file in files:
