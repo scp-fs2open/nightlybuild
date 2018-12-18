@@ -53,7 +53,7 @@ class GitRepository:
     def update_repository(self):
         self._git_redirected_success("checkout '{}'".format(self.branch))
         self._git_redirected_success("fetch --tags origin".format(self.branch))
-        self._git_redirected_success("pull origin '{}'".format(self.branch))
+        self._git_redirected_success("reset --hard 'origin/{}'".format(self.branch))
 
     def prepare_repo(self):
         self._git_redirected_success("checkout '{}'".format(self.branch))
