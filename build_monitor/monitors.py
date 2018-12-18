@@ -66,10 +66,11 @@ class TravisMonitor(Monitor):
 
 class AppveyorMonitor(Monitor):
     STATUS_QUEUED = "queued"
+    STATUS_STARTING = "starting"
     STATUS_RUNNING = "running"
     STATUS_SUCCESS = "success"
 
-    RUNNING_STATES = [STATUS_QUEUED, STATUS_RUNNING]
+    RUNNING_STATES = [STATUS_QUEUED, STATUS_STARTING, STATUS_RUNNING]
     SUCCESS_STATES = [STATUS_SUCCESS]
 
     def __init__(self, config, tag_name):
