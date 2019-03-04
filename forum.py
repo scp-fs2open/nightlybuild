@@ -1,8 +1,7 @@
-
+import os
 import time
 from itertools import groupby
 
-import os
 from mako.template import Template
 from selenium import webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -99,7 +98,7 @@ class ForumAPI:
         title = "Nightly: {} - Revision {}".format(date, revision)
 
         template = Template(filename=self.config["templates"]["nightly"])
-        rendered = template.render(**{
+        rendered = template.render_unicode(**{
             "date": date,
             "revision": revision,
             "files": files,
@@ -125,7 +124,7 @@ class ForumAPI:
         title = "Release: {}".format(version)
 
         template = Template(filename=self.config["templates"]["release"], module_directory='/tmp/mako_modules')
-        rendered = template.render(**{
+        rendered = template.render_unicode(**{
             "date": date,
             "version": version,
             "groups": groups,
