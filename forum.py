@@ -107,8 +107,6 @@ class ForumAPI:
             "success": success
         })
 
-        print(rendered)
-
         print("Creating post...")
         self.create_post(driver, title, rendered, self.config["nightly"]["hlp_board"])
 
