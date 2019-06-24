@@ -2,9 +2,8 @@ import os
 import time
 from itertools import groupby
 
+import requests
 from mako.template import Template
-from selenium import webdriver
-from selenium.webdriver.remote.webdriver import WebDriver
 
 
 class FileGroup:
@@ -48,52 +47,19 @@ class ForumAPI:
     def __init__(self, config):
         self.config = config
 
-    def _create_driver(self):
-        options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
-        options.add_argument('--disable-gpu')
+    def create_post(self, title, content, board):
+        resp = requests.post(self.config["hlp"]["api"], data={
+            "api_key": self.config["hlp"]["key"],
+            "board": str(board),
+            "subject": title,
+            "body": content
+        })
 
-        if os.path.isfile("/tmp/ghostdriver.log"):
-            os.remove("/tmp/ghostdriver.log")
-
-        return webdriver.PhantomJS(executable_path=self.config["phantomjs"]["path"], service_log_path='/tmp/ghostdriver.log')
-
-    def login(self, driver: WebDriver):
-        driver.get("http://www.hard-light.net/forums/index.php?action=login")
-
-        driver.save_screenshot("/tmp/pre_login.png")
-
-        form = driver.find_element_by_id("frmLogin")
-
-        form.find_element_by_name("user").send_keys(self.config["hlp"]["user"])
-        form.find_element_by_name("passwrd").send_keys(self.config["hlp"]["pass"])
-
-        form.submit()
-
-        driver.save_screenshot("/tmp/post_login.png")
-
-        time.sleep(3.)
-
-    def create_post(self, driver: WebDriver, title, content, board):
-        driver.get(self.config["hlp"]["board_url_format"].format(board=board))
-
-        form = driver.find_element_by_id("postmodify")
-        form.find_element_by_name("subject").send_keys(title)
-        form.find_element_by_name("message").send_keys(content)
-
-        driver.save_screenshot("/tmp/pre_post.png")
-
-        form.submit()
-
-        driver.save_screenshot("/tmp/post_post.png")
+        if resp.text != "OK":
+            print("Post failed!")
 
     def post_nightly(self, date, revision, files, log, success):
         print("Posting nightly thread...")
-
-        driver = self._create_driver()
-        print("Logging in...")
-
-        self.login(driver)
 
         title = "Nightly: {} - Revision {}".format(date, revision)
 
@@ -107,17 +73,10 @@ class ForumAPI:
         })
 
         print("Creating post...")
-        self.create_post(driver, title, rendered, self.config["nightly"]["hlp_board"])
-
-        driver.close()
+        self.create_post(title, rendered, self.config["nightly"]["hlp_board"])
 
     def post_release(self, date, version, groups, sources):
         print("Posting release thread...")
-
-        driver = self._create_driver()
-        print("Logging in...")
-
-        self.login(driver)
 
         title = "Release: {}".format(version)
 
@@ -131,4 +90,4 @@ class ForumAPI:
 
         print("Creating post...")
 
-        self.create_post(driver, title, rendered, self.config["release"]["hlp_board"])
+        self.create_post(title, rendered, self.config["release"]["hlp_board"])
