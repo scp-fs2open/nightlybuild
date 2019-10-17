@@ -1,6 +1,5 @@
-from ftplib import FTP, error_perm
-
 import re
+from ftplib import FTP, error_perm
 
 from files import ReleaseFile
 
@@ -27,7 +26,12 @@ def get_files(build_type, tag_name, config):
 
     out_data = []
     for file in files:
-        group_match = build_group_regex.match(file).group(1)
+        file_match = build_group_regex.match(file)
+        if file_match is None:
+            print("Ignoring non nightly file '{}'".format(file))
+            continue
+
+        group_match = file_match.group(1)
         primary_url = None
         mirrors = []
 
