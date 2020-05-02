@@ -1,5 +1,6 @@
 <?php
-namespace Alchemy\Component\Yaml;
+// Our simple setup doesn't need namespaces at the moment.
+// namespace Alchemy\Component\Yaml;
 
 /**
  * Yaml Class
@@ -1210,4 +1211,3 @@ class Yaml
         return $line;
     }
 }
-

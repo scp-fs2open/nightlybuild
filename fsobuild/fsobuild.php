@@ -12,7 +12,8 @@ spl_autoload_register(function ($class_name) {
     require_once($class_name . '.php');
 });
 
-$config = Yaml::YAMLLoad('../config.yml');
+$yaml = new Yaml();
+$config = $yaml->load('../config.yml');
 
 function checkUserForm()
 {
