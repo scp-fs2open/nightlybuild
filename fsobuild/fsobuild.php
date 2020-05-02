@@ -4,7 +4,7 @@
 // error_reporting(E_ALL);
 // ini_set('display_errors', 1);
 
-// Sincw we start in the public folder (if installed correctly), reset working dir to here.
+// Since we start in the public folder (if installed correctly), reset working dir to here.
 chdir(dirname(__FILE__));
 
 set_include_path(get_include_path() . PATH_SEPARATOR . './lib');
@@ -12,8 +12,12 @@ spl_autoload_register(function ($class_name) {
     require_once($class_name . '.php');
 });
 
+$yaml = new Yaml();
+$config = $yaml->load('../config.yml');
+
 function checkUserForm()
 {
+    $errors = array();
     if (empty($_POST['name'])) {
         $errors[] = "Enter a username.";
     }
@@ -79,7 +83,7 @@ if (!empty($_GET['logout'])) {
     unset($_SESSION['loggedin']);
 }
 
-if (empty($_SESSION['loggedin'])) {
+if (empty($_SESSION['loggedin']) && !(isset($_GET['invite']) && $_GET['invite'] === 'scp-devs')) {
     if (!empty($_POST['login'])) {
         $sth = $db->prepare("SELECT id, password_hash FROM users WHERE name=:name");
         $sth->execute(array(
@@ -99,7 +103,7 @@ if (empty($_SESSION['loggedin'])) {
 }
 session_write_close();
 
-if (!empty($_GET['adduser'])) {
+if (!empty($_GET['adduser']) || !empty($_GET['invite'])) {
     if (!empty($_POST['add_user'])) {
         $errors = checkUserForm();
 
@@ -147,7 +151,7 @@ if (!empty($_POST['version'])) {
     if (!empty($_POST['tag_name'])) {
         $args .= " ".escapeshellcmd($_POST['tag_name']);
     }
-    $output = trim(shell_exec("/usr/bin/env python3 -B /home/cliff/nightlybuild/release.py {$args} 2>&1"));
+    $output = file_get_contents($config['webui']['host'].'/trigger/release?api_key='.$config['webui']['key'].'&version=' . urlencode($_POST['version']) . '&tag_name=' . urlencode($_POST['tag_name']));
     $db->prepare("UPDATE jobs SET completed = CURRENT_TIMESTAMP, status = 'complete', output = :output
                 WHERE pid=".getmypid()." AND status='running';")
         ->execute(array(

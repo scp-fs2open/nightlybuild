@@ -114,7 +114,7 @@ def main():
             print("Tag name ignored because there was a stored script state.")
 
         if not isinstance(script_state, ReleaseState):
-            print("State object is not a nightly state! Delete 'state.pickle' or execute right script.")
+            print("State object is not a release state! Delete 'state.pickle' or execute right script.")
             return
 
     # Always use the loaded values to allow changing the config while a script has a serialized state on disk

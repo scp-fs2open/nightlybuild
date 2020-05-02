@@ -28,6 +28,10 @@ hlp:
     api: http://example.tld/path/to/post_api.php
     key:
 
+webui:
+    host: http://webui_listener
+    key:
+
 nightly:
     hlp_board: 173
 

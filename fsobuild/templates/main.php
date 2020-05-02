@@ -29,6 +29,9 @@
             </table>
         </form>
     </div>
+
+    <p><a href="release_log.txt">Last Log</a></p>
+
     <h4>Recent Builds</h4>
     <div id="buildstatus">
         <table>
