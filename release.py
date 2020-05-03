@@ -34,7 +34,7 @@ config = {}
 
 with open(args.config, "r") as f:
     try:
-        config = yaml.load(f)
+        config = yaml.safe_load(f)
     except yaml.YAMLError as e:
         print(e)
         sys.exit(1)
