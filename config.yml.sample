@@ -17,13 +17,6 @@ appveyor:
     user: asarium
     repo: fs2open-github-com
 
-bintray:
-    user:
-    token:
-    subject:
-    repo:
-    package:
-
 hlp:
     api: http://example.tld/path/to/post_api.php
     key:
