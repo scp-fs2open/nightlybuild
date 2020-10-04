@@ -1,3 +1,4 @@
+import os
 import time
 from functools import wraps
 
@@ -31,3 +32,7 @@ def retry_multi(max_retries):
         return wrapper
 
     return retry
+
+
+def expand_config_vars(config):
+    config["git"]["repo"] = os.path.expandvars(config["git"]["repo"])

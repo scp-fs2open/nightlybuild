@@ -16,6 +16,7 @@ import installer
 import nebula
 from forum import ForumAPI
 from script_state import ScriptState
+from util import expand_config_vars
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -54,6 +55,8 @@ def get_source_version(config, date_version):
 with open(args.config, "r") as f:
     try:
         config = yaml.safe_load(f)
+        # Support some variables in the config
+        expand_config_vars(config)
     except yaml.YAMLError as e:
         print(e)
         sys.exit(1)
