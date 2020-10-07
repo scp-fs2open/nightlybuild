@@ -29,6 +29,7 @@ jobs:
           path: fs2open.github.com
           ssh-key: ${{ secrets.SIRKNIGHTLY_PRIVATE_KEY }}
           submodules: true
+          fetch-depth: 0
       - name: Set up Python 3.8
         uses: actions/setup-python@v2
         with:
