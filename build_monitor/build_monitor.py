@@ -5,7 +5,7 @@ from build_monitor import monitors
 
 
 def monitor_builds(tag_name, options):
-    used_monitors = [monitors.TravisMonitor(options, tag_name), monitors.AppveyorMonitor(options, tag_name)]
+    used_monitors = [monitors.AppveyorMonitor(options, tag_name)]
     interval = options["monitor"]["check_interval"]
 
     monitor_list = used_monitors
