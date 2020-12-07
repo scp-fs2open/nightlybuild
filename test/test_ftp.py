@@ -2,11 +2,8 @@ import unittest
 from unittest import mock
 from unittest.mock import Mock
 
-import ftp
-
-
 class FtpTestCase(unittest.TestCase):
-    @mock.patch("ftp.FTP", autospec=True)
+    @mock.patch("ftplib.FTP", autospec=True)
     def test_file_listing(self, MockFTP):
         MockFTP.return_value = Mock()
         mock_ftp_obj = MockFTP()
@@ -33,7 +30,9 @@ class FtpTestCase(unittest.TestCase):
                 ]
             }
         }
-        files = ftp.get_files("nightly", "nightly_test_tag", test_config)
+
+        import file_list
+        files = file_list.get_ftp_files("nightly", "nightly_test_tag", test_config)
         self.assertEqual(4, len(files))
 
 

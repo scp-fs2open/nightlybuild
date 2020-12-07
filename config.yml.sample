@@ -5,6 +5,7 @@ git:
 github:
     user:
     repo:
+    token: asdf
 
 monitor:
     check_interval: 20
