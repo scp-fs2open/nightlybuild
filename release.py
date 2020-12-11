@@ -3,16 +3,13 @@
 import argparse
 import os
 import sys
-import time
 
-import datetime
 from itertools import groupby
 
 import yaml
 import semantic_version
 
-import bintray
-import github
+import file_list
 import installer
 import nebula
 from forum import ForumAPI, FileGroup
@@ -54,7 +51,7 @@ class ReleaseState(ScriptState):
             return False
 
         # Get the file list
-        files, sources = github.get_release_files(self.tag_name, config)
+        files, sources = file_list.get_release_files(self.tag_name, config)
 
         print("Generating installer manifests")
         for file in files:

@@ -1,5 +1,7 @@
+import github
 import requests
 import travispy
+from github import Github
 
 from util import GLOBAL_TIMEOUT
 
@@ -45,7 +47,7 @@ class TravisMonitor(Monitor):
     @property
     def running(self):
         return (self.branch.pending or self.branch.queued or self.branch.started or self.branch.running) and not (
-            self.success or self.errored)
+                self.success or self.errored)
 
     @property
     def success(self):
@@ -116,3 +118,66 @@ class AppveyorMonitor(Monitor):
     @property
     def name(self):
         return "Appveyor"
+
+
+class GitHubMonitor(Monitor):
+    def __init__(self, config, tag_name):
+        super().__init__(config, tag_name)
+
+        self.github = Github(config["github"]["token"])
+
+        self.status = None
+        self.result = None
+
+    def update_state(self):
+        repo = self.github.get_repo(self.config["github"]["user"] + "/" + self.config["github"]["repo"])
+
+        dist_workflow = None
+
+        for workflow in repo.get_workflows():
+            if workflow.path == ".github/workflows/build-dist.yaml":
+                dist_workflow = workflow
+
+        if dist_workflow is None:
+            raise Exception("Dist workflow not found")
+
+        current_run = dist_workflow.get_runs(github.GithubObject.NotSet, self.tag_name)[0]
+
+        self.status = current_run.status
+        self.result = current_run.conclusion
+
+    @property
+    def running(self):
+        if self.status is None:
+            # Start may still be pending
+            return True
+
+        return self.status != "completed"
+
+    @property
+    def success(self):
+        if self.result is None:
+            return False
+
+        return self.result == "success"
+
+    @property
+    def errored(self):
+        if self.result is None:
+            return False
+
+        return self.result != "success"
+
+    @property
+    def state(self):
+        if self.status is None:
+            return "Unknown"
+
+        if self.running:
+            return self.status
+        else:
+            return self.result
+
+    @property
+    def name(self):
+        return "GitHub Actions"

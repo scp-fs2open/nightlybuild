@@ -1,7 +1,6 @@
 import unittest
 
 import requests_mock
-import github
 
 # This data will be returned by our requests mock
 # It's based on real data returned by the GitHub API but where the name and repository have been changed to fit the test
@@ -321,7 +320,8 @@ class GithubTestCase(unittest.TestCase):
             }
         }
 
-        binaries, sources = github.get_release_files("release_test", test_config)
+        import file_list
+        binaries, sources = file_list.get_release_files("release_test", test_config)
 
         self.assertEqual(len(binaries), 6)
         self.assertEqual(len(sources), 2)
