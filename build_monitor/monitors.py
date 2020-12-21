@@ -7,7 +7,9 @@ from util import GLOBAL_TIMEOUT
 
 
 class Monitor:
-    def __init__(self, config, tag_name):
+    tag_name: str
+
+    def __init__(self, config, tag_name: str):
         self.config = config
         self.tag_name = tag_name
 
@@ -135,13 +137,22 @@ class GitHubMonitor(Monitor):
         dist_workflow = None
 
         for workflow in repo.get_workflows():
-            if workflow.path == ".github/workflows/build-dist.yaml":
+            if self.tag_name.startswith("nightly_") and workflow.path == ".github/workflows/build-nightly.yaml":
                 dist_workflow = workflow
+                break
+            if self.tag_name.startswith("release_") and workflow.path == ".github/workflows/build-release.yaml":
+                dist_workflow = workflow
+                break
 
         if dist_workflow is None:
             raise Exception("Dist workflow not found")
 
-        current_run = dist_workflow.get_runs(github.GithubObject.NotSet, self.tag_name)[0]
+        runs = dist_workflow.get_runs(github.GithubObject.NotSet, self.tag_name)
+
+        if runs.totalCount == 0:
+            raise Exception("Dist workflow has not run yet")
+
+        current_run = runs[0]
 
         self.status = current_run.status
         self.result = current_run.conclusion

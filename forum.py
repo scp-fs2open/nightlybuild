@@ -1,8 +1,7 @@
-import os
-import time
 from itertools import groupby
 
 import requests
+import semantic_version
 from mako.template import Template
 
 
@@ -75,12 +74,14 @@ class ForumAPI:
         print("Creating post...")
         self.create_post(title, rendered, self.config["nightly"]["hlp_board"])
 
-    def post_release(self, date, version, groups, sources):
+    def post_release(self, date, version: semantic_version.Version, groups, sources):
         print("Posting release thread...")
 
         title = "Release: {}".format(version)
 
-        template = Template(filename=self.config["templates"]["release"], module_directory='/tmp/mako_modules')
+        template = Template(
+            filename=self.config["templates"]["release"].format(major=version.major, minor=version.minor),
+            module_directory='/tmp/mako_modules')
         rendered = template.render_unicode(**{
             "date": date,
             "version": version,
