@@ -8,6 +8,7 @@ from itertools import groupby
 
 import yaml
 import semantic_version
+from semantic_version import Version
 
 import file_list
 import installer
@@ -41,7 +42,9 @@ with open(args.config, "r") as f:
 
 
 class ReleaseState(ScriptState):
-    def __init__(self, version):
+    version: semantic_version.Version
+
+    def __init__(self, version: semantic_version.Version):
         super().__init__(config)
         self.version = version
 
