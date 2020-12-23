@@ -169,7 +169,7 @@ TEST_API_DATA = """
     {
       "url": "https://api.github.com/repos/test/test/releases/assets/4304325",
       "id": 4304325,
-      "name": "fs2_open_test-builds-Win64-AVX.zip",
+      "name": "fs2_open_test-builds-x64-AVX.zip",
       "label": "",
       "uploader": {
         "login": "SirKnightly",
@@ -196,12 +196,12 @@ TEST_API_DATA = """
       "download_count": 38,
       "created_at": "2017-07-11T17:49:48Z",
       "updated_at": "2017-07-11T17:49:49Z",
-      "browser_download_url": "https://github.com/test/test/releases/download/release_test/fs2_open_test-builds-Win64-AVX.zip"
+      "browser_download_url": "https://github.com/test/test/releases/download/release_test/fs2_open_test-builds-x64-AVX.zip"
     },
     {
       "url": "https://api.github.com/repos/test/test/releases/assets/4304185",
       "id": 4304185,
-      "name": "fs2_open_test-builds-Win64.zip",
+      "name": "fs2_open_test-builds-x64.zip",
       "label": "",
       "uploader": {
         "login": "SirKnightly",
@@ -228,7 +228,7 @@ TEST_API_DATA = """
       "download_count": 188,
       "created_at": "2017-07-11T17:33:07Z",
       "updated_at": "2017-07-11T17:33:10Z",
-      "browser_download_url": "https://github.com/test/test/releases/download/release_test/fs2_open_test-builds-Win64.zip"
+      "browser_download_url": "https://github.com/test/test/releases/download/release_test/fs2_open_test-builds-x64.zip"
     },
     {
       "url": "https://api.github.com/repos/test/test/releases/assets/4304187",

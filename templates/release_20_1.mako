@@ -17,7 +17,7 @@ OS X:  Soulstorm's [url=http://www.hard-light.net/forums/index.php/topic,51391.0
 Linux:  [url=http://www.hard-light.net/forums/index.php/topic,53206.0.html]YAL[/url] or [url=http://www.hard-light.net/wiki/index.php/Fs2_open_on_Linux/Graphics_Settings]by hand[/url] or whatever you can figure out.[/hidden]
 
 [img]http://scp.indiegames.us/img/windows-icon.png[/img] [color=green][size=12pt]Windows (32/64-bit)[/size][/color]
-[size=8pt]Compiled by [url=http://www.appveyor.com/]Appveyor[/url] on Windows Server 2012 R2 64-bit, Visual Studio Community 2015 with Update 3[/size]
+[size=8pt]Compiled using GitHub Actions on Windows Server 2019 (10.0.17763), Visual Studio Enterprise 2019[/size]
 
 [b]64-bit:[/b] ${build(groups["Win64"].mainFile)}
 
@@ -48,13 +48,6 @@ Alternatively, if there is a package in your software repository then you should
 
 [img]http://scp.indiegames.us/img/mac-icon.png[/img] [color=green][size=12pt]OS X[/size][/color]
 [b][color=red]Not available[/color][/b] We recently lost access to our Mac CI environment which we usually used for compiling these builds so for the time being, there will be no builds for this OS.
-
-[hidden=Other Platforms, Source Code]
-[color=green][size=12pt]Source Code Export[/size][/color]
-[url=${sources["Unix"].url}]Source Code (Unix line endings)[/url]
-
-[url=${sources["Win"].url}]Source Code (Windows line endings)[/url]
-[/hidden]
 
 [hidden=TrackIR Users]
 [size=12pt]Important!![/size]

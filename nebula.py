@@ -27,8 +27,8 @@ metadata = {
 platforms = {
     'Linux': 'linux',
     'MacOSX': 'macosx',
-    'Win32': 'windows',
-    'Win64': 'windows',
+    'Win32-SSE2': 'windows',
+    'Win64-SSE2': 'windows',
     'Win32-AVX': 'windows',
     'Win64-AVX': 'windows'
 }
@@ -36,15 +36,15 @@ platforms = {
 envs = {
     'Linux': 'linux && x86_64',  # Linux only has 64bit builds
     'MacOSX': 'macosx',
-    'Win32': 'windows',
-    'Win64': 'windows && x86_64',
+    'Win32-SSE2': 'windows',
+    'Win64-SSE2': 'windows && x86_64',
     'Win32-AVX': 'windows && avx',
     'Win64-AVX': 'windows && avx && x86_64'
 }
 
 subdirs = {
-    'Win32': 'x86',
-    'Win64': 'x64',
+    'Win32-SSE2': 'x86',
+    'Win64-SSE2': 'x64',
     'Win32-AVX': 'x86_avx',
     'Win64-AVX': 'x64_avx'
 }
@@ -171,7 +171,7 @@ def render_nebula_release(version, stability, files, config):
                         label = None
 
                 props = {
-                    "x64": group == "Win64",
+                    "x64": "x64" in fn,
                     "sse2": "SSE2" in fn or "AVX" in fn,  # AVX implies SSE2
                     "avx": "AVX" in fn,  # This conveniently also covers the AVX2 case since AVX2 implies AVX
                     "avx2": "AVX2" in fn,

@@ -1,12 +1,15 @@
 from itertools import groupby
+from typing import List
 
 import requests
 import semantic_version
 from mako.template import Template
 
+from files import ReleaseFile
+
 
 class FileGroup:
-    def __init__(self, name, files):
+    def __init__(self, name, files: List[ReleaseFile]):
         self.files = files
         self.name = name
 
@@ -17,7 +20,8 @@ class FileGroup:
             self.mainFile = None
             subFiles = []
             for file in files:
-                if file.subgroup is None:
+                # We only have subcategories for Windows where SSE2 is the main group
+                if file.subgroup == "SSE2":
                     self.mainFile = file
                 else:
                     subFiles.append(file)
