@@ -38,7 +38,12 @@ def get_release_files(tag_name, config) -> Tuple[List[ReleaseFile], Dict[str, So
         group_match = build_group_regex.match(name)
 
         if group_match is not None:
-            binary_files.append(ReleaseFile(name, url, group_match.group(1), group_match.group(3)))
+            platform = group_match.group(1)
+            # x64 is the Visual Studio name but for consistency we need Win64
+            if platform == "x64":
+                platform = "Win64"
+
+            binary_files.append(ReleaseFile(name, url, platform, group_match.group(3)))
         else:
             group_match = source_file_regex.match(name)
 
@@ -54,7 +59,7 @@ def get_release_files(tag_name, config) -> Tuple[List[ReleaseFile], Dict[str, So
 
 def get_ftp_files(build_type, tag_name, config):
     tag_regex = re.compile("nightly_(.*)")
-    build_group_regex = re.compile("nightly_.*-builds-([^.]*).*")
+    build_group_regex = re.compile("nightly_.*-builds-([^.]+).*")
 
     files = []
     try:
@@ -82,6 +87,10 @@ def get_ftp_files(build_type, tag_name, config):
         group_match = file_match.group(1)
         primary_url = None
         mirrors = []
+
+        # x64 is the name Visual Studio uses but Win64 works better for us since that gets displayed in the nightly post
+        if "x64" in group_match:
+            group_match = group_match.replace("x64", "Win64")
 
         for mirror in config["ftp"]["mirrors"]:
             download_url = mirror.format(type=build_type, version=version_str, file=file)

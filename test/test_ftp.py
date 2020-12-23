@@ -16,7 +16,7 @@ class FtpTestCase(unittest.TestCase):
             ("nightly_test_tag-builds-Linux.tar.gz", {"type": "file"}),
             ("nightly_test_tag-builds-MacOSX.tar.gz", {"type": "file"}),
             ("nightly_test_tag-builds-Win32.zip", {"type": "file"}),
-            ("nightly_test_tag-builds-Win64.zip", {"type": "file"}),
+            ("nightly_test_tag-builds-x64.zip", {"type": "file"}),
         ])
         test_config = {
             "ftp": {
