@@ -25,7 +25,7 @@ jobs:
       - name: Checkout FSO code
         uses: actions/checkout@v2
         with:
-          repository: asarium/fs2open.github.com
+          repository: scp-fs2open/fs2open.github.com
           path: fs2open.github.com
           ssh-key: ${{ secrets.SIRKNIGHTLY_PRIVATE_KEY }}
           submodules: true
