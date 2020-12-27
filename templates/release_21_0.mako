@@ -3,6 +3,18 @@
 
 [b]Another year, another release![/b]
 
+[b]Change log:[/b] (chronologically ordered)
+[list]
+[li]More OpenGL optimizations[/li]
+[li]Full type information output for Lua documentation. Very useful for writing Lua scripts.[/li]
+[li]Improved ship lookup behavior in SEXPs for improved performance.[/li]
+[li]Refactoring and new features for the ship lab.[/li]
+[li][b]Missile multi-lock.[/b] It's finally in an official build![/li]
+[li][b]IPv6 support for multiplayer[/b][/li]
+[li][b]A lot of general fixes for multiplayer.[/b][/li]
+[li][color=red][b]Dropped support for Windows XP[/b][/color][/li]
+[/list]
+
 [size=5pt]Previous [url=https://www.hard-light.net/forums/index.php?topic=96226.0]19.1 Release Thread[/url][/size]
 
 Launchers, if you don't have one already:
