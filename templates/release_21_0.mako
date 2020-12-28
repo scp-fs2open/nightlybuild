@@ -15,6 +15,18 @@
 [li][color=red][b]Dropped support for Windows XP[/b][/color][/li]
 [/list]
 
+[b]Deprecations:[/b]
+[list]
+[li][i]Scripting:[/i]
+[list]
+[li][b]ba.getFrametime()[/b]: The parameter value was used incorrectly inside the implementation. To avoid breaking existing scripts and to improve readability this has been split into [i]ba.getMissionFrametime()[/i] and [i]ba.getRealFrametime()[/i].[/li]
+[li][b]gr.drawMonochromeImage()[/b]: [i]gr.drawImage()[/i] got a new parameter for drawing monochrome images and is more flexible in general so the monochrome variant is no longer needed.[/li]
+[/list]
+[/li]
+[/list]
+
+Deprecations are a mechanism in FSO where a certain feature or aspect of the engine has changed or is no longer supported. Since this would normally break existing mods we have the mod table feature "[tt]$Target Version:[/tt]" with which a mod can specify what version of FSO it was developed with. The features listed above will be removed or changed when the target version of a mod is at least the version released in this post.
+
 [size=5pt]Previous [url=https://www.hard-light.net/forums/index.php?topic=96226.0]19.1 Release Thread[/url][/size]
 
 Launchers, if you don't have one already:
