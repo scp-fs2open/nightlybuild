@@ -6,6 +6,10 @@ on:
       releaseVersion:
         description: Release version
         required: true
+      releaseTag:
+        description: Release tag (leave empty)
+        required: false
+        default: ''
 
 jobs:
   build:
@@ -40,4 +44,4 @@ jobs:
           pip install -r requirements.txt
       - name: Run script
         run: |
-          python release.py --config $GITHUB_WORKSPACE/config.yml ${{ github.event.inputs.releaseVersion }}
+          python release.py --config $GITHUB_WORKSPACE/config.yml ${{ github.event.inputs.releaseVersion }} ${{ github.event.inputs.releaseTag }}
