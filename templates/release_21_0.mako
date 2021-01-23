@@ -8,6 +8,7 @@
 [li]More OpenGL optimizations[/li]
 [li]Full type information output for Lua documentation. Very useful for writing Lua scripts.[/li]
 [li]Improved ship lookup behavior in SEXPs for improved performance.[/li]
+[li]BPTC/BC7 texture compression support[/li]
 [li]Refactoring and new features for the ship lab.[/li]
 [li][b]Missile multi-lock.[/b] It's finally in an official build![/li]
 [li][b]IPv6 support for multiplayer[/b][/li]
