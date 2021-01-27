@@ -94,6 +94,9 @@ class NightlyState(ScriptState):
             test.write("set(FSO_VERSION_REVISION {})\n".format(date))
             test.write("set(FSO_VERSION_REVISION_STR {}_{})\n".format(date, current_commit))
 
+    def allow_multiple_tags(self):
+        return False
+
 
 def main():
     script_state = ScriptState.load_from_file()

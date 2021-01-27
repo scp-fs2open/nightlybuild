@@ -46,7 +46,7 @@ class ScriptState:
             latest_commit = self.repo.get_latest_tag_commit(self.get_tag_pattern())
             current_commit = self.repo.get_commit()
 
-            if current_commit == latest_commit:
+            if not self.allow_multiple_tags() and current_commit == latest_commit:
                 print("Latest commit already has a build tag!")
                 return ScriptState.STATE_FINISHED
 
@@ -119,4 +119,7 @@ class ScriptState:
         raise NotImplementedError()
 
     def do_replacements(self, date, current_commit):
+        raise NotImplementedError()
+
+    def allow_multiple_tags(self):
         raise NotImplementedError()

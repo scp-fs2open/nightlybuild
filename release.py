@@ -94,6 +94,9 @@ class ReleaseState(ScriptState):
             test.write("set(FSO_VERSION_REVISION 0)\n")
             test.write("set(FSO_VERSION_REVISION_STR {})\n".format("-".join(self.version.prerelease)))
 
+    def allow_multiple_tags(self):
+        return True
+
 
 def main():
     script_state = ScriptState.load_from_file()
