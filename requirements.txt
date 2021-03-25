@@ -3,7 +3,7 @@ MarkupSafe==0.23
 py==1.9.0
 pytest==6.1.2
 pytest-rerunfailures==9.1.1
-PyYAML==5.1
+PyYAML==5.4
 requests==2.20.0
 semantic-version==2.5.0
 TravisPy==0.3.5
