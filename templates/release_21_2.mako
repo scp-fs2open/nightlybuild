@@ -16,7 +16,6 @@
 [b]Deprecations:[/b]
 [list]
 [li][b]None[/b][/li]
-[/li]
 [/list]
 
 Deprecations are a mechanism in FSO where a certain feature or aspect of the engine has changed or is no longer supported. Since this would normally break existing mods we have the mod table feature "[tt]$Target Version:[/tt]" with which a mod can specify what version of FSO it was developed with. The features listed above will be removed or changed when the target version of a mod is at least the version released in this post.
