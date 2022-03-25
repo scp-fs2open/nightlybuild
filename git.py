@@ -41,9 +41,18 @@ class GitRepository:
                                     "commit %h%nAuthor: %an <%ad>%n"
                                     "Commit: %cn <%cd>%n%n    %s\"".format(tags[1], tags[0]))
 
-    def get_latest_tag_commit(self, pattern):
-        tag = self._git_get_output("for-each-ref --sort=-taggerdate --format '%(tag)' refs/tags | grep '{}' | head -n1"
+    def get_latest_tag_name(self, pattern) -> str:
+        """
+        @brief Retrieves the name of the most recent version tag commit.
+        """
+        return self._git_get_output("for-each-ref --sort=-taggerdate --format '%(tag)' refs/tags | grep '{}' | head -n1"
                                    .format(pattern))
+
+    def get_latest_tag_commit(self, pattern):
+        """
+        @brief Retrieves the SHA of the most recent version tag commit.
+        """
+        tag = self.get_latest_tag_name(self, pattern)
 
         if len(tag) < 1:
             return ""
@@ -51,6 +60,9 @@ class GitRepository:
         return self._git_get_output("rev-parse --short {}^".format(tag))
 
     def update_repository(self):
+        """
+        @brief Updates the local repo to the most recent commit and deletes any untracked changes
+        """
         self._git_redirected_success("checkout '{}'".format(self.branch))
         self._git_redirected_success("fetch --tags origin".format(self.branch))
         self._git_redirected_success("reset --hard 'origin/{}'".format(self.branch))
@@ -72,6 +84,10 @@ class GitRepository:
         return stashed_changes
 
     def commit_and_tag(self, tag_name):
+        """
+        @brief  Commit, tag (annotated), and push to origin/repo
+        """
+        
         self._git_redirected_success("add .")
         self._git_redirected_success(
             "commit -m 'Automated build commit' --author='SirKnightly <SirKnightlySCP@gmail.com>'")
