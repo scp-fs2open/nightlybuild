@@ -48,21 +48,6 @@ def main():
     parser.add_argument("--type",       help="Either \'candidate\' or \'release\'")
     parser.add_argument("--candidate",  help="If --type = \'candidate\', this specifies the candidate number.  Is ignored if --type = \'release\'")
 
-    # args is a dict with argument names as dict keys and the argument values as dict values 
-    args = parser.parse_args()
-
-    # Read in configuration data from config.yml
-    # See config.yml.sample to see dict structure
-    config = {}
-    with open(args.config, "r") as f:
-        try:
-            config = yaml.safe_load(f)
-            # Support some variables in the config
-            expand_config_vars(config)
-        except yaml.YAMLError as e:
-            print(e)
-            sys.exit(1)
-
     # Verify version string is valid
     if not semantic_version.validate(args.version):
         print("Error: Specified version is not a valid version string!")
