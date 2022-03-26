@@ -41,16 +41,27 @@ def main():
             print(e)
             sys.exit(1)
 
+    # Validate version
+    print("Validating version...")
+    if not semantic_version.validate(args.version):
+        print("Error: Specified version is not a valid version string!")
+        sys.exit(1)
+
+    # Validate type and candidate
+    print("Validating type...")
+    if (args.type == "candidate"):
+        if (not isinstance(args.candidate, int)) or (args.candidate < 0):
+            print ("Error: Candidate field must be a non-negative integer!")
+            sys.exit(1)
+            
+    elif (args.type != "release"):
+        print("Error: unknown release type \'{}\'!".format(args.type))
+        sys.exit(1)
+
     # Checkout repo
     print("Checking out repo: {}/{}".format(config["git"]["repo"], config["git"]["branch"]))
     repo = git.GitRepository(config["git"]["repo"], config["git"]["branch"])
     repo.update_repository()
-
-    # Verify version string is valid
-    print("Verifying version string...")
-    if not semantic_version.validate(args.version):
-        print("Error: Specified version is not a valid version string!")
-        sys.exit(1)
 
     # Form tag string according to type
     print("Forming tag name...")
@@ -58,31 +69,25 @@ def main():
     tag_name = ''
     if (args.type == "candidate"):
         # suffix RC# to version
-        if (not isinstance(args.candidate, int)) or (args.candidate < 0):
-            print ("Error: Candidate field must be a non-negative integer!")
-            sys.exit(1)
-
-        tag_name = "release_{}.{}.{}_RC{}".format(version.major, version.minor, version.build, args.candidate)
-
-        # Don't configure version_override.cmake for RC's.  They identify as the previous unstable version
+        version.prerelease = "RC{}".format(args.candidate)
+        tag_name = "release_{}.{}.{}_{}".format(version.major, version.minor, version.build, version.prerelease)
 
     elif (args.type == "release"):
         # no suffix
+        version.prerelease = ""
         tag_name = "release_{}.{}.{}".format(version.major, version.minor, version.build)
 
-        # Configure version_override.cmake for proper in-game version ident
-        with open(os.path.join(config["git"]["repo"], "version_override.cmake"), "a") as f:
-            f.write("set(FSO_VERSION_MAJOR {})\n".format(version.major))
-            f.write("set(FSO_VERSION_MINOR {})\n".format(version.minor))
-            f.write("set(FSO_VERSION_BUILD {})\n".format(version.patch))
-            f.write("set(FSO_VERSION_REVISION 0)\n")
-            f.write("set(FSO_VERSION_REVISION_STR {})\n".format("-".join(version.prerelease)))
-
-        print("  version_override.cmake created!")
-    else:
-        print("Error: unknown release type \'{}\'!")
-        sys.exit(1)
     print("  tag: {}".format(tag_name))
+
+    # Configure version_override.cmake for proper in-game version ident
+    with open(os.path.join(config["git"]["repo"], "version_override.cmake"), "a") as f:
+        f.write("set(FSO_VERSION_MAJOR {})\n".format(version.major))
+        f.write("set(FSO_VERSION_MINOR {})\n".format(version.minor))
+        f.write("set(FSO_VERSION_BUILD {})\n".format(version.patch))
+        f.write("set(FSO_VERSION_REVISION 0)\n")
+        f.write("set(FSO_VERSION_REVISION_STR {})\n".format(version.prerelease))
+
+    print("  version_override.cmake created!")
 
     # Check if tag name already exists
     print("Checking if tag name exists...")
