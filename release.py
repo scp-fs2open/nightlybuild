@@ -24,7 +24,8 @@ def main():
     parser.add_argument("--config",     help="Sets the config file", default="config.yml")
     parser.add_argument("--version",    help="The version to mark this release as")
     parser.add_argument("--type",       help="Either \'candidate\' or \'release\'")
-    parser.add_argument("--candidate",  help="If --type = \'candidate\', this specifies the candidate number.  Is ignored if --type = \'release\'")
+    parser.add_argument("--candidate",  help="If --type = \'candidate\', this specifies the candidate number.  Is ignored if --type = \'release\'",
+        type=int)
 
     args = parser.parse_args()
 
