@@ -4,129 +4,103 @@ import argparse
 import os
 import sys
 
-from itertools import groupby
-
-import yaml
+import git
 import semantic_version
-from semantic_version import Version
+import yaml
 
-import file_list
-import installer
-import nebula
-from forum import ForumAPI, FileGroup
-from script_state import ScriptState
 from util import expand_config_vars
 
-abspath = os.path.abspath(__file__)
-dname = os.path.dirname(abspath)
-os.chdir(dname)
+# Assumes git has SirKnightly credentials already
+def main():
+    # Set up paths
+    print("Setting up paths...")
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    os.chdir(dname)
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--config", help="Sets the config file", default="config.yml")
-parser.add_argument("version", help="The version to mark this release as")
-parser.add_argument("tag_name", help="Overrides the tag name to check. This skips the tag and push phase of the script",
-                    default=None, nargs='?')
+    # Parse the command line arguments
+    print("Parsing cmdline...")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config",     help="Sets the config file", default="config.yml")
+    parser.add_argument("--version",    help="The version to mark this release as")
+    parser.add_argument("--type",       help="Either \'candidate\' or \'release\'")
+    parser.add_argument("--candidate",  help="If --type = \'candidate\', this specifies the candidate number.  Is ignored if --type = \'release\'")
 
-args = parser.parse_args()
+    args = parser.parse_args()
 
-config = {}
+    # Read in configuration data from config.yml
+    print("Parsing config.yml...")
+    config = {}
 
-with open(args.config, "r") as f:
-    try:
-        config = yaml.safe_load(f)
-        # Support some variables in the config
-        expand_config_vars(config)
-    except yaml.YAMLError as e:
-        print(e)
+    with open(args.config, "r") as f:
+        try:
+            config = yaml.safe_load(f)
+            # Support some variables in the config
+            expand_config_vars(config)
+        except yaml.YAMLError as e:
+            print(e)
+            sys.exit(1)
+
+    # Validate version
+    print("Validating version...")
+    if not semantic_version.validate(args.version):
+        print("Error: Specified version is not a valid version string!")
         sys.exit(1)
 
+    # Validate type and candidate
+    print("Validating type...")
+    if (args.type == "candidate"):
+        if (not isinstance(args.candidate, int)) or (args.candidate < 0):
+            print ("Error: Candidate field must be a non-negative integer!")
+            sys.exit(1)
+            
+    elif (args.type != "release"):
+        print("Error: unknown release type \'{}\'!".format(args.type))
+        sys.exit(1)
 
-class ReleaseState(ScriptState):
-    version: semantic_version.Version
+    # Checkout repo
+    print("Checking out repo: {}/{}".format(config["git"]["repo"], config["git"]["branch"]))
+    repo = git.GitRepository(config["git"]["repo"], config["git"]["branch"])
+    repo.update_repository()
 
-    def __init__(self, version: semantic_version.Version):
-        super().__init__(config)
-        self.version = version
-
-    def post_build_actions(self):
-        if not self.success:
-            print("A release build failed to compile!")
-            return False
-
-        # Get the file list
-        files, sources = file_list.get_release_files(self.tag_name, config)
-
-        print("Generating installer manifests")
-        for file in files:
-            installer.get_file_list(file)
-
-        # Construct the file groups
-        groups = dict(((x[0], FileGroup(x[0], list(x[1]))) for x in groupby(files, lambda g: g.group)))
-
-        print(installer.render_installer_config(self.version, groups, self.config))
-
-        nebula.submit_release(
-            nebula.render_nebula_release(self.version, "rc" if self.version.prerelease else "stable", files, config),
-            config)
-
-        date = self.date.strftime(ScriptState.DATEFORMAT_FORUM)
-
-        forum = ForumAPI(self.config)
-        forum.post_release(date, self.version, groups, sources)
-        return True
-
-    def get_tag_name(self, params):
-        base = "release_{}_{}_{}".format(self.version.major, self.version.minor, self.version.patch)
-
-        if len(self.version.prerelease) > 0:
-            base += "_" + "_".join(self.version.prerelease)
-
-        return base
-
-    def get_tag_pattern(self):
-        return "release_*"
-
-    def do_replacements(self, date, current_commit):
-        with open(os.path.join(self.config["git"]["repo"], "version_override.cmake"), "a") as test:
-            test.write("set(FSO_VERSION_MAJOR {})\n".format(self.version.major))
-            test.write("set(FSO_VERSION_MINOR {})\n".format(self.version.minor))
-            test.write("set(FSO_VERSION_BUILD {})\n".format(self.version.patch))
-            test.write("set(FSO_VERSION_REVISION 0)\n")
-            test.write("set(FSO_VERSION_REVISION_STR {})\n".format("-".join(self.version.prerelease)))
-
-    def allow_multiple_tags(self):
-        return True
-
-
-def main():
-    script_state = ScriptState.load_from_file()
-
-    if not semantic_version.validate(args.version):
-        print("Specified version is not a valid version string!")
-        return
-
+    # Form tag string according to type
+    print("Forming tag name...")
     version = semantic_version.Version(args.version)
-    if script_state is None:
-        # An existing script state overrides the commandline argument
-        if args.tag_name is not None:
-            script_state = ReleaseState(version)
-            script_state.state = ScriptState.STATE_TAG_PUSHED
-            script_state.tag_name = args.tag_name
-        else:
-            if script_state is None:
-                script_state = ReleaseState(version)
-    else:
-        if args.tag_name:
-            print("Tag name ignored because there was a stored script state.")
+    tag_name = ''
+    if (args.type == "candidate"):
+        # suffix RC# to version
+        version.prerelease = "RC{}".format(args.candidate)
+        tag_name = "release_{}.{}.{}_{}".format(version.major, version.minor, version.build, version.prerelease)
 
-        if not isinstance(script_state, ReleaseState):
-            print("State object is not a release state! Delete 'state.pickle' or execute right script.")
-            return
+    elif (args.type == "release"):
+        # no suffix
+        version.prerelease = ""
+        tag_name = "release_{}.{}.{}".format(version.major, version.minor, version.build)
 
-    # Always use the loaded values to allow changing the config while a script has a serialized state on disk
-    script_state.config = config
-    script_state.execute()
+    print("  tag: {}".format(tag_name))
 
+    # Configure version_override.cmake for proper in-game version ident
+    with open(os.path.join(config["git"]["repo"], "version_override.cmake"), "a") as f:
+        f.write("set(FSO_VERSION_MAJOR {})\n".format(version.major))
+        f.write("set(FSO_VERSION_MINOR {})\n".format(version.minor))
+        f.write("set(FSO_VERSION_BUILD {})\n".format(version.patch))
+        f.write("set(FSO_VERSION_REVISION 0)\n")
+        f.write("set(FSO_VERSION_REVISION_STR {})\n".format(version.prerelease))
+
+    print("  version_override.cmake created!")
+
+    # Check if tag name already exists
+    print("Checking if tag name exists...")
+    latest_tag = repo.get_latest_tag_name("release_*")
+    if tag_name == latest_tag:
+        print("Error: Tag with name of \'{}\' already exists!".format(tag_name))
+        sys.exit(1)
+
+    # Commit the version_override.cmake, if any, and create an annotated tag to trigger the release_build.yml in the main repo
+    print("Commit, tag, and push...")
+    repo.commit_and_tag(tag_name)
+
+    print("Done!")
 
 if __name__ == "__main__":
     main()

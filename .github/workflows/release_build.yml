@@ -4,12 +4,24 @@ on:
   workflow_dispatch:
     inputs:
       releaseVersion:
-        description: Release version
+        description: Version
         required: true
-      releaseTag:
-        description: Release tag (leave empty)
+        default: "<major>.<minor>.<build>"
+
+      releaseType:
+        description: Type
+        default: "candidate"
+        required: true
+        type: choice
+        options:
+        - "candidate"
+        - "release"
+
+      releaseCandidate:
+        description: Candidate Number (Optional)
         required: false
-        default: ''
+        default: 0
+        type: number
 
 jobs:
   build:
@@ -44,4 +56,4 @@ jobs:
           pip install -r requirements.txt
       - name: Run script
         run: |
-          python release.py --config $GITHUB_WORKSPACE/config.yml ${{ github.event.inputs.releaseVersion }} ${{ github.event.inputs.releaseTag }}
+          python release.py --config $GITHUB_WORKSPACE/config.yml --version ${{ github.event.inputs.releaseVersion }} --type ${{ github.event.inputs.releaseType }} --candidate ${{ github.event.inputs.releaseCandidate}}
