@@ -71,12 +71,12 @@ def main():
     if (args.type == "candidate"):
         # suffix RC# to version
         version.prerelease = "RC{}".format(args.candidate)
-        tag_name = "release_{}.{}.{}_{}".format(version.major, version.minor, version.patch, version.prerelease)
+        tag_name = "release_{}_{}_{}_{}".format(version.major, version.minor, version.patch, version.prerelease)
 
     elif (args.type == "release"):
         # no suffix
         version.prerelease = ""
-        tag_name = "release_{}.{}.{}".format(version.major, version.minor, version.patch)
+        tag_name = "release_{}_{}_{}".format(version.major, version.minor, version.patch)
 
     print("  tag: {}".format(tag_name))
 
