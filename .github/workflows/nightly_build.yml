@@ -1,6 +1,8 @@
 name: Trigger a nightly build
 
 on:
+  workflow_dispatch:
+    # Trigger manually
   schedule:
     # Trigger daily
     - cron: '0 6 * * *'
