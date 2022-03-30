@@ -52,7 +52,7 @@ class GitRepository:
         """
         @brief Retrieves the SHA of the most recent version tag commit.
         """
-        tag = self.get_latest_tag_name(self, pattern)
+        tag = self.get_latest_tag_name(pattern)
 
         if len(tag) < 1:
             return ""
