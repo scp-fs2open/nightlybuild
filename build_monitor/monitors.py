@@ -135,25 +135,30 @@ class GitHubMonitor(Monitor):
         repo = self.github.get_repo(self.config["github"]["user"] + "/" + self.config["github"]["repo"])
 
         dist_workflow = None
-        workflow_file = ""
+        filename = ""
+
+        if self.tag_name.startswith("nightly_"):
+            filename = "build-nightly.yaml"
+        elif self.tag_name.startswith("release_"):
+            filename = "build-release.yaml"
+        else:
+            raise Exception("Invalid tag name. Not a \'release_\' or \'nightly_\'")
 
         for workflow in repo.get_workflows():
             if self.tag_name.startswith("nightly_") and workflow.path == ".github/workflows/build-nightly.yaml":
                 dist_workflow = workflow
-                workflow_file = "build-nightly.yaml"
                 break
             if self.tag_name.startswith("release_") and workflow.path == ".github/workflows/build-release.yaml":
                 dist_workflow = workflow
-                workflow_file = "build-release.yaml"
                 break
 
         if dist_workflow is None:
-            raise Exception("Could not find \'build-nightly.yaml\' or \'build-release.yaml\' within workflow index")
+            raise Exception("Could not find {} within workflow index".format(filename))
 
         runs = dist_workflow.get_runs(branch=self.tag_name)
 
         if runs.totalCount == 0:
-            raise Exception("{} has been not run yet for {}".format(workflow_file, self.tag_name))
+            raise Exception("{} has been not run yet for {}".format(filename, self.tag_name))
 
         current_run = runs[0]
 
