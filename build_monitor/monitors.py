@@ -140,7 +140,7 @@ class GitHubMonitor(Monitor):
         elif self.tag_name.startswith("release_"):
             filename = "build-release.yaml"
         else:
-            raise Exception("Invalid tag name. Not a \'release_\' or \'nightly_\'")
+            raise Exception("Invalid tag name {}: Expected a \'release_\' or \'nightly_\' prefix.".format(self.tag_name))
 
         # Find the workflow by filename
         dist_workflow = None
