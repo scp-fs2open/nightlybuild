@@ -127,31 +127,39 @@ class GitHubMonitor(Monitor):
         super().__init__(config, tag_name)
 
         self.github = Github(config["github"]["token"])
+        self.repo = self.github.get_repo(self.config["github"]["user"] + "/" + self.config["github"]["repo"])
 
         self.status = None
         self.result = None
 
     def update_state(self):
-        repo = self.github.get_repo(self.config["github"]["user"] + "/" + self.config["github"]["repo"])
+        # Check tag name and set filename
+        filename = ""
+        if self.tag_name.startswith("nightly_"):
+            filename = "build-nightly.yaml"
+        elif self.tag_name.startswith("release_"):
+            filename = "build-release.yaml"
+        else:
+            raise Exception("Invalid tag name {}: Expected a \'release_\' or \'nightly_\' prefix.".format(self.tag_name))
 
+        # Find the workflow by filename
         dist_workflow = None
-
-        for workflow in repo.get_workflows():
-            if self.tag_name.startswith("nightly_") and workflow.path == ".github/workflows/build-nightly.yaml":
-                dist_workflow = workflow
-                break
-            if self.tag_name.startswith("release_") and workflow.path == ".github/workflows/build-release.yaml":
+        for workflow in self.repo.get_workflows():
+            if workflow.path == (".github/workflows/" + filename):
                 dist_workflow = workflow
                 break
 
         if dist_workflow is None:
-            raise Exception("Dist workflow not found")
+            raise Exception("Could not find {} within workflow index".format(filename))
 
-        runs = dist_workflow.get_runs(github.GithubObject.NotSet, self.tag_name)
+        # Get the run history made by this workflow
+        # Assumes current run is at index 0
+        runs = dist_workflow.get_runs(branch=self.tag_name)
 
         if runs.totalCount == 0:
-            raise Exception("Dist workflow has not run yet")
+            raise Exception("{} has been not run yet for {}".format(filename, self.tag_name))
 
+        # Set the status and result members accordign to the most recent run result
         current_run = runs[0]
 
         self.status = current_run.status
@@ -191,4 +199,4 @@ class GitHubMonitor(Monitor):
 
     @property
     def name(self):
-        return "GitHub Actions"
+        return "GitHub Actions ({})".format(self.repo.full_name)
