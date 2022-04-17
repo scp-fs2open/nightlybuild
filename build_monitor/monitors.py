@@ -144,10 +144,7 @@ class GitHubMonitor(Monitor):
             raise Exception("Invalid tag name. Not a \'release_\' or \'nightly_\'")
 
         for workflow in self.repo.get_workflows():
-            if self.tag_name.startswith("nightly_") and workflow.path == ".github/workflows/build-nightly.yaml":
-                dist_workflow = workflow
-                break
-            if self.tag_name.startswith("release_") and workflow.path == ".github/workflows/build-release.yaml":
+            if workflow.path == (".github/workflows/" + filename):
                 dist_workflow = workflow
                 break
 
