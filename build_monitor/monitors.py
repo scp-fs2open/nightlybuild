@@ -127,13 +127,12 @@ class GitHubMonitor(Monitor):
         super().__init__(config, tag_name)
 
         self.github = Github(config["github"]["token"])
+        self.repo = self.github.get_repo(self.config["github"]["user"] + "/" + self.config["github"]["repo"])
 
         self.status = None
         self.result = None
 
     def update_state(self):
-        repo = self.github.get_repo(self.config["github"]["user"] + "/" + self.config["github"]["repo"])
-
         dist_workflow = None
         filename = ""
 
@@ -144,7 +143,7 @@ class GitHubMonitor(Monitor):
         else:
             raise Exception("Invalid tag name. Not a \'release_\' or \'nightly_\'")
 
-        for workflow in repo.get_workflows():
+        for workflow in self.repo.get_workflows():
             if self.tag_name.startswith("nightly_") and workflow.path == ".github/workflows/build-nightly.yaml":
                 dist_workflow = workflow
                 break
@@ -199,4 +198,4 @@ class GitHubMonitor(Monitor):
 
     @property
     def name(self):
-        return "GitHub Actions"
+        return "GitHub Actions ({})".format(self.repo.full_name)
