@@ -133,9 +133,8 @@ class GitHubMonitor(Monitor):
         self.result = None
 
     def update_state(self):
-        dist_workflow = None
+        # Check tag name and set filename
         filename = ""
-
         if self.tag_name.startswith("nightly_"):
             filename = "build-nightly.yaml"
         elif self.tag_name.startswith("release_"):
@@ -143,6 +142,8 @@ class GitHubMonitor(Monitor):
         else:
             raise Exception("Invalid tag name. Not a \'release_\' or \'nightly_\'")
 
+        # Find the workflow by filename
+        dist_workflow = None
         for workflow in self.repo.get_workflows():
             if workflow.path == (".github/workflows/" + filename):
                 dist_workflow = workflow
@@ -151,11 +152,14 @@ class GitHubMonitor(Monitor):
         if dist_workflow is None:
             raise Exception("Could not find {} within workflow index".format(filename))
 
+        # Get the run history made by this workflow
+        # Assumes current run is at index 0
         runs = dist_workflow.get_runs(branch=self.tag_name)
 
         if runs.totalCount == 0:
             raise Exception("{} has been not run yet for {}".format(filename, self.tag_name))
 
+        # Set the status and result members accordign to the most recent run result
         current_run = runs[0]
 
         self.status = current_run.status
