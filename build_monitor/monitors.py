@@ -153,15 +153,23 @@ class GitHubMonitor(Monitor):
             raise Exception("Could not find {} within workflow index".format(filename))
 
         # Get the run history made by this workflow
-        # Assumes current run is at index 0
-        runs = dist_workflow.get_runs(branch=self.tag_name)
+        runs = dist_workflow.get_runs()
 
         if runs.totalCount == 0:
-            raise Exception("{} has been not run yet for {}".format(filename, self.tag_name))
+            raise Exception("{} has been not run yet".format(filename))
+
+        # Find the most recent run for the given tag_name
+        # Assumes runs are ordered from most recent to oldest
+        current_run = None
+        for r in runs:
+            if r.head_branch == self.tag_name:
+                current_run = r
+                break
+        
+        if current_run == None:
+            raise Exception("No runs found for {}").format(self.tag_name)
 
         # Set the status and result members accordign to the most recent run result
-        current_run = runs[0]
-
         self.status = current_run.status
         self.result = current_run.conclusion
 
