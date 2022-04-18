@@ -167,7 +167,7 @@ class GitHubMonitor(Monitor):
                 break
         
         if current_run == None:
-            raise Exception("No runs found for {}").format(self.tag_name)
+            raise Exception("{} has not been run yet for tag {}".format(filename, self.tag_name))
 
         # Set the status and result members accordign to the most recent run result
         self.status = current_run.status
