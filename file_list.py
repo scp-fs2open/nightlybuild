@@ -91,6 +91,10 @@ def get_ftp_files(build_type, tag_name, config):
         # x64 is the name Visual Studio uses but Win64 works better for us since that gets displayed in the nightly post
         if "x64" in group_match:
             group_match = group_match.replace("x64", "Win64")
+        
+        # nebula.py expects "MacOSX" as the group, but the build actions may pass off as just "Mac"
+        if "Mac" == group_match:
+            group_match = group_match.replace("Mac", "MacOSX")
 
         for mirror in config["ftp"]["mirrors"]:
             download_url = mirror.format(type=build_type, version=version_str, file=file)
