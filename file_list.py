@@ -56,7 +56,7 @@ def get_release_files(tag_name, config) -> Tuple[List[ReleaseFile], Dict[str, So
     return binary_files, source_files
 
 
-def get_ftp_files(build_type, tag_name, config):
+def get_nightly_files(tag_name, config):
     tag_regex = re.compile("nightly_(.*)")
     build_group_regex = re.compile("nightly_.*-builds-([^.]+).*")
     link_regex = re.compile(r'<a href="(nightly_[^"]+)"')
@@ -65,7 +65,7 @@ def get_ftp_files(build_type, tag_name, config):
 
     files = []
     for mirror in config["ftp"]["mirrors"]:
-        url = mirror.format(type=build_type, version=version_str, file="")
+        url = mirror.format(type="nightly", version=version_str, file="")
 
         try:
             response = requests.get(url)
@@ -101,7 +101,7 @@ def get_ftp_files(build_type, tag_name, config):
             group_match = group_match.replace("Mac", "MacOSX")
 
         for mirror in config["ftp"]["mirrors"]:
-            download_url = mirror.format(type=build_type, version=version_str, file=file)
+            download_url = mirror.format(type="nightly", version=version_str, file=file)
             if primary_url is None:
                 primary_url = download_url
             else:

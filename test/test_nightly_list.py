@@ -24,17 +24,13 @@ FILE_LISTING = '''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 </body></html>
 '''
 
-class FtpTestCase(unittest.TestCase):
+class NightlyListTestCase(unittest.TestCase):
     @requests_mock.mock()
     def test_file_listing(self, m):
         m.get("http://01.example.org/builds/nightly/test_tag/", text=FILE_LISTING)
 
         test_config = {
             "ftp": {
-                "host": "example.org",
-                "user": "user",
-                "pass": "pass",
-                "path": "public_html/builds/{type}/{version}/",
                 "mirrors": [
                     "http://01.example.org/builds/{type}/{version}/{file}",
                     "http://02.example.org/builds/{type}/{version}/{file}",
@@ -43,7 +39,7 @@ class FtpTestCase(unittest.TestCase):
         }
 
         import file_list
-        files = file_list.get_ftp_files("nightly", "nightly_test_tag", test_config)
+        files = file_list.get_nightly_files("nightly_test_tag", test_config)
         self.assertEqual(4, len(files))
 
 

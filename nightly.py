@@ -65,7 +65,7 @@ class NightlyState(ScriptState):
 
     def post_build_actions(self):
         # Get the file list
-        files = file_list.get_ftp_files("nightly", self.tag_name, config)
+        files = file_list.get_nightly_files(self.tag_name, config)
 
         print("Generating installer manifests")
         for file in files:
