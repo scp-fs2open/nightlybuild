@@ -1,5 +1,4 @@
 import re
-from ftplib import FTP, error_perm
 from typing import List, Tuple, Dict
 
 import requests
@@ -57,24 +56,29 @@ def get_release_files(tag_name, config) -> Tuple[List[ReleaseFile], Dict[str, So
     return binary_files, source_files
 
 
-def get_ftp_files(build_type, tag_name, config):
+def get_nightly_files(tag_name, config):
     tag_regex = re.compile("nightly_(.*)")
     build_group_regex = re.compile("nightly_.*-builds-([^.]+).*")
+    link_regex = re.compile(r'<a href="(nightly_[^"]+)"')
+
+    version_str = tag_regex.match(tag_name).group(1)
 
     files = []
-    try:
-        with FTP(config["ftp"]["host"], config["ftp"]["user"], config["ftp"]["pass"]) as ftp:
-            version_str = tag_regex.match(tag_name).group(1)
+    for mirror in config["ftp"]["mirrors"]:
+        url = mirror.format(type="nightly", version=version_str, file="")
 
-            path_template = config["ftp"]["path"]
-            path = path_template.format(type=build_type, version=version_str)
-            file_entries = list(ftp.mlsd(path, ["type"]))
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+        except Exception as ex:
+            print("Failed to retrieve filelist from %s: %s" % (url, ex))
+            continue
 
-            for entry in file_entries:
-                if entry[1]["type"] == "file":
-                    files.append(entry[0])
-    except error_perm:
-        print("Received permanent FTP error!")
+        files = link_regex.findall(response.text)
+        break
+
+    if not files:
+        print("No files found!")
         return []
 
     out_data = []
@@ -91,13 +95,13 @@ def get_ftp_files(build_type, tag_name, config):
         # x64 is the name Visual Studio uses but Win64 works better for us since that gets displayed in the nightly post
         if "x64" in group_match:
             group_match = group_match.replace("x64", "Win64")
-        
+
         # nebula.py expects "MacOSX" as the group, but the build actions may pass off as just "Mac"
         if "Mac" == group_match:
             group_match = group_match.replace("Mac", "MacOSX")
 
         for mirror in config["ftp"]["mirrors"]:
-            download_url = mirror.format(type=build_type, version=version_str, file=file)
+            download_url = mirror.format(type="nightly", version=version_str, file=file)
             if primary_url is None:
                 primary_url = download_url
             else:

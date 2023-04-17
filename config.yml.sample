@@ -38,10 +38,6 @@ templates:
     installer: templates/installer.mako
 
 ftp:
-    host: example.com
-    user: asdf
-    pass: xyz
-    path: public_html/builds/{type}/{version}/
     mirrors:
       - http://scp.indiegames.us/builds/{type}/{version}/{file}
       - https://porphyrion.feralhosting.com/datacorder/builds/{type}/{version}/{file}
