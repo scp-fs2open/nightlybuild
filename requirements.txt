@@ -1,4 +1,4 @@
-Mako==1.0.4
+Mako==1.2.2
 MarkupSafe==0.23
 py==1.10.0
 pytest==6.1.2
