@@ -39,8 +39,8 @@ templates:
 
 ftp:
     mirrors:
-      - http://scp.indiegames.us/builds/{type}/{version}/{file}
-      - https://porphyrion.feralhosting.com/datacorder/builds/{type}/{version}/{file}
+      - https://scp.indiegames.us/builds/{type}/{version}/{file}
+      - https://perses.feralhosting.com/datacorder/builds/{type}/{version}/{file}
 
 nebula:
     user: test
