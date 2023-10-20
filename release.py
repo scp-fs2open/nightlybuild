@@ -23,8 +23,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config",     help="Sets the config file", default="config.yml")
     parser.add_argument("--version",    help="The version to mark this release as")
-    parser.add_argument("--type",       help="Either \'candidate\' or \'release\'")
-    parser.add_argument("--candidate",  help="If --type = \'candidate\', this specifies the candidate number.  Is ignored if --type = \'release\'",
+    parser.add_argument("--type",       help="Either \'candidate\', \'release\', \'point_release_candidate\', or \'point_release\'")
+    parser.add_argument("--candidate",  help="This specifies the candidate number.  It is ignored if --type = \'release\' or \'point_release\'",
         type=int)
 
     args = parser.parse_args()
@@ -50,30 +50,37 @@ def main():
 
     # Validate type and candidate
     print("Validating type...")
-    if (args.type == "candidate"):
+    if (args.type == "candidate" or args.type == "point_release_candidate"):
         if (not isinstance(args.candidate, int)) or (args.candidate < 0):
             print ("Error: Candidate field must be a non-negative integer!")
             sys.exit(1)
             
-    elif (args.type != "release"):
+    elif (args.type != "release" and args.type != "point_release"):
         print("Error: unknown release type \'{}\'!".format(args.type))
         sys.exit(1)
 
+    print("Resolving target branch -- NOTE! Point Releases are hardcoded to this branch name format: pr_<major>_<minor>_<patch>")
+    version = semantic_version.Version(args.version)
+
+    if (args.type == "point_release" or args.type == "point_release_candidate"):
+        branch = "pr_{}_{}_{}".format(version.major, version.minor, version.patch)
+    else:
+        branch = config["git"]["branch"]
+
     # Checkout repo
-    print("Checking out repo: {}/{}".format(config["git"]["repo"], config["git"]["branch"]))
-    repo = git.GitRepository(config["git"]["repo"], config["git"]["branch"])
+    print("Checking out repo: {}/{}".format(config["git"]["repo"], branch))
+    repo = git.GitRepository(config["git"]["repo"], branch)
     repo.update_repository()
 
     # Form tag string according to type
     print("Forming tag name...")
-    version = semantic_version.Version(args.version)
     tag_name = ''
-    if (args.type == "candidate"):
+    if (args.type == "candidate" or args.type == "point_release_candidate"):
         # suffix RC# to version
         version.prerelease = "RC{}".format(args.candidate)
         tag_name = "release_{}_{}_{}_{}".format(version.major, version.minor, version.patch, version.prerelease)
 
-    elif (args.type == "release"):
+    elif (args.type == "release" or args.type == "point_release"):
         # no suffix
         version.prerelease = ""
         tag_name = "release_{}_{}_{}".format(version.major, version.minor, version.patch)

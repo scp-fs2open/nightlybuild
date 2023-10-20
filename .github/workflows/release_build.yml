@@ -16,6 +16,8 @@ on:
         options:
         - "candidate"
         - "release"
+        - "point_release"
+        - "point_release_candidate"
 
       releaseCandidate:
         description: Candidate Number (Optional)
