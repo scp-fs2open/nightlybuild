@@ -97,7 +97,7 @@ def get_nightly_files(tag_name, config):
             group_match = group_match.replace("x64", "Win64")
 
         # nebula.py expects "MacOSX" as the group, but the build actions may pass off as just "Mac"
-        if "Mac" == group_match:
+        if "Mac" in group_match:
             group_match = group_match.replace("Mac", "MacOSX")
 
         for mirror in config["ftp"]["mirrors"]:
