@@ -26,7 +26,8 @@ metadata = {
 
 platforms = {
     'Linux': 'linux',
-    'MacOSX': 'macosx',
+    'MacOSX-x86_64': 'macosx',
+    'MacOSX-arm64': 'macosx',
     'Win32-SSE2': 'windows',
     'Win64-SSE2': 'windows',
     'Win32-AVX': 'windows',
@@ -35,7 +36,8 @@ platforms = {
 
 envs = {
     'Linux': 'linux && x86_64',  # Linux only has 64bit builds
-    'MacOSX': 'macosx',
+    'MacOSX-x86_64': 'macosx && x86_64',
+    'MacOSX-arm64': 'macosx && arm64',
     'Win32-SSE2': 'windows',
     'Win64-SSE2': 'windows && x86_64',
     'Win32-AVX': 'windows && avx',
@@ -127,7 +129,7 @@ def render_nebula_release(version, stability, files, config):
                     'label': label,
                     'properties': props,
                 })
-            elif group == 'MacOSX' and fn.startswith(os.path.basename(fn) + '.app/'):
+            elif group.startswith('MacOSX') and fn.startswith(os.path.basename(fn) + '.app/'):
                 if 'qtfred' in fn:
                     if '-FASTDBG' in fn:
                         label = 'QtFRED Debug'
@@ -140,7 +142,8 @@ def render_nebula_release(version, stability, files, config):
                         label = None
 
                 props = {
-                    "x64": True,  # All Mac builds are 64-bit
+                    "arm64": "arm64" in fn,
+                    "x64": "x64" in fn,
                     "sse2": True,  # There are no forced options on mac but 64-bit always implies SSE2 so we set that here
                     "avx": False,
                     "avx2": False,
