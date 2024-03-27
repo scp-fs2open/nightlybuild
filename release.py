@@ -78,7 +78,7 @@ def main():
     if (args.type == "candidate" or args.type == "point_release_candidate"):
         # suffix RC# to version
         version.prerelease = "RC{}".format(args.candidate)
-        tag_name = "release_{}_{}_{}_{}".format(version.major, version.minor, version.patch, version.prerelease)
+        tag_name = "release_{}_{}_{}-{}".format(version.major, version.minor, version.patch, version.prerelease)
 
     elif (args.type == "release" or args.type == "point_release"):
         # no suffix
