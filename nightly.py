@@ -90,7 +90,7 @@ class NightlyState(ScriptState):
         return "nightly_*"
 
     def do_replacements(self, date, current_commit):
-        with open(os.path.join(self.config["git"]["repo"], "version_override.cmake"), "a") as test:
+        with open(os.path.join(self.config["git"]["repo"], "version_override.cmake"), "w") as test:
             test.write("set(FSO_VERSION_REVISION {})\n".format(date))
             test.write("set(FSO_VERSION_REVISION_STR {}_{})\n".format(date, current_commit))
 

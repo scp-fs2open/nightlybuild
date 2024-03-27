@@ -88,7 +88,7 @@ def main():
     print("  tag: {}".format(tag_name))
 
     # Configure version_override.cmake for proper in-game version ident
-    with open(os.path.join(config["git"]["repo"], "version_override.cmake"), "a") as f:
+    with open(os.path.join(config["git"]["repo"], "version_override.cmake"), "w") as f:
         f.write("set(FSO_VERSION_MAJOR {})\n".format(version.major))
         f.write("set(FSO_VERSION_MINOR {})\n".format(version.minor))
         f.write("set(FSO_VERSION_BUILD {})\n".format(version.patch))
