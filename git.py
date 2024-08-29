@@ -6,7 +6,7 @@ import sys
 
 class GitRepository:
     def __init__(self, path, branch):
-        self.branch = branch
+        self.branch = "35db8e31c9b3e6faac5ad7ebcd9d3aedd0e508ab"
         self.path = path
 
     def _format_git_cmd(self, cmd):
@@ -65,7 +65,7 @@ class GitRepository:
         """
         self._git_redirected_success("checkout '{}'".format(self.branch))
         self._git_redirected_success("fetch --tags origin".format(self.branch))
-        self._git_redirected_success("reset --hard 'origin/{}'".format(self.branch))
+        self._git_redirected_success("reset --hard '{}'".format(self.branch))
 
     def prepare_repo(self):
         self._git_redirected_success("checkout '{}'".format(self.branch))
