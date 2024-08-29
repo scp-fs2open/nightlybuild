@@ -62,7 +62,7 @@ with open(args.config, "r") as f:
 class NightlyState(ScriptState):
     def __init__(self):
         super().__init__(config)
-        self.branch = "35db8e31c9b3e6faac5ad7ebcd9d3aedd0e508ab"
+        self.branch = "79d0c93ba5f6d9494f66832d2539c97c7b43db3f"
 
     def post_build_actions(self):
         # Get the file list
@@ -75,7 +75,7 @@ class NightlyState(ScriptState):
         version = get_source_version(self.config, self.date.strftime(ScriptState.DATEFORMAT_VERSION))
         nebula.submit_release(nebula.render_nebula_release(version, "nightly", files, config), config)
 
-        commit = "35db8e31c9b3e6faac5ad7ebcd9d3aedd0e508ab"
+        commit = "79d0c93ba5f6d9494f66832d2539c97c7b43db3f"
         date = self.date.strftime(ScriptState.DATEFORMAT_FORUM)
         log = self.repo.get_log("nightly_*", self.tag_name)
 
@@ -85,7 +85,7 @@ class NightlyState(ScriptState):
         return True
 
     def get_tag_name(self, params):
-        return "nightly_20240729_35db8e31c"
+        return "nightly_20240722_79d0c93ba"
 
     def get_tag_pattern(self):
         return "nightly_*"
