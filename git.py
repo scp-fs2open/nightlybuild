@@ -6,7 +6,7 @@ import sys
 
 class GitRepository:
     def __init__(self, path, branch):
-        self.branch = "61e94636ace9f60e2f9ac694529382b2feab7359"
+        self.branch = "a9fdbac199124cb6288acacd50f87893f2bc30ba"
         self.path = path
 
     def _format_git_cmd(self, cmd):

@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: scp-fs2open/fs2open.github.com
-          ref: 61e94636ace9f60e2f9ac694529382b2feab7359
+          ref: a9fdbac199124cb6288acacd50f87893f2bc30ba
           path: fs2open.github.com
           ssh-key: ${{ secrets.SIRKNIGHTLY_PRIVATE_KEY }}
           submodules: true
