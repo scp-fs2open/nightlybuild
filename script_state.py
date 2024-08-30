@@ -50,7 +50,7 @@ class ScriptState:
                 print("Latest commit already has a build tag!")
                 return ScriptState.STATE_FINISHED
 
-            self.date = datetime.datetime(2024, 8, 13)
+            self.date = datetime.datetime(2024, 7, 29)
 
             format_args = {
                 "date": self.date.strftime(ScriptState.DATEFORMAT_VERSION),
@@ -72,7 +72,7 @@ class ScriptState:
             if self.date is None:
                 # We are probably running with a tag that was already pushed in which case date has not been initialized
                 # yet
-                self.date = datetime.datetime(2024, 8, 13)
+                self.date = datetime.datetime(2024, 7, 29)
 
             # Monitor the created build...
             self.success = build_monitor.monitor_builds(self.tag_name, self.config)
