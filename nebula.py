@@ -25,7 +25,8 @@ metadata = {
 }
 
 platforms = {
-    'Linux': 'linux',
+    'Linux-x86_64': 'linux',
+    'Linux-arm64': 'linux',
     'MacOSX-x86_64': 'macosx',
     'MacOSX-arm64': 'macosx',
     'Win32-SSE2': 'windows',
@@ -35,7 +36,8 @@ platforms = {
 }
 
 envs = {
-    'Linux': 'linux && x86_64',  # Linux only has 64bit builds
+    'Linux-x86_64': 'linux && x86_64',
+    'Linux-arm64': 'linux && arm64',
     'MacOSX-x86_64': 'macosx && x86_64',
     'MacOSX-arm64': 'macosx && arm64',
     'Win32-SSE2': 'windows',
@@ -104,7 +106,7 @@ def render_nebula_release(version, stability, files, config):
                 'filename': dest_fn
             })
 
-            if group == 'Linux' and fn.endswith('.AppImage'):
+            if group.startswith('Linux') and fn.endswith('.AppImage'):
                 if 'qtfred' in fn:
                     if '-FASTDBG' in fn:
                         label = 'QtFRED Debug'
@@ -118,7 +120,8 @@ def render_nebula_release(version, stability, files, config):
                         label = None
 
                 props = {
-                    "x64": True,  # All Linux builds are 64-bit
+                    "arm64": "arm64" in fn,
+                    "x64": "x64" in fn,
                     "sse2": True,  # Linux builds are forced to compile with SSE2 but not AVX
                     "avx": False,
                     "avx2": False,
