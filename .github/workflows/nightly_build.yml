@@ -11,7 +11,7 @@ jobs:
   build:
     # Only trigger this for the main repository to avoid errors in forks
     if: github.repository == 'scp-fs2open/nightlybuild'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Prepare environment
         run: |
