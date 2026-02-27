@@ -18,7 +18,7 @@ if [ -f "${SCRIPT_DIR}/.env" ]; then
 fi
 
 # Parse command line arguments (overrides config file)
-while getopts "t:d:c:r:m:v:h" opt; do
+while getopts "t:d:c:r:m:v:f:h" opt; do
     case "${opt}" in
         t) BUILD_TYPE="${OPTARG}" ;;
         d) USE_DEBUGGER="${OPTARG}" ;;
@@ -26,8 +26,9 @@ while getopts "t:d:c:r:m:v:h" opt; do
         r) REFERENCE="${OPTARG}" ;;
         m) MOD_DIRNAME="${OPTARG}" ;;
         v) MOD_VCS="${OPTARG}" ;;
+        f) EXTRA_FLAGS="${OPTARG}" ;;
         h)
-            echo "Usage: $0 [-t BUILD_TYPE] [-d USE_DEBUGGER] [-c COMPILER] [-r REFERENCE] [-m MOD_DIRNAME] [-v MOD_VCS]"
+            echo "Usage: $0 [-t BUILD_TYPE] [-d USE_DEBUGGER] [-c COMPILER] [-r REFERENCE] [-m MOD_DIRNAME] [-v MOD_VCS] [-f EXTRA_FLAGS]"
             exit 0
             ;;
         *)
@@ -194,9 +195,9 @@ echo "Starting screen and ${MAIN_PROCESS}/${MOD_DIRNAME:-freespace2}"
 (
     cd ${GAME_ROOT}
     if [ -n "${USE_DEBUGGER}" ]; then
-        screen -dmS server ${DEBUGGER} ${DEBUGGER_FLAG} "r -standalone -noninteractive${MOD_DIRNAME:+ -mod ${MOD_DIRNAME}}" "fs2_open_${DATE}"
+        screen -dmS server ${DEBUGGER} ${DEBUGGER_FLAG} "r -standalone${EXTRA_FLAGS:+ ${EXTRA_FLAGS}} -noninteractive${MOD_DIRNAME:+ -mod ${MOD_DIRNAME}}" "fs2_open_${DATE}"
     else
-        screen -dmS server ./fs2_open_${DATE} -standalone -noninteractive${MOD_DIRNAME:+ -mod ${MOD_DIRNAME}}
+        screen -dmS server ./fs2_open_${DATE} -standalone${EXTRA_FLAGS:+ ${EXTRA_FLAGS}} -noninteractive${MOD_DIRNAME:+ -mod ${MOD_DIRNAME}}
     fi
 )
 
