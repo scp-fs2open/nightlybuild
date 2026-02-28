@@ -92,6 +92,59 @@ CRON_TZ=UTC
 
 The script will exit early with an error if the current day's build already exists (i.e. no new export is needed when the ref hasn't changed), so running it frequently is safe.
 
+## Web UI
+
+A small Flask web app for managing `.env` configuration and viewing the update log, intended to be accessed via SSH tunnel.
+
+### Requirements
+
+- Python 3.11+
+- pip (for installing Flask into a venv)
+
+### Setup
+
+```bash
+cd standalone_update/web
+python3 -m venv venv
+venv/bin/pip install -r requirements.txt
+```
+
+### Running
+
+```bash
+cd standalone_update/web
+venv/bin/python server.py
+```
+
+Or install the systemd unit for persistent operation:
+
+```bash
+# Edit the service file to match your server paths and user
+sudo cp web/standalone-update-web.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now standalone-update-web
+```
+
+### Access
+
+The web UI binds to `127.0.0.1:5000` by default (localhost only). Access it via SSH tunnel:
+
+```bash
+ssh -L 5000:127.0.0.1:5000 user@yourserver
+# Then open http://localhost:5000 in your browser
+```
+
+### Configuration
+
+The web app is configured via environment variables (set in the systemd unit or your shell):
+
+| Variable | Default | Description |
+|---|---|---|
+| `WEB_HOST` | `127.0.0.1` | Bind address |
+| `WEB_PORT` | `5000` | Listen port |
+| `UPDATE_LOG_PATH` | _(none)_ | Path to the update script's log file |
+| `LOG_LINES` | `100` | Maximum number of log lines to display |
+
 ## Directory Structure
 
 After setup, the typical directory layout on a server looks like:
@@ -105,7 +158,11 @@ After setup, the typical directory layout on a server looks like:
 │       └── standalone_update/     # This directory
 │           ├── update             # The script
 │           ├── .env.default       # Default configuration
-│           └── .env               # Your overrides (gitignored)
+│           ├── .env               # Your overrides (gitignored)
+│           └── web/               # Web UI for config management
+│               ├── server.py
+│               ├── env_parser.py
+│               └── venv/          # Python venv (gitignored)
 └── freespace2/                    # Game root (retail data + deployed binary)
     ├── fs2_open_20250226          # Currently deployed build
     ├── root_fs2.vp
