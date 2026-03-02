@@ -90,7 +90,7 @@ CRON_TZ=UTC
 0 9 * * * /usr/share/games/fs2source/nightlybuild/standalone_update/update > /home/scpuser/standalone_update.log 2>&1
 ```
 
-The script will exit early with an error if the current day's build already exists (i.e. no new export is needed when the ref hasn't changed), so running it frequently is safe.
+Each run produces a uniquely named build (datetime + commit hash), so the script can safely be run multiple times per day.
 
 ## Web UI
 
@@ -164,7 +164,7 @@ After setup, the typical directory layout on a server looks like:
 │               ├── env_parser.py
 │               └── venv/          # Python venv (gitignored)
 └── freespace2/                    # Game root (retail data + deployed binary)
-    ├── fs2_open_20250226          # Currently deployed build
+    ├── fs2_open_20250226090000_a1b2c3d  # Currently deployed build
     ├── root_fs2.vp
     └── ...
 ```
