@@ -153,7 +153,7 @@ sudo chmod 600 /etc/standalone-update-web.env
 sudo nano /etc/standalone-update-web.env
 
 # Install and start the service
-sudo cp web/standalone-update-web.service /etc/systemd/system/
+sudo cp web/standalone-update-web.service.example /etc/systemd/system/standalone-update-web.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now standalone-update-web
 ```
