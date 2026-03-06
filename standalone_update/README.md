@@ -168,11 +168,35 @@ sudo systemctl enable --now standalone-update-web
 
 ### Access
 
-The web UI binds to `127.0.0.1:5000` by default (localhost only). Access it via SSH tunnel:
+**SSH tunnel (simple, no nginx required):**
 
 ```bash
 ssh -L 5000:127.0.0.1:5000 user@yourserver
 # Then open http://localhost:5000 in your browser
+```
+
+**Public HTTPS via nginx (for direct internet access):**
+
+Requires nginx, certbot, and a domain pointing at your server.
+
+```bash
+# Install nginx and certbot
+sudo apt install nginx python3-certbot-nginx
+
+# Create the htpasswd file for HTTP Basic Auth
+sudo apt install apache2-utils
+sudo htpasswd -c /etc/nginx/standalone-update-web.htpasswd yourusername
+
+# Install the nginx config and set your domain
+sudo cp web/standalone-update-web.nginx.conf /etc/nginx/sites-available/standalone-update-web
+sudo nano /etc/nginx/sites-available/standalone-update-web  # replace your.domain.example
+sudo ln -s /etc/nginx/sites-available/standalone-update-web /etc/nginx/sites-enabled/
+
+# Obtain TLS certificate (certbot will also patch the nginx config)
+sudo certbot --nginx -d your.domain.example
+
+# Verify and reload
+sudo nginx -t && sudo systemctl reload nginx
 ```
 
 ### Configuration
