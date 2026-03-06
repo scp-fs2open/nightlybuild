@@ -60,8 +60,8 @@ The script uses a two-layer config system:
 | `FSO_REPO` | `/usr/share/games/fs2source/fs2_open` | Path to the local FSO git repository |
 | `GAME_ROOT` | `/usr/share/games/freespace2` | Path to the game data directory where builds are deployed |
 | `BUILD_EXPORTS_DIR` | `/usr/share/games/fs2source/build_exports` | Working directory for build worktrees |
-| `MOD_DIRNAME` | _(unset)_ | Mod folder name (e.g. `fotg`). Enables mod-specific launch flags. |
-| `MOD_VCS` | _(unset)_ | VCS for auto-updating the mod folder (`git` or `svn`). Leave unset to manage manually. |
+| `MOD_DIRNAME` | _(unset)_ | Comma-delimited mod list (e.g. `fotg` or `fotg,fotg-test`). First mod is primary and determines the engine data folder. Passed directly to the engine's `-mod` flag. |
+| `MOD_VCS` | _(unset)_ | VCS per mod, positionally matched to `MOD_DIRNAME` (`git`, `svn`, or empty for unmanaged). E.g. `git,svn` or `git,` |
 | `REFERENCE` | `origin/master` | Git reference to build from — branch (`origin/master`), tag (`release_25_0_0`), or commit hash |
 | `EXTRA_FLAGS` | _(unset)_ | Additional command line flags passed to the game binary (e.g. `-prefer_ipv4`) |
 
@@ -70,8 +70,8 @@ The script uses a two-layer config system:
 ```bash
 BUILD_TYPE=FastDebug
 GAME_ROOT=/usr/share/games/fotg
-MOD_DIRNAME=fotg
-MOD_VCS=git
+MOD_DIRNAME=fotg,fotg-test
+MOD_VCS=git,svn
 REFERENCE=release_25_0_0
 EXTRA_FLAGS=-prefer_ipv4
 ```

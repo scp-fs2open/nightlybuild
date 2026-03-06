@@ -46,9 +46,16 @@ while getopts "t:d:c:r:m:v:f:RSh" opt; do
 done
 shift $((OPTIND - 1))
 
-# Auto-derive MOD_ROOT
+# Auto-derive MOD_ROOTS array from comma-delimited MOD_DIRNAME
+MOD_NAMES=()
+MOD_VCSS=()
+MOD_ROOTS=()
 if [ -n "${MOD_DIRNAME}" ]; then
-    MOD_ROOT="${GAME_ROOT}/${MOD_DIRNAME}"
+    IFS=',' read -ra MOD_NAMES <<< "${MOD_DIRNAME}"
+    IFS=',' read -ra MOD_VCSS <<< "${MOD_VCS}"
+    for _name in "${MOD_NAMES[@]}"; do
+        MOD_ROOTS+=("${GAME_ROOT}/${_name}")
+    done
 fi
 
 # Compiler configuration
@@ -100,7 +107,7 @@ start_server() {
     else
         LAUNCH_BIN="./${BINARY_NAME}"
     fi
-    echo "Starting screen and ${MAIN_PROCESS}/${MOD_DIRNAME:-freespace2}"
+    echo "Starting screen and ${MAIN_PROCESS}/${MOD_NAMES[0]:-freespace2}"
     (
         cd ${GAME_ROOT}
         if [ -n "${USE_DEBUGGER}" ]; then
@@ -117,16 +124,18 @@ if [ ! -d "${GAME_ROOT}" ]; then
     error_exit "Game folder does not exist at: ${GAME_ROOT}"
 fi
 
-if [ -n "${MOD_ROOT}" ]; then
-    if [ ! -d "${MOD_ROOT}" ]; then
-        error_exit "Mod directory does not exist at: ${MOD_ROOT}"
+for _i in "${!MOD_ROOTS[@]}"; do
+    _root="${MOD_ROOTS[$_i]}"
+    _vcs="${MOD_VCSS[$_i]:-}"
+    if [ ! -d "${_root}" ]; then
+        error_exit "Mod directory does not exist at: ${_root}"
     fi
-    if [ -n "${MOD_VCS}" ]; then
-        if [ ! -d "${MOD_ROOT}/.${MOD_VCS}" ]; then
-            error_exit "Mod directory is not a ${MOD_VCS} repository: ${MOD_ROOT}"
+    if [ -n "${_vcs}" ]; then
+        if [ ! -d "${_root}/.${_vcs}" ]; then
+            error_exit "Mod directory is not a ${_vcs} repository: ${_root}"
         fi
     fi
-fi
+done
 
 ### Main ###
 
@@ -193,15 +202,19 @@ else
     echo "Running make inside build export build folder..."
     make -C "${BUILD_PATH}" || error_exit "make failed to run in: ${BUILD_PATH}"
 
-    if [ -n "${MOD_ROOT}" ] && [ -n "${MOD_VCS}" ]; then
-        if [ "${MOD_VCS}" = "git" ]; then
-            echo "Updating mod git folder..."
-            git -C "${MOD_ROOT}" pull || error_exit "Failed to update mod git folder at ${MOD_ROOT}"
-        elif [ "${MOD_VCS}" = "svn" ]; then
-            echo "Updating mod svn folder..."
-            (cd "${MOD_ROOT}" && svn up) || error_exit "Failed to update mod svn folder at ${MOD_ROOT}"
+    for _i in "${!MOD_ROOTS[@]}"; do
+        _root="${MOD_ROOTS[$_i]}"
+        _vcs="${MOD_VCSS[$_i]:-}"
+        if [ -n "${_vcs}" ]; then
+            if [ "${_vcs}" = "git" ]; then
+                echo "Updating mod git folder at ${_root}..."
+                git -C "${_root}" pull || error_exit "Failed to update mod git folder at ${_root}"
+            elif [ "${_vcs}" = "svn" ]; then
+                echo "Updating mod svn folder at ${_root}..."
+                (cd "${_root}" && svn up) || error_exit "Failed to update mod svn folder at ${_root}"
+            fi
         fi
-    fi
+    done
 
     BINARY_NAME="fs2_open_${BUILD_ID}"
 

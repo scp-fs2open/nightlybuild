@@ -129,7 +129,7 @@ def get_fso_data_dir():
 
 def get_log_panels():
     fso_data = get_fso_data_dir()
-    mod_dirname = parse_env(ENV_PATH).get('MOD_DIRNAME', '')
+    mod_dirname = parse_env(ENV_PATH).get('MOD_DIRNAME', '').split(',')[0]
     multi_path = (os.path.join(fso_data, mod_dirname, 'data', 'multi.log')
                   if mod_dirname else
                   os.path.join(fso_data, 'data', 'multi.log'))
@@ -199,9 +199,12 @@ def config_save():
             overrides[var.name] = value
 
     mod = overrides.get('MOD_DIRNAME', '')
-    if mod and ('/' in mod or '..' in mod):
-        flash('MOD_DIRNAME must be a plain directory name (no slashes or "..").', 'error')
-        return redirect(url_for('config'))
+    if mod:
+        for segment in mod.split(','):
+            if not segment or '/' in segment or '..' in segment:
+                flash('Each mod in MOD_DIRNAME must be a plain directory name '
+                      '(no slashes, "..", or empty segments).', 'error')
+                return redirect(url_for('config'))
 
     write_env(ENV_PATH, overrides)
     flash('Configuration saved.', 'success')
