@@ -25,24 +25,33 @@ LOG_LINES = int(os.environ.get('LOG_LINES', '100'))
 
 # Process tracking
 _running_process = None
-_running_action = None  # 'rebuilding' or 'restarting'
+_running_action = None       # 'rebuilding', 'restarting', or 'stopping'
+_running_action_base = None  # 'rebuild', 'restart', or 'stop'
 
 
 def get_status():
     """Return (status_string, is_running) for the current update process."""
-    global _running_process, _running_action
+    global _running_process, _running_action, _running_action_base
     if _running_process is not None:
-        if _running_process.poll() is None:
+        exit_code = _running_process.poll()
+        if exit_code is None:
             return (_running_action, True)
-        # Process finished — clear state
+        # Process finished — append footer to log
+        if LOG_PATH:
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            footer = (f'=== Web UI: {_running_action_base} completed at {timestamp} ===\n' if exit_code == 0
+                      else f'=== Web UI: {_running_action_base} failed (exit code {exit_code}) at {timestamp} ===\n')
+            with open(LOG_PATH, 'a') as f:
+                f.write(footer)
         _running_process = None
         _running_action = None
+        _running_action_base = None
     return ('idle', False)
 
 
 def start_update(restart_only=False, stop_only=False):
     """Start the update script in the background. Returns True on success."""
-    global _running_process, _running_action
+    global _running_process, _running_action, _running_action_base
     status, is_running = get_status()
     if is_running:
         return False
@@ -70,6 +79,7 @@ def start_update(restart_only=False, stop_only=False):
         cwd=SCRIPT_DIR
     )
     _running_action = running_label
+    _running_action_base = action
     return True
 
 
@@ -148,7 +158,7 @@ def server_rebuild():
     if not LOG_PATH:
         flash('Cannot run: UPDATE_LOG_PATH is not configured.', 'error')
         return redirect(url_for('server'))
-    if not start_update(restart_only=False):
+    if not start_update():
         flash('An update is already in progress.', 'error')
         return redirect(url_for('server'))
     flash('Rebuild started.', 'success')
@@ -194,4 +204,5 @@ def logs():
 
 
 if __name__ == '__main__':
-    app.run(host=HOST, port=PORT, debug=False)
+    debug = os.environ.get('FLASK_DEBUG', '').lower() in ('1', 'true', 'yes')
+    app.run(host=HOST, port=PORT, debug=debug)
