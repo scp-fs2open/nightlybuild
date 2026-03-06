@@ -121,15 +121,16 @@ def parse_env(path):
 def write_env(path, overrides):
     """Write user overrides to .env. Only non-empty overrides are written.
 
-    Values containing spaces are quoted.
+    Values are single-quoted to prevent shell expansion when sourced, with
+    embedded single quotes escaped. Newlines are stripped to prevent file
+    injection.
     """
     with open(path, 'w') as f:
         for key, value in overrides.items():
             if value is not None:
-                if ' ' in value and not (value.startswith('"') and value.endswith('"')):
-                    f.write(f'{key}="{value}"\n')
-                else:
-                    f.write(f'{key}={value}\n')
+                value = value.replace('\r', '').replace('\n', '')
+                value = value.replace("'", "'\\''")
+                f.write(f"{key}='{value}'\n")
 
 
 def merge_variables(variables, overrides):
