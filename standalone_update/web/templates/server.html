@@ -19,16 +19,19 @@
     </div>
     <div class="button-row">
         <form method="POST" action="{{ url_for('server_rebuild') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-rebuild"
                     {{ 'disabled' if is_running }}>Rebuild</button>
             <span class="btn-hint">Fetch, build, and deploy a new binary</span>
         </form>
         <form method="POST" action="{{ url_for('server_restart') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-restart"
                     {{ 'disabled' if is_running }}>Restart</button>
             <span class="btn-hint">Restart the server using the current build</span>
         </form>
         <form method="POST" action="{{ url_for('server_stop') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-stop"
                     {{ 'disabled' if is_running }}>Stop</button>
             <span class="btn-hint">Kill the server without restarting</span>

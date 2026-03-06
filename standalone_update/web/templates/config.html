@@ -6,6 +6,7 @@
    Unchecked variables use the default from <code>.env.default</code>.</p>
 
 <form method="POST" action="{{ url_for('config_save') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     {% for section_name, vars in sections %}
     <fieldset>
         <legend>{{ section_name }}</legend>

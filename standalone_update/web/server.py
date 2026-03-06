@@ -5,11 +5,13 @@ import sys
 from datetime import datetime
 
 from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_wtf.csrf import CSRFProtect
 
 from env_parser import parse_env_default, parse_env, write_env, merge_variables
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
+csrf = CSRFProtect(app)
 
 # Paths — .env.default and .env live one directory up from this script
 SCRIPT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
