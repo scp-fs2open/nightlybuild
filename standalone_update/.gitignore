@@ -1,3 +1,4 @@
 .env
 web/venv/
 web/__pycache__/
+web/standalone-update-web.env

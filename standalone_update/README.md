@@ -105,12 +105,12 @@ Each run produces a uniquely named build (datetime + commit hash), so the script
 
 ## Web UI
 
-A small Flask web app for managing `.env` configuration, triggering server rebuilds and restarts, and viewing logs — intended to be accessed via SSH tunnel.
+A small Flask web app for managing `.env` configuration, triggering server rebuilds and restarts, and viewing logs.
 
 ### Requirements
 
 - Python 3.11+
-- pip (for installing Flask into a venv)
+- pip (for installing dependencies into a venv)
 
 ### Setup
 
@@ -120,17 +120,39 @@ python3 -m venv venv
 venv/bin/pip install -r requirements.txt
 ```
 
-### Running
+### Running locally (development)
 
 ```bash
 cd standalone_update/web
-venv/bin/python server.py
+FLASK_DEBUG=1 venv/bin/python server.py
 ```
 
-Or install the systemd unit for persistent operation:
+`FLASK_DEBUG=1` enables the auto-reloader and interactive error page. Omit it for a plain local run.
+
+### Running via gunicorn (production / testing the production stack)
+
+The service uses gunicorn as the WSGI server. The `web/run` script is the easiest way to run it locally — it loads configuration from `web/standalone-update-web.env` (copy from `standalone-update-web.env.example` and fill in your values):
 
 ```bash
-# Edit the service file to match your server paths and user
+cd standalone_update
+web/run
+```
+
+Set `GUNICORN_RELOAD=1` in your env file to enable auto-restart on file changes.
+
+### Systemd setup
+
+The service reads all configuration from an environment file at `/etc/standalone-update-web.env` (root-owned, mode 600):
+
+```bash
+# Create the environment file from the example
+sudo cp web/standalone-update-web.env.example /etc/standalone-update-web.env
+sudo chmod 600 /etc/standalone-update-web.env
+# Edit it to set your paths and generate a SECRET_KEY:
+#   python3 -c "import secrets; print(secrets.token_hex(32))"
+sudo nano /etc/standalone-update-web.env
+
+# Install and start the service
 sudo cp web/standalone-update-web.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now standalone-update-web
@@ -155,7 +177,7 @@ ssh -L 5000:127.0.0.1:5000 user@yourserver
 
 ### Configuration
 
-The web app is configured via environment variables (set in the systemd unit or your shell):
+The web app is configured via environment variables (set in `/etc/standalone-update-web.env` or your shell):
 
 | Variable | Default | Description |
 |---|---|---|
@@ -163,6 +185,7 @@ The web app is configured via environment variables (set in the systemd unit or 
 | `WEB_PORT` | `5000` | Listen port |
 | `UPDATE_LOG_PATH` | _(none)_ | Path to the update log file — read for display and used as the output destination when rebuild/restart is triggered from the UI |
 | `LOG_LINES` | `100` | Maximum number of log lines to display |
+| `SECRET_KEY` | _(random)_ | Flask session secret — set a stable value in production to preserve sessions across restarts |
 
 ## Directory Structure
 
