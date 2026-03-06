@@ -275,6 +275,57 @@ h2 {
     margin-bottom: 0.5rem;
 }
 
+/* Login form */
+.login-form {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1.5rem;
+    max-width: 320px;
+}
+
+.login-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+}
+
+.login-field label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.login-field input[type="password"] {
+    padding: 0.4rem 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.95rem;
+}
+
+/* Nav logout button */
+.nav-logout {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.nav-logout button {
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #bdc3c7;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.nav-logout button:hover {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.7);
+}
+
 /* Game log panels */
 .log-panel {
     background: #fff;

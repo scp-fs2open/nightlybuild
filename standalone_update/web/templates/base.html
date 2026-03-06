@@ -16,6 +16,12 @@
            {% if request.endpoint == 'server' %}class="active"{% endif %}>Server</a>
         <a href="{{ url_for('logs') }}"
            {% if request.endpoint == 'logs' %}class="active"{% endif %}>Logs</a>
+        {% if current_user.is_authenticated %}
+        <form method="post" action="{{ url_for('logout') }}" class="nav-logout">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit">Log out</button>
+        </form>
+        {% endif %}
     </nav>
     <main>
         {% with messages = get_flashed_messages(with_categories=true) %}

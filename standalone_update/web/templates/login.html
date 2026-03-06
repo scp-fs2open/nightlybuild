@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Login - Standalone Update{% endblock %}
+{% block content %}
+<h1>Login</h1>
+<form method="post" class="login-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="login-field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autofocus>
+    </div>
+    <button type="submit">Log in</button>
+</form>
+{% endblock %}

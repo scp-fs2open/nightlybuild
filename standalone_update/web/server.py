@@ -5,13 +5,32 @@ import sys
 from datetime import datetime
 
 from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
 from flask_wtf.csrf import CSRFProtect
+from werkzeug.security import check_password_hash
 
 from env_parser import parse_env_default, parse_env, write_env, merge_variables
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 csrf = CSRFProtect(app)
+
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+
+PASSWORD_HASH = os.environ.get('PASSWORD_HASH', '')
+
+
+class User(UserMixin):
+    id = '1'
+
+
+_user = User()
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return _user if user_id == '1' else None
 
 # Paths — .env.default and .env live one directory up from this script
 SCRIPT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -118,12 +137,31 @@ def read_log_lines():
         return (all_lines[-LOG_LINES:], None)
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        if PASSWORD_HASH and check_password_hash(PASSWORD_HASH, password):
+            login_user(_user, remember=True)
+            return redirect(request.args.get('next') or url_for('config'))
+        flash('Invalid password.', 'error')
+    return render_template('login.html')
+
+
+@app.route('/logout', methods=['POST'])
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+
 @app.route('/')
 def index():
     return redirect(url_for('config'))
 
 
 @app.route('/config', methods=['GET'])
+@login_required
 def config():
     variables = parse_env_default(ENV_DEFAULT_PATH)
     overrides = parse_env(ENV_PATH)
@@ -132,6 +170,7 @@ def config():
 
 
 @app.route('/config', methods=['POST'])
+@login_required
 def config_save():
     variables = parse_env_default(ENV_DEFAULT_PATH)
     overrides = {}
@@ -148,6 +187,7 @@ def config_save():
 
 
 @app.route('/server')
+@login_required
 def server():
     status, is_running = get_status()
     lines, log_error = read_log_lines()
@@ -156,6 +196,7 @@ def server():
 
 
 @app.route('/server/rebuild', methods=['POST'])
+@login_required
 def server_rebuild():
     if not LOG_PATH:
         flash('Cannot run: UPDATE_LOG_PATH is not configured.', 'error')
@@ -168,6 +209,7 @@ def server_rebuild():
 
 
 @app.route('/server/restart', methods=['POST'])
+@login_required
 def server_restart():
     if not LOG_PATH:
         flash('Cannot run: UPDATE_LOG_PATH is not configured.', 'error')
@@ -180,6 +222,7 @@ def server_restart():
 
 
 @app.route('/server/stop', methods=['POST'])
+@login_required
 def server_stop():
     if not LOG_PATH:
         flash('Cannot run: UPDATE_LOG_PATH is not configured.', 'error')
@@ -192,6 +235,7 @@ def server_stop():
 
 
 @app.route('/logs')
+@login_required
 def logs():
     panels = get_log_panels()
     for panel in panels:
