@@ -178,6 +178,128 @@ button[type="submit"]:hover {
     background: #34495e;
 }
 
+/* Server controls */
+.server-controls {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.status-row {
+    margin-bottom: 0.75rem;
+}
+
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.status-indicator.idle .status-dot {
+    background: #27ae60;
+}
+
+.status-indicator.rebuilding .status-dot,
+.status-indicator.restarting .status-dot,
+.status-indicator.stopping .status-dot {
+    background: #f39c12;
+}
+
+.button-row {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.button-row form {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn {
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    color: #fff;
+}
+
+.btn-rebuild {
+    background: #2c3e50;
+}
+
+.btn-rebuild:hover:not(:disabled) {
+    background: #34495e;
+}
+
+.btn-restart {
+    background: #2980b9;
+}
+
+.btn-restart:hover:not(:disabled) {
+    background: #3498db;
+}
+
+.btn-stop {
+    background: #c0392b;
+}
+
+.btn-stop:hover:not(:disabled) {
+    background: #e74c3c;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-hint {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+h2 {
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Game log panels */
+.log-panel {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.log-panel-header {
+    margin-bottom: 0.5rem;
+}
+
+.log-panel-name {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.log-panel-path {
+    font-size: 0.8rem;
+    color: #888;
+    font-family: monospace;
+    margin-left: 0.75rem;
+}
+
 /* Log viewer */
 .log-output {
     background: #1e1e1e;

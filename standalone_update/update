@@ -19,8 +19,9 @@ fi
 
 # Parse command line arguments (overrides config file)
 RESTART_ONLY=""
+STOP_ONLY=""
 
-while getopts "t:d:c:r:m:v:f:Rh" opt; do
+while getopts "t:d:c:r:m:v:f:RSh" opt; do
     case "${opt}" in
         t) BUILD_TYPE="${OPTARG}" ;;
         d) USE_DEBUGGER="${OPTARG}" ;;
@@ -30,9 +31,11 @@ while getopts "t:d:c:r:m:v:f:Rh" opt; do
         v) MOD_VCS="${OPTARG}" ;;
         f) EXTRA_FLAGS="${OPTARG}" ;;
         R) RESTART_ONLY=yes ;;
+        S) STOP_ONLY=yes ;;
         h)
-            echo "Usage: $0 [-t BUILD_TYPE] [-d USE_DEBUGGER] [-c COMPILER] [-r REFERENCE] [-m MOD_DIRNAME] [-v MOD_VCS] [-f EXTRA_FLAGS] [-R]"
+            echo "Usage: $0 [-t BUILD_TYPE] [-d USE_DEBUGGER] [-c COMPILER] [-r REFERENCE] [-m MOD_DIRNAME] [-v MOD_VCS] [-f EXTRA_FLAGS] [-R] [-S]"
             echo "  -R  Restart the server using the existing build (skip fetch/build)"
+            echo "  -S  Stop the server without restarting"
             exit 0
             ;;
         *)
@@ -93,9 +96,11 @@ if [ -n "${MOD_ROOT}" ]; then
     fi
 fi
 
-if [ -n "${RESTART_ONLY}" ]; then
+if [ -n "${STOP_ONLY}" ]; then
+    echo "Stop mode: shutting down server..."
+elif [ -n "${RESTART_ONLY}" ]; then
     # Restart mode: reuse the existing binary
-    EXISTING_BINARY=$(ls -1t ${GAME_ROOT}/fs2_open_* 2>/dev/null | head -1)
+    EXISTING_BINARY=$(ls -1dt ${GAME_ROOT}/fs2_open_* 2>/dev/null | head -1)
     if [ -z "${EXISTING_BINARY}" ]; then
         error_exit "No existing build found in ${GAME_ROOT} to restart"
     fi
@@ -120,7 +125,7 @@ else
 
     # Fetch updates for parent and all submodules
     echo "Fetching updates for parent repo and submodules..."
-    git -C "$FSO_REPO" fetch --recurse-submodules || error_exit "Failed to fetch updates from remote repositories"
+    git -C "$FSO_REPO" fetch --tags --force --recurse-submodules || error_exit "Failed to fetch updates from remote repositories"
 
     # Get short hash for the reference
     echo "Resolving reference '$REFERENCE' to commit hash..."
@@ -179,7 +184,7 @@ else
 fi
 
 # Kill server
-echo "Restarting server..."
+echo "Stopping server..."
 if pgrep "${MAIN_PROCESS}" > /dev/null 2>&1; then
     echo "Killing ${MAIN_PROCESS}..."
     pkill "${MAIN_PROCESS}" || error_exit "Could not kill ${MAIN_PROCESS}"
@@ -190,43 +195,52 @@ if screen -ls | grep server > /dev/null; then
     screen -S server -X quit || error_exit "Could not kill screen"
 fi
 
-if [ -z "${RESTART_ONLY}" ]; then
-    # Remove existing builds and deploy new one
-    echo "Checking for old game builds..."
-    if ls ${GAME_ROOT}/fs2_open_* > /dev/null 2>&1; then
-        echo "Removing old game builds"
-        rm -rf ${GAME_ROOT}/fs2_open_* || error_exit "Could not remove old builds in ${GAME_ROOT}"
-    else
-        echo "No old builds found"
-    fi
-
-    # Copy build
-    echo "Copying build to game folder..."
-    cp ${BUILD_PATH}/bin/fs2_open_* "${GAME_ROOT}/${BINARY_NAME}" || error_exit "Failed to copy build to game root ${GAME_ROOT}"
-fi
-
-# Start the server
-echo "Starting screen and ${MAIN_PROCESS}/${MOD_DIRNAME:-freespace2}"
-(
-    cd ${GAME_ROOT}
-    if [ -n "${USE_DEBUGGER}" ]; then
-        screen -dmS server ${DEBUGGER} ${DEBUGGER_FLAG} "r -standalone${EXTRA_FLAGS:+ ${EXTRA_FLAGS}} -noninteractive${MOD_DIRNAME:+ -mod ${MOD_DIRNAME}}" "${BINARY_NAME}"
-    else
-        screen -dmS server ./${BINARY_NAME} -standalone${EXTRA_FLAGS:+ ${EXTRA_FLAGS}} -noninteractive${MOD_DIRNAME:+ -mod ${MOD_DIRNAME}}
-    fi
-)
-
-if [ -z "${RESTART_ONLY}" ]; then
-    # Clean up old build_exports
-    (
-        cd "$BUILD_EXPORTS_DIR" || error_exit "Failed to change to export directory: $BUILD_EXPORTS_DIR"
-
-        EXPORT_COUNT=$(ls -1 | wc -l)
-        if [ "$EXPORT_COUNT" -gt 1 ]; then
-            echo "Cleaning up old build_export folders..."
-            ls -t | tail -n +2 | xargs rm -rf || error_exit "Failed to remove old exports under ${BUILD_EXPORTS_DIR}"
+if [ -z "${STOP_ONLY}" ]; then
+    if [ -z "${RESTART_ONLY}" ]; then
+        # Remove existing builds and deploy new one
+        echo "Checking for old game builds..."
+        if ls ${GAME_ROOT}/fs2_open_* > /dev/null 2>&1; then
+            echo "Removing old game builds"
+            rm -rf ${GAME_ROOT}/fs2_open_* || error_exit "Could not remove old builds in ${GAME_ROOT}"
         else
-            echo "Only one build export found, nothing to clean up"
+            echo "No old builds found"
+        fi
+
+        # Copy build
+        echo "Copying build to game folder..."
+        cp -a ${BUILD_PATH}/bin/fs2_open_* "${GAME_ROOT}/${BINARY_NAME}" || error_exit "Failed to copy build to game root ${GAME_ROOT}"
+    fi
+
+    # Resolve the actual executable path (macOS .app bundle vs flat binary)
+    if [ -d "${GAME_ROOT}/${BINARY_NAME}/Contents/MacOS" ]; then
+        LAUNCH_BIN="./${BINARY_NAME}/Contents/MacOS/fs2_open_*"
+    else
+        LAUNCH_BIN="./${BINARY_NAME}"
+    fi
+
+    # Start the server
+    echo "Starting screen and ${MAIN_PROCESS}/${MOD_DIRNAME:-freespace2}"
+    (
+        cd ${GAME_ROOT}
+        if [ -n "${USE_DEBUGGER}" ]; then
+            screen -dmS server ${DEBUGGER} ${DEBUGGER_FLAG} "r -standalone${EXTRA_FLAGS:+ ${EXTRA_FLAGS}} -noninteractive${MOD_DIRNAME:+ -mod ${MOD_DIRNAME}}" ${LAUNCH_BIN}
+        else
+            screen -dmS server ${LAUNCH_BIN} -standalone${EXTRA_FLAGS:+ ${EXTRA_FLAGS}} -noninteractive${MOD_DIRNAME:+ -mod ${MOD_DIRNAME}}
         fi
     )
+
+    if [ -z "${RESTART_ONLY}" ]; then
+        # Clean up old build_exports
+        (
+            cd "$BUILD_EXPORTS_DIR" || error_exit "Failed to change to export directory: $BUILD_EXPORTS_DIR"
+
+            EXPORT_COUNT=$(ls -1 | wc -l)
+            if [ "$EXPORT_COUNT" -gt 1 ]; then
+                echo "Cleaning up old build_export folders..."
+                ls -t | tail -n +2 | xargs rm -rf || error_exit "Failed to remove old exports under ${BUILD_EXPORTS_DIR}"
+            else
+                echo "Only one build export found, nothing to clean up"
+            fi
+        )
+    fi
 fi

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Logs - Standalone Update{% endblock %}
+{% block head_extra %}<meta http-equiv="refresh" content="10">{% endblock %}
+{% block content %}
+<h1>Game Logs</h1>
+<p>Auto-refreshing every 10 seconds.</p>
+
+{% for panel in panels %}
+<div class="log-panel">
+    <div class="log-panel-header">
+        <span class="log-panel-name">{{ panel.name }}</span>
+        <span class="log-panel-path">{{ panel.path }}</span>
+    </div>
+    {% if panel.error %}
+    <p class="log-error">{{ panel.error }}</p>
+    {% elif panel.lines %}
+    <pre class="log-output">{% for line in panel.lines %}{{ line }}{% endfor %}</pre>
+    {% else %}
+    <p>Log file is empty.</p>
+    {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

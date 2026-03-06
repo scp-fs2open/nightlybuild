@@ -78,6 +78,17 @@ EXTRA_FLAGS=-prefer_ipv4
 
 All variables can also be passed as command line arguments (run `./update -h` for usage).
 
+## Server Control Modes
+
+In addition to a full rebuild, the update script supports two shortcut modes:
+
+```bash
+./update -R   # Restart using the existing deployed binary (skip fetch/build)
+./update -S   # Stop the server without restarting
+```
+
+`-R` is useful for applying configuration changes or recovering a crashed server quickly. `-S` shuts down the screen session and game process without bringing them back up.
+
 ## Cron Setup
 
 The script is intended to be run via cron. Example crontab entry that runs daily at 09:00 UTC:
@@ -94,7 +105,7 @@ Each run produces a uniquely named build (datetime + commit hash), so the script
 
 ## Web UI
 
-A small Flask web app for managing `.env` configuration and viewing the update log, intended to be accessed via SSH tunnel.
+A small Flask web app for managing `.env` configuration, triggering server rebuilds and restarts, and viewing logs — intended to be accessed via SSH tunnel.
 
 ### Requirements
 
@@ -125,6 +136,14 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now standalone-update-web
 ```
 
+### Pages
+
+| Page | Description |
+|---|---|
+| **Configuration** | View and override `.env` variables with live default display |
+| **Server** | Trigger a full rebuild, restart, or stop, with live update log |
+| **Logs** | View the FSO standalone and multiplayer engine logs (auto-refreshing) |
+
 ### Access
 
 The web UI binds to `127.0.0.1:5000` by default (localhost only). Access it via SSH tunnel:
@@ -142,7 +161,7 @@ The web app is configured via environment variables (set in the systemd unit or 
 |---|---|---|
 | `WEB_HOST` | `127.0.0.1` | Bind address |
 | `WEB_PORT` | `5000` | Listen port |
-| `UPDATE_LOG_PATH` | _(none)_ | Path to the update script's log file |
+| `UPDATE_LOG_PATH` | _(none)_ | Path to the update log file — read for display and used as the output destination when rebuild/restart is triggered from the UI |
 | `LOG_LINES` | `100` | Maximum number of log lines to display |
 
 ## Directory Structure

@@ -5,14 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Standalone Update{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% block head_extra %}{% endblock %}
 </head>
 <body>
     <nav>
         <span class="nav-title">Standalone Update</span>
         <a href="{{ url_for('config') }}"
            {% if request.endpoint == 'config' %}class="active"{% endif %}>Configuration</a>
-        <a href="{{ url_for('log_viewer') }}"
-           {% if request.endpoint == 'log_viewer' %}class="active"{% endif %}>Update Log</a>
+        <a href="{{ url_for('server') }}"
+           {% if request.endpoint == 'server' %}class="active"{% endif %}>Server</a>
+        <a href="{{ url_for('logs') }}"
+           {% if request.endpoint == 'logs' %}class="active"{% endif %}>Logs</a>
     </nav>
     <main>
         {% with messages = get_flashed_messages(with_categories=true) %}
