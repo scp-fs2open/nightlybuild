@@ -2,7 +2,7 @@
 import os
 import subprocess
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
@@ -14,6 +14,16 @@ from env_parser import parse_env_default, parse_env, write_env, merge_variables
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 csrf = CSRFProtect(app)
+
+app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=7)
+app.config['REMEMBER_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+
+_secure_cookies = os.environ.get('SECURE_COOKIES', '0').lower() in ('1', 'true', 'yes')
+app.config['REMEMBER_COOKIE_SECURE'] = _secure_cookies
+app.config['SESSION_COOKIE_SECURE'] = _secure_cookies
+
+app.jinja_env.filters['basename'] = os.path.basename
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -48,16 +58,20 @@ LOG_LINES = int(os.environ.get('LOG_LINES', '100'))
 _running_process = None
 _running_action = None       # 'rebuilding', 'restarting', or 'stopping'
 _running_action_base = None  # 'rebuild', 'restart', or 'stop'
+_log_file = None
 
 
 def get_status():
     """Return (status_string, is_running) for the current update process."""
-    global _running_process, _running_action, _running_action_base
+    global _running_process, _running_action, _running_action_base, _log_file
     if _running_process is not None:
         exit_code = _running_process.poll()
         if exit_code is None:
             return (_running_action, True)
-        # Process finished — append footer to log
+        # Process finished — close the log handle, then append footer
+        if _log_file is not None:
+            _log_file.close()
+            _log_file = None
         if LOG_PATH:
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             footer = (f'=== Web UI: {_running_action_base} completed at {timestamp} ===\n' if exit_code == 0
@@ -72,7 +86,7 @@ def get_status():
 
 def start_update(restart_only=False, stop_only=False):
     """Start the update script in the background. Returns True on success."""
-    global _running_process, _running_action, _running_action_base
+    global _running_process, _running_action, _running_action_base, _log_file
     status, is_running = get_status()
     if is_running:
         return False
@@ -87,16 +101,16 @@ def start_update(restart_only=False, stop_only=False):
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     header = f'=== Web UI: {action} triggered at {timestamp} ===\n'
 
-    log_file = open(LOG_PATH, 'w')
-    log_file.write(header)
-    log_file.flush()
+    _log_file = open(LOG_PATH, 'w')
+    _log_file.write(header)
+    _log_file.flush()
 
     cmd = [UPDATE_SCRIPT]
     if flag:
         cmd.append(flag)
 
     _running_process = subprocess.Popen(
-        cmd, stdout=log_file, stderr=subprocess.STDOUT,
+        cmd, stdout=_log_file, stderr=subprocess.STDOUT,
         cwd=SCRIPT_DIR
     )
     _running_action = running_label
@@ -143,7 +157,10 @@ def login():
         password = request.form.get('password', '')
         if PASSWORD_HASH and check_password_hash(PASSWORD_HASH, password):
             login_user(_user, remember=True)
-            return redirect(request.args.get('next') or url_for('config'))
+            next_url = request.args.get('next', '')
+            if not next_url or not next_url.startswith('/'):
+                next_url = url_for('config')
+            return redirect(next_url)
         flash('Invalid password.', 'error')
     return render_template('login.html')
 
@@ -180,6 +197,11 @@ def config_save():
         value = request.form.get(f'value_{var.name}', '').strip()
         if is_overridden and value:
             overrides[var.name] = value
+
+    mod = overrides.get('MOD_DIRNAME', '')
+    if mod and ('/' in mod or '..' in mod):
+        flash('MOD_DIRNAME must be a plain directory name (no slashes or "..").', 'error')
+        return redirect(url_for('config'))
 
     write_env(ENV_PATH, overrides)
     flash('Configuration saved.', 'success')
@@ -241,7 +263,7 @@ def logs():
     for panel in panels:
         if not os.path.exists(panel['path']):
             panel['lines'] = None
-            panel['error'] = f'Log file not found: {panel["path"]}'
+            panel['error'] = f'Log file not found: {os.path.basename(panel["path"])}'
         else:
             with open(panel['path']) as f:
                 panel['lines'] = f.readlines()[-LOG_LINES:]
