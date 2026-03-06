@@ -1,11 +1,19 @@
 # Standalone Update Web UI — nginx reverse proxy config
 #
 # Setup:
-#   1. Replace 'your.domain.example' with your actual domain
-#   2. Install to /etc/nginx/sites-available/standalone-update-web
+#   1. Replace 'your.domain.example' with your actual domain (all 3 occurrences)
+#   2. Install the config file — distro-dependent:
+#
+#      Debian/Ubuntu:
+#        cp standalone-update-web.nginx.conf.example /etc/nginx/sites-available/standalone-update-web
+#        ln -s /etc/nginx/sites-available/standalone-update-web /etc/nginx/sites-enabled/
+#
+#      RHEL/CentOS/Fedora, Arch, openSUSE, and most others:
+#        cp standalone-update-web.nginx.conf.example /etc/nginx/conf.d/standalone-update-web.conf
+#        (openSUSE may use /etc/nginx/vhosts.d/ instead)
+#
 #   3. Run certbot to obtain a certificate (see README)
-#   4. ln -s /etc/nginx/sites-available/standalone-update-web /etc/nginx/sites-enabled/
-#   5. nginx -t && systemctl reload nginx
+#   4. nginx -t && systemctl reload nginx
 
 # Limit login attempts to prevent brute force
 limit_req_zone $binary_remote_addr zone=standalone_update_auth:10m rate=5r/m;

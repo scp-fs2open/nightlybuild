@@ -188,7 +188,7 @@ sudo apt install apache2-utils
 sudo htpasswd -c /etc/nginx/standalone-update-web.htpasswd yourusername
 
 # Install the nginx config and set your domain
-sudo cp web/standalone-update-web.nginx.conf /etc/nginx/sites-available/standalone-update-web
+sudo cp web/standalone-update-web.nginx.conf.example /etc/nginx/sites-available/standalone-update-web
 sudo nano /etc/nginx/sites-available/standalone-update-web  # replace your.domain.example
 sudo ln -s /etc/nginx/sites-available/standalone-update-web /etc/nginx/sites-enabled/
 
