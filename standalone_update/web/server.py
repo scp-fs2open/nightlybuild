@@ -24,6 +24,7 @@ app.config['REMEMBER_COOKIE_SECURE'] = _secure_cookies
 app.config['SESSION_COOKIE_SECURE'] = _secure_cookies
 
 APP_TITLE = 'FSO Standalone Update Manager'
+app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024  # 1 MB
 
 app.jinja_env.filters['basename'] = os.path.basename
 app.jinja_env.globals['APP_TITLE'] = APP_TITLE
@@ -213,6 +214,13 @@ def build_config_save():
             if not segment or '/' in segment or '..' in segment:
                 flash('Each mod in MOD_DIRNAME must be a plain directory name '
                       '(no slashes, "..", or empty segments).', 'error')
+                return redirect(url_for('build_config'))
+
+    vcs = overrides.get('MOD_VCS', '')
+    if vcs:
+        for segment in vcs.split(','):
+            if segment not in ('', 'git', 'svn'):
+                flash('Each VCS in MOD_VCS must be "git", "svn", or empty.', 'error')
                 return redirect(url_for('build_config'))
 
     write_env(ENV_PATH, overrides)
