@@ -105,110 +105,7 @@ Each run produces a uniquely named build (datetime + commit hash), so the script
 
 ## Web UI
 
-A small Flask web app for managing `.env` configuration, triggering server rebuilds and restarts, and viewing logs.
-
-### Requirements
-
-- Python 3.11+
-- pip (for installing dependencies into a venv)
-
-### Setup
-
-```bash
-cd standalone_update/web
-python3 -m venv venv
-venv/bin/pip install -r requirements.txt
-```
-
-### Running locally (development)
-
-```bash
-cd standalone_update/web
-FLASK_DEBUG=1 venv/bin/python server.py
-```
-
-`FLASK_DEBUG=1` enables the auto-reloader and interactive error page. Omit it for a plain local run.
-
-### Running via gunicorn (production / testing the production stack)
-
-The service uses gunicorn as the WSGI server. The `web/run` script is the easiest way to run it locally — it loads configuration from `web/standalone-update-web.env` (copy from `standalone-update-web.env.example` and fill in your values):
-
-```bash
-cd standalone_update
-web/run
-```
-
-Set `GUNICORN_RELOAD=1` in your env file to enable auto-restart on file changes.
-
-### Systemd setup
-
-The service reads all configuration from an environment file at `/etc/standalone-update-web.env` (root-owned, mode 600):
-
-```bash
-# Create the environment file from the example
-sudo cp web/standalone-update-web.env.example /etc/standalone-update-web.env
-sudo chmod 600 /etc/standalone-update-web.env
-# Edit it to set your paths and generate a SECRET_KEY:
-#   python3 -c "import secrets; print(secrets.token_hex(32))"
-sudo nano /etc/standalone-update-web.env
-
-# Install and start the service
-sudo cp web/standalone-update-web.service.example /etc/systemd/system/standalone-update-web.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now standalone-update-web
-```
-
-### Pages
-
-| Page | Description |
-|---|---|
-| **Build Config** | View and override `.env` variables with live default display |
-| **Build Controls** | Trigger a full rebuild, restart, or stop, with real-time log streaming |
-| **Game Config** | Edit the `multi.cfg` file used by the game server |
-| **Game Logs** | View the FSO standalone and multiplayer engine logs (real-time streaming) |
-
-### Access
-
-**SSH tunnel (simple, no nginx required):**
-
-```bash
-ssh -L 5000:127.0.0.1:5000 user@yourserver
-# Then open http://localhost:5000 in your browser
-```
-
-**Public HTTPS via nginx (for direct internet access):**
-
-Requires nginx, certbot, and a domain pointing at your server.
-
-```bash
-# Install nginx and certbot
-sudo apt install nginx python3-certbot-nginx
-
-# Install the nginx config and set your domain
-sudo cp web/standalone-update-web.nginx.conf.example /etc/nginx/sites-available/standalone-update-web
-sudo nano /etc/nginx/sites-available/standalone-update-web  # replace your.domain.example
-sudo ln -s /etc/nginx/sites-available/standalone-update-web /etc/nginx/sites-enabled/
-
-# Obtain TLS certificate (certbot will also patch the nginx config)
-sudo certbot --nginx -d your.domain.example
-
-# Verify and reload
-sudo nginx -t && sudo systemctl reload nginx
-```
-
-### Configuration
-
-The web app is configured via environment variables (set in `/etc/standalone-update-web.env` or your shell):
-
-| Variable | Default | Description |
-|---|---|---|
-| `WEB_HOST` | `127.0.0.1` | Bind address |
-| `WEB_PORT` | `5000` | Listen port |
-| `UPDATE_LOG_PATH` | _(none)_ | Path to the update log file — read for display and used as the output destination when rebuild/restart is triggered from the UI |
-| `LOG_LINES` | `100` | Maximum number of log lines to display |
-| `SECRET_KEY` | _(random)_ | Flask session secret — set a stable value in production to preserve sessions across restarts |
-| `PASSWORD_HASH` | _(none)_ | Bcrypt password hash for the login form — generate with `python3 -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('yourpassword'))"` |
-| `SECURE_COOKIES` | `0` | Set to `1` to mark session and remember-me cookies as `Secure` (requires HTTPS) |
+A web app is available in the [`web/`](web/) directory for managing configuration, triggering builds/restarts, and viewing logs from a browser. See [web/README.md](web/README.md) for setup instructions.
 
 ## Directory Structure
 
@@ -224,10 +121,7 @@ After setup, the typical directory layout on a server looks like:
 │           ├── update             # The script
 │           ├── .env.default       # Default configuration
 │           ├── .env               # Your overrides (gitignored)
-│           └── web/               # Web UI for config management
-│               ├── server.py
-│               ├── env_parser.py
-│               └── venv/          # Python venv (gitignored)
+│           └── web/               # Web UI (see web/README.md)
 └── freespace2/                    # Game root (retail data + deployed binary)
     ├── fs2_open_20250226090000_a1b2c3d  # Currently deployed build
     ├── root_fs2.vp

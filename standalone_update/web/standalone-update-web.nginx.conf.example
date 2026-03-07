@@ -1,19 +1,11 @@
 # Standalone Update Web UI — nginx reverse proxy config
 #
 # Setup:
-#   1. Replace 'your.domain.example' with your actual domain (all 3 occurrences)
-#   2. Install the config file — distro-dependent:
-#
-#      Debian/Ubuntu:
-#        cp standalone-update-web.nginx.conf.example /etc/nginx/sites-available/standalone-update-web
-#        ln -s /etc/nginx/sites-available/standalone-update-web /etc/nginx/sites-enabled/
-#
-#      RHEL/CentOS/Fedora, Arch, openSUSE, and most others:
-#        cp standalone-update-web.nginx.conf.example /etc/nginx/conf.d/standalone-update-web.conf
-#        (openSUSE may use /etc/nginx/vhosts.d/ instead)
-#
-#   3. Run certbot to obtain a certificate (see README)
-#   4. nginx -t && systemctl reload nginx
+#   1. Replace 'your.domain.example' with your actual domain
+#   2. Copy this to your nginx config and symlink (see README)
+#   3. Run: nginx -t && systemctl reload nginx
+#   4. Run: certbot --nginx -d your.domain.example
+#      (certbot will add the HTTPS server block and redirect automatically)
 
 # General rate limit — prevents excessive polling or abuse of any endpoint
 limit_req_zone $binary_remote_addr zone=standalone_update_general:10m rate=10r/s;
@@ -26,19 +18,6 @@ server {
     listen 80;
     listen [::]:80;
     server_name your.domain.example;
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl;
-    listen [::]:443 ssl;
-    server_name your.domain.example;
-
-    # TLS — managed by certbot
-    ssl_certificate     /etc/letsencrypt/live/your.domain.example/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/your.domain.example/privkey.pem;
-    include             /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam         /etc/letsencrypt/ssl-dhparams.pem;
 
     # Security headers
     add_header X-Frame-Options DENY;

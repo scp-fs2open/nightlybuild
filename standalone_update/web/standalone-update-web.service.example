@@ -13,7 +13,7 @@ ExecStart=/usr/share/games/fs2source/nightlybuild/standalone_update/web/venv/bin
     --workers 1 \
     --worker-class gevent \
     server:app
-EnvironmentFile=/etc/standalone-update-web.env
+EnvironmentFile=/usr/share/games/fs2source/nightlybuild/standalone_update/web/standalone-update-web.env
 # ---
 
 Restart=on-failure

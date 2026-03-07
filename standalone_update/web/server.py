@@ -8,8 +8,6 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_socketio import SocketIO, join_room
-from watchdog.events import FileSystemEventHandler
-from watchdog.observers.polling import PollingObserver
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import check_password_hash
 
@@ -165,7 +163,7 @@ def get_log_panels():
     ]
 
 
-# --- WebSocket file watcher (watchdog + rooms) ---
+# --- WebSocket file watcher (polling loop + rooms) ---
 
 _watch_state = {}       # realpath -> {'offset': int, 'inode': int}
 _watch_lock = threading.Lock()
@@ -175,30 +173,19 @@ _watcher_started = False
 # Registry of files to watch: realpath -> {line_event, truncate_event, room}
 _watch_registry = {}
 
-
-class _LogHandler(FileSystemEventHandler):
-    """Emit new log content when watched files are modified or created."""
-
-    def on_modified(self, event):
-        if not event.is_directory:
-            self._handle(event.src_path)
-
-    def on_created(self, event):
-        if not event.is_directory:
-            self._handle(event.src_path)
-
-    def _handle(self, filepath):
-        filepath = os.path.realpath(filepath)
-        with _watch_lock:
-            reg = _watch_registry.get(filepath)
-        if reg is None:
-            return
-        _check_and_emit_file(filepath, reg['line_event'], reg['truncate_event'], reg['room'])
+# Track room occupancy so the watcher skips emitting (and advancing offsets)
+# when no clients are listening — prevents lost lines during SSR-to-WS handoff.
+_room_occupancy = {}
 
 
 def _check_and_emit_file(filepath, line_event, truncate_event, room):
     """Read new lines from a file since last check; detect truncation/rotation."""
     if not filepath or not os.path.exists(filepath):
+        return
+
+    # Don't read or advance offset if no one is in the room — data would be
+    # lost since emit goes nowhere but offset still advances past it.
+    if _room_occupancy.get(room, 0) <= 0:
         return
 
     with _watch_lock:
@@ -250,23 +237,22 @@ def _check_and_emit_status():
         socketio.emit('build_status', {'status': status, 'is_running': is_running}, to='page:server')
 
 
-def _status_watcher():
-    """Periodically check build process status (not file-based, so can't use watchdog)."""
+def _file_watcher():
+    """Background greenlet that polls log files and build status for changes."""
     while True:
-        socketio.sleep(0.5)
+        socketio.sleep(0.25)
         _check_and_emit_status()
+        for filepath, reg in _watch_registry.items():
+            _check_and_emit_file(filepath, reg['line_event'], reg['truncate_event'], reg['room'])
 
 
 def _start_watcher():
-    """Set up watchdog observers for log files and start the status check loop."""
+    """Register watched files and start the polling loop."""
     global _watcher_started
     with _watch_lock:
         if _watcher_started:
             return
         _watcher_started = True
-
-    # Register watched files
-    watched_dirs = set()
 
     if LOG_PATH:
         real_path = os.path.realpath(LOG_PATH)
@@ -275,9 +261,6 @@ def _start_watcher():
             'truncate_event': 'update_log_truncated',
             'room': 'page:server',
         }
-        parent = os.path.dirname(real_path)
-        if os.path.isdir(parent):
-            watched_dirs.add(parent)
 
     for panel in get_log_panels():
         real_path = os.path.realpath(panel['path'])
@@ -286,19 +269,8 @@ def _start_watcher():
             'truncate_event': f'game_log_truncated_{panel["id"]}',
             'room': 'page:logs',
         }
-        parent = os.path.dirname(real_path)
-        if os.path.isdir(parent):
-            watched_dirs.add(parent)
 
-    handler = _LogHandler()
-    observer = PollingObserver(timeout=0.25)
-    for dir_path in watched_dirs:
-        observer.schedule(handler, dir_path, recursive=False)
-    observer.daemon = True
-    observer.start()
-
-    # Status check loop (process completion isn't file-based)
-    socketio.start_background_task(_status_watcher)
+    socketio.start_background_task(_file_watcher)
 
 
 @socketio.on('connect')
@@ -307,10 +279,23 @@ def handle_connect():
         return False
 
 
+_client_rooms = {}  # sid -> room
+
+
 @socketio.on('join_page')
 def handle_join_page(page):
     if page in ('server', 'logs'):
-        join_room(f'page:{page}')
+        room = f'page:{page}'
+        join_room(room)
+        _room_occupancy[room] = _room_occupancy.get(room, 0) + 1
+        _client_rooms[request.sid] = room
+
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    room = _client_rooms.pop(request.sid, None)
+    if room:
+        _room_occupancy[room] = max(0, _room_occupancy.get(room, 0) - 1)
 
 
 @app.after_request
