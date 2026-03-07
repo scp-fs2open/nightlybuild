@@ -162,9 +162,10 @@ sudo systemctl enable --now standalone-update-web
 
 | Page | Description |
 |---|---|
-| **Configuration** | View and override `.env` variables with live default display |
-| **Server** | Trigger a full rebuild, restart, or stop, with live update log |
-| **Logs** | View the FSO standalone and multiplayer engine logs (auto-refreshing) |
+| **Build Config** | View and override `.env` variables with live default display |
+| **Build Controls** | Trigger a full rebuild, restart, or stop, with real-time log streaming |
+| **Game Config** | Edit the `multi.cfg` file used by the game server |
+| **Game Logs** | View the FSO standalone and multiplayer engine logs (real-time streaming) |
 
 ### Access
 
@@ -207,6 +208,7 @@ The web app is configured via environment variables (set in `/etc/standalone-upd
 | `LOG_LINES` | `100` | Maximum number of log lines to display |
 | `SECRET_KEY` | _(random)_ | Flask session secret — set a stable value in production to preserve sessions across restarts |
 | `PASSWORD_HASH` | _(none)_ | Bcrypt password hash for the login form — generate with `python3 -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('yourpassword'))"` |
+| `SECURE_COOKIES` | `0` | Set to `1` to mark session and remember-me cookies as `Secure` (requires HTTPS) |
 
 ## Directory Structure
 
