@@ -1,14 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Build Controls{% endblock %}
-{% if is_running %}
-{% block head_extra %}<meta http-equiv="refresh" content="5">{% endblock %}
-{% endif %}
 {% block content %}
 <h1>Build Controls</h1>
 
 <div class="server-controls">
     <div class="status-row">
-        <span class="status-indicator {{ status }}">
+        <span class="status-indicator {{ status }}" id="build-status">
             <span class="status-dot"></span>
             {% if status == 'idle' %}Idle
             {% elif status == 'rebuilding' %}Rebuilding...
@@ -20,19 +17,19 @@
     <div class="button-row">
         <form method="POST" action="{{ url_for('build_rebuild') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-rebuild"
+            <button type="submit" class="btn btn-rebuild" id="btn-rebuild"
                     {{ 'disabled' if is_running }}>Rebuild</button>
             <span class="btn-hint">Fetch, build, and deploy a new binary</span>
         </form>
         <form method="POST" action="{{ url_for('build_restart') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-restart"
+            <button type="submit" class="btn btn-restart" id="btn-restart"
                     {{ 'disabled' if is_running }}>Restart</button>
             <span class="btn-hint">Restart the server using the current build</span>
         </form>
         <form method="POST" action="{{ url_for('build_stop') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-stop"
+            <button type="submit" class="btn btn-stop" id="btn-stop"
                     {{ 'disabled' if is_running }}>Stop</button>
             <span class="btn-hint">Kill the server without restarting</span>
         </form>
@@ -43,10 +40,12 @@
 {% if log_error %}
 <p class="log-error">{{ log_error }}</p>
 {% elif lines %}
-<p>Last {{ lines|length }} lines
-{% if is_running %} <em>(auto-refreshing)</em>{% endif %}</p>
-<pre class="log-output">{% for line in lines %}{{ line }}{% endfor %}</pre>
+<p>Last {{ lines|length }} lines</p>
+<pre class="log-output" id="update-log">{% for line in lines %}{{ line }}{% endfor %}</pre>
 {% else %}
 <p>Log file is empty.</p>
 {% endif %}
+{% endblock %}
+{% block socketio_scripts %}
+<script src="{{ url_for('static', filename='server_ws.js') }}"></script>
 {% endblock %}

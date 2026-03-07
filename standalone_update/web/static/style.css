@@ -129,9 +129,36 @@ main > p {
 
 /* Flash messages */
 .flash {
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 2rem 0.75rem 1rem;
     border-radius: 4px;
     margin-bottom: 1rem;
+    position: relative;
+    animation: flash-fade 5s ease-in forwards;
+}
+
+.flash-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.6;
+    padding: 0;
+    margin: 0;
+    line-height: 1;
+}
+
+.flash-close:hover {
+    opacity: 1;
+}
+
+@keyframes flash-fade {
+    0%, 60% { opacity: 1; max-height: 4rem; margin-bottom: 1rem; padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    80% { opacity: 0; max-height: 4rem; margin-bottom: 1rem; padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    100% { opacity: 0; max-height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; overflow: hidden; pointer-events: none; }
 }
 
 .flash.success {
@@ -471,6 +498,13 @@ h2 {
 .cfg-editor:focus {
     outline: 2px solid #3498db;
     outline-offset: -1px;
+}
+
+/* WebSocket connection status */
+.ws-status {
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 0.5rem;
 }
 
 .log-error {

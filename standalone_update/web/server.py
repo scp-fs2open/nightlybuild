@@ -2,10 +2,12 @@
 import os
 import subprocess
 import sys
+import threading
 from datetime import datetime, timedelta
 
 from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_socketio import SocketIO
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import check_password_hash
 
@@ -14,6 +16,7 @@ from env_parser import parse_env_default, parse_env, write_env, merge_variables
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 csrf = CSRFProtect(app)
+socketio = SocketIO(app, async_mode='eventlet')
 
 app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=7)
 app.config['REMEMBER_COOKIE_HTTPONLY'] = True
@@ -68,6 +71,7 @@ _log_file = None
 def get_status():
     """Return (status_string, is_running) for the current update process."""
     global _running_process, _running_action, _running_action_base, _log_file
+    global _last_emitted_status
     if _running_process is not None:
         exit_code = _running_process.poll()
         if exit_code is None:
@@ -85,6 +89,9 @@ def get_status():
         _running_process = None
         _running_action = None
         _running_action_base = None
+        # Immediately notify clients of completion
+        _last_emitted_status = 'idle'
+        socketio.emit('build_status', {'status': 'idle', 'is_running': False})
     return ('idle', False)
 
 
@@ -109,6 +116,9 @@ def start_update(restart_only=False, stop_only=False):
     _log_file.write(header)
     _log_file.flush()
 
+    with _watch_lock:
+        _watch_state.pop(LOG_PATH, None)
+
     cmd = [UPDATE_SCRIPT]
     if flag:
         cmd.append(flag)
@@ -119,6 +129,9 @@ def start_update(restart_only=False, stop_only=False):
     )
     _running_action = running_label
     _running_action_base = action
+    # Immediately notify clients of new status
+    _last_emitted_status = running_label
+    socketio.emit('build_status', {'status': running_label, 'is_running': True})
     return True
 
 
@@ -150,15 +163,121 @@ def get_log_panels():
     ]
 
 
+# --- WebSocket file watcher ---
+
+_watch_state = {}       # filepath -> {'offset': int, 'inode': int}
+_watch_lock = threading.Lock()
+_last_emitted_status = None
+_watcher_started = False
+
+
+def _check_and_emit_file(filepath, line_event, truncate_event):
+    """Read new lines from a file since last check; detect truncation/rotation."""
+    if not filepath or not os.path.exists(filepath):
+        return
+
+    with _watch_lock:
+        state = _watch_state.get(filepath)
+        try:
+            stat = os.stat(filepath)
+        except OSError:
+            return
+
+        current_size = stat.st_size
+        current_inode = stat.st_ino
+
+        if state is None:
+            # First time seeing this file — set offset to end (SSR already delivered content)
+            _watch_state[filepath] = {'offset': current_size, 'inode': current_inode}
+            return
+
+        # Detect truncation or rotation
+        if current_size < state['offset'] or current_inode != state['inode']:
+            state['offset'] = 0
+            state['inode'] = current_inode
+            socketio.emit(truncate_event)
+
+        if current_size == state['offset']:
+            return
+
+        # Read new content
+        try:
+            with open(filepath, 'r') as f:
+                f.seek(state['offset'])
+                new_data = f.read()
+            state['offset'] = current_size
+        except OSError:
+            return
+
+    # Emit outside the lock
+    if new_data:
+        socketio.emit(line_event, {'data': new_data})
+
+
+def _check_and_emit_status():
+    """Emit build status changes to all connected clients."""
+    global _last_emitted_status
+    status, is_running = get_status()
+    if status != _last_emitted_status:
+        _last_emitted_status = status
+        socketio.emit('build_status', {'status': status, 'is_running': is_running})
+
+
+def _file_watcher():
+    """Background thread that watches log files and emits changes via Socket.IO."""
+    while True:
+        socketio.sleep(1)
+        _check_and_emit_status()
+        if LOG_PATH:
+            _check_and_emit_file(LOG_PATH, 'update_log_lines', 'update_log_truncated')
+        for panel in get_log_panels():
+            _check_and_emit_file(
+                panel['path'],
+                f'game_log_lines_{panel["id"]}',
+                f'game_log_truncated_{panel["id"]}',
+            )
+
+
+@socketio.on('connect')
+def handle_connect():
+    if not current_user.is_authenticated:
+        return False
+
+
+@app.after_request
+def _no_cache(response):
+    response.headers['Cache-Control'] = 'no-store'
+    return response
+
+
+@app.before_request
+def _ensure_watcher():
+    global _watcher_started
+    if not _watcher_started:
+        _watcher_started = True
+        socketio.start_background_task(_file_watcher)
+
+
+def _sync_watcher_to_offset(filepath, offset):
+    """Set the watcher's file position so it picks up only content added after this point."""
+    try:
+        inode = os.stat(filepath).st_ino
+    except OSError:
+        return
+    with _watch_lock:
+        _watch_state[filepath] = {'offset': offset, 'inode': inode}
+
+
 def read_log_lines():
-    """Read the last LOG_LINES from the log file. Returns (lines, error)."""
+    """Read the last LOG_LINES from the log file. Returns (lines, error, offset)."""
     if not LOG_PATH:
-        return (None, 'UPDATE_LOG_PATH is not configured.')
+        return (None, 'UPDATE_LOG_PATH is not configured.', 0)
     if not os.path.exists(LOG_PATH):
-        return (None, f'Log file not found: {LOG_PATH}')
+        return (None, f'Log file not found: {LOG_PATH}', 0)
     with open(LOG_PATH) as f:
         all_lines = f.readlines()
-        return (all_lines[-LOG_LINES:], None)
+        offset = f.tell()
+        return (all_lines[-LOG_LINES:], None, offset)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -232,7 +351,9 @@ def build_config_save():
 @login_required
 def build_controls():
     status, is_running = get_status()
-    lines, log_error = read_log_lines()
+    lines, log_error, offset = read_log_lines()
+    if LOG_PATH and offset:
+        _sync_watcher_to_offset(LOG_PATH, offset)
     return render_template('server.html', status=status, is_running=is_running,
                            lines=lines, log_path=LOG_PATH, log_error=log_error)
 
@@ -316,10 +437,11 @@ def game_logs():
         else:
             with open(panel['path']) as f:
                 panel['lines'] = f.readlines()[-LOG_LINES:]
+                _sync_watcher_to_offset(panel['path'], f.tell())
             panel['error'] = None
     return render_template('logs.html', panels=panels)
 
 
 if __name__ == '__main__':
     debug = os.environ.get('FLASK_DEBUG', '').lower() in ('1', 'true', 'yes')
-    app.run(host=HOST, port=PORT, debug=debug)
+    socketio.run(app, host=HOST, port=PORT, debug=debug)
