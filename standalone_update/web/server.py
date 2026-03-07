@@ -386,7 +386,7 @@ def index():
     return redirect(url_for('build_config'))
 
 
-@app.route('/config', methods=['GET'])
+@app.route('/build-config', methods=['GET'])
 @login_required
 def build_config():
     variables = parse_env_default(ENV_DEFAULT_PATH)
@@ -395,7 +395,7 @@ def build_config():
     return render_template('config.html', sections=sections)
 
 
-@app.route('/config', methods=['POST'])
+@app.route('/build-config', methods=['POST'])
 @login_required
 def build_config_save():
     variables = parse_env_default(ENV_DEFAULT_PATH)
@@ -427,7 +427,7 @@ def build_config_save():
     return redirect(url_for('build_config'))
 
 
-@app.route('/server')
+@app.route('/build-controls')
 @login_required
 def build_controls():
     status, is_running = get_status()
@@ -438,7 +438,7 @@ def build_controls():
                            lines=lines, log_path=LOG_PATH, log_error=log_error)
 
 
-@app.route('/gameconfig', methods=['GET'])
+@app.route('/game-config', methods=['GET'])
 @login_required
 def game_config():
     cfg_path = get_fso_data_file('multi.cfg')
@@ -451,7 +451,7 @@ def game_config():
                            exists=exists)
 
 
-@app.route('/gameconfig', methods=['POST'])
+@app.route('/game-config', methods=['POST'])
 @login_required
 def game_config_save():
     cfg_path = get_fso_data_file('multi.cfg')
@@ -467,7 +467,7 @@ def game_config_save():
     return redirect(url_for('game_config'))
 
 
-@app.route('/logs')
+@app.route('/game-logs')
 @login_required
 def game_logs():
     panels = get_log_panels()
