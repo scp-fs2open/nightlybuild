@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %}{% if self.title() | trim %} - {% endif %}{{ APP_TITLE }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='flash.js') }}" defer></script>
     {% block head_extra %}{% endblock %}
 </head>
 <body>
@@ -35,7 +36,7 @@
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-            <div class="flash {{ category }}">{{ message }}<button type="button" class="flash-close" onclick="this.parentNode.remove()">&times;</button></div>
+            <div class="flash {{ category }}">{{ message }}<button type="button" class="flash-close">&times;</button></div>
             {% endfor %}
         {% endif %}
         {% endwith %}
