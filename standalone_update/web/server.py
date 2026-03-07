@@ -7,7 +7,9 @@ from datetime import datetime, timedelta
 
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, join_room
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers.polling import PollingObserver
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import check_password_hash
 
@@ -16,7 +18,7 @@ from env_parser import parse_env_default, parse_env, write_env, merge_variables
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 csrf = CSRFProtect(app)
-socketio = SocketIO(app, async_mode='eventlet')
+socketio = SocketIO(app, async_mode='gevent')
 
 app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=7)
 app.config['REMEMBER_COOKIE_HTTPONLY'] = True
@@ -91,7 +93,7 @@ def get_status():
         _running_action_base = None
         # Immediately notify clients of completion
         _last_emitted_status = 'idle'
-        socketio.emit('build_status', {'status': 'idle', 'is_running': False})
+        socketio.emit('build_status', {'status': 'idle', 'is_running': False}, to='page:server')
     return ('idle', False)
 
 
@@ -117,7 +119,7 @@ def start_update(restart_only=False, stop_only=False):
     _log_file.flush()
 
     with _watch_lock:
-        _watch_state.pop(LOG_PATH, None)
+        _watch_state.pop(os.path.realpath(LOG_PATH), None)
 
     cmd = [UPDATE_SCRIPT]
     if flag:
@@ -131,7 +133,7 @@ def start_update(restart_only=False, stop_only=False):
     _running_action_base = action
     # Immediately notify clients of new status
     _last_emitted_status = running_label
-    socketio.emit('build_status', {'status': running_label, 'is_running': True})
+    socketio.emit('build_status', {'status': running_label, 'is_running': True}, to='page:server')
     return True
 
 
@@ -163,15 +165,38 @@ def get_log_panels():
     ]
 
 
-# --- WebSocket file watcher ---
+# --- WebSocket file watcher (watchdog + rooms) ---
 
-_watch_state = {}       # filepath -> {'offset': int, 'inode': int}
+_watch_state = {}       # realpath -> {'offset': int, 'inode': int}
 _watch_lock = threading.Lock()
 _last_emitted_status = None
 _watcher_started = False
 
+# Registry of files to watch: realpath -> {line_event, truncate_event, room}
+_watch_registry = {}
 
-def _check_and_emit_file(filepath, line_event, truncate_event):
+
+class _LogHandler(FileSystemEventHandler):
+    """Emit new log content when watched files are modified or created."""
+
+    def on_modified(self, event):
+        if not event.is_directory:
+            self._handle(event.src_path)
+
+    def on_created(self, event):
+        if not event.is_directory:
+            self._handle(event.src_path)
+
+    def _handle(self, filepath):
+        filepath = os.path.realpath(filepath)
+        with _watch_lock:
+            reg = _watch_registry.get(filepath)
+        if reg is None:
+            return
+        _check_and_emit_file(filepath, reg['line_event'], reg['truncate_event'], reg['room'])
+
+
+def _check_and_emit_file(filepath, line_event, truncate_event, room):
     """Read new lines from a file since last check; detect truncation/rotation."""
     if not filepath or not os.path.exists(filepath):
         return
@@ -195,15 +220,17 @@ def _check_and_emit_file(filepath, line_event, truncate_event):
         if current_size < state['offset'] or current_inode != state['inode']:
             state['offset'] = 0
             state['inode'] = current_inode
-            socketio.emit(truncate_event)
+            socketio.emit(truncate_event, to=room)
 
         if current_size == state['offset']:
             return
 
-        # Read new content
+        # Read new content (cap at 256 KB to avoid memory spikes)
+        max_chunk = 256 * 1024
+        read_from = max(state['offset'], current_size - max_chunk) if current_size - state['offset'] > max_chunk else state['offset']
         try:
             with open(filepath, 'r') as f:
-                f.seek(state['offset'])
+                f.seek(read_from)
                 new_data = f.read()
             state['offset'] = current_size
         except OSError:
@@ -211,37 +238,79 @@ def _check_and_emit_file(filepath, line_event, truncate_event):
 
     # Emit outside the lock
     if new_data:
-        socketio.emit(line_event, {'data': new_data})
+        socketio.emit(line_event, {'data': new_data}, to=room)
 
 
 def _check_and_emit_status():
-    """Emit build status changes to all connected clients."""
+    """Emit build status changes to clients on the server page."""
     global _last_emitted_status
     status, is_running = get_status()
     if status != _last_emitted_status:
         _last_emitted_status = status
-        socketio.emit('build_status', {'status': status, 'is_running': is_running})
+        socketio.emit('build_status', {'status': status, 'is_running': is_running}, to='page:server')
 
 
-def _file_watcher():
-    """Background thread that watches log files and emits changes via Socket.IO."""
+def _status_watcher():
+    """Periodically check build process status (not file-based, so can't use watchdog)."""
     while True:
-        socketio.sleep(1)
+        socketio.sleep(0.5)
         _check_and_emit_status()
-        if LOG_PATH:
-            _check_and_emit_file(LOG_PATH, 'update_log_lines', 'update_log_truncated')
-        for panel in get_log_panels():
-            _check_and_emit_file(
-                panel['path'],
-                f'game_log_lines_{panel["id"]}',
-                f'game_log_truncated_{panel["id"]}',
-            )
+
+
+def _start_watcher():
+    """Set up watchdog observers for log files and start the status check loop."""
+    global _watcher_started
+    with _watch_lock:
+        if _watcher_started:
+            return
+        _watcher_started = True
+
+    # Register watched files
+    watched_dirs = set()
+
+    if LOG_PATH:
+        real_path = os.path.realpath(LOG_PATH)
+        _watch_registry[real_path] = {
+            'line_event': 'update_log_lines',
+            'truncate_event': 'update_log_truncated',
+            'room': 'page:server',
+        }
+        parent = os.path.dirname(real_path)
+        if os.path.isdir(parent):
+            watched_dirs.add(parent)
+
+    for panel in get_log_panels():
+        real_path = os.path.realpath(panel['path'])
+        _watch_registry[real_path] = {
+            'line_event': f'game_log_lines_{panel["id"]}',
+            'truncate_event': f'game_log_truncated_{panel["id"]}',
+            'room': 'page:logs',
+        }
+        parent = os.path.dirname(real_path)
+        if os.path.isdir(parent):
+            watched_dirs.add(parent)
+
+    handler = _LogHandler()
+    observer = PollingObserver(timeout=0.25)
+    for dir_path in watched_dirs:
+        observer.schedule(handler, dir_path, recursive=False)
+    observer.daemon = True
+    observer.start()
+
+    # Status check loop (process completion isn't file-based)
+    socketio.start_background_task(_status_watcher)
 
 
 @socketio.on('connect')
 def handle_connect():
     if not current_user.is_authenticated:
         return False
+
+
+@socketio.on('join_page')
+def handle_join_page(page):
+    if page in ('server', 'logs'):
+        join_room(f'page:{page}')
 
 
 @app.after_request
@@ -252,14 +321,13 @@ def _no_cache(response):
 
 @app.before_request
 def _ensure_watcher():
-    global _watcher_started
     if not _watcher_started:
-        _watcher_started = True
-        socketio.start_background_task(_file_watcher)
+        _start_watcher()
 
 
 def _sync_watcher_to_offset(filepath, offset):
     """Set the watcher's file position so it picks up only content added after this point."""
+    filepath = os.path.realpath(filepath)
     try:
         inode = os.stat(filepath).st_ino
     except OSError:

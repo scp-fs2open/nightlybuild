@@ -1,5 +1,8 @@
 (function() {
     var socket = io({transports: ['websocket']});
+    socket.on('connect', function() {
+        socket.emit('join_page', 'server');
+    });
     var logEl = document.getElementById('update-log');
     var statusEl = document.getElementById('build-status');
     var buttons = ['btn-rebuild', 'btn-restart', 'btn-stop'].map(function(id) {
@@ -43,7 +46,11 @@
         if (statusEl) {
             statusEl.className = 'status-indicator ' + msg.status;
             var label = STATUS_LABELS[msg.status] || msg.status;
-            statusEl.innerHTML = '<span class="status-dot"></span>' + label;
+            statusEl.textContent = '';
+            var dot = document.createElement('span');
+            dot.className = 'status-dot';
+            statusEl.appendChild(dot);
+            statusEl.appendChild(document.createTextNode(label));
         }
         buttons.forEach(function(btn) {
             if (btn) btn.disabled = msg.is_running;
