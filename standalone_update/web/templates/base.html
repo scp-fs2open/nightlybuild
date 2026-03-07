@@ -3,27 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Standalone Update{% endblock %}</title>
+    <title>{% block title %}{% endblock %}{% if self.title() | trim %} - {% endif %}{{ APP_TITLE }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     {% block head_extra %}{% endblock %}
 </head>
 <body>
     <nav>
-        <span class="nav-title">Standalone Update</span>
-        <a href="{{ url_for('build_config') }}"
-           {% if request.endpoint in ('build_config', 'build_config_save') %}class="active"{% endif %}>Build Config</a>
-        <a href="{{ url_for('build_controls') }}"
-           {% if request.endpoint in ('build_controls', 'build_rebuild', 'build_restart', 'build_stop') %}class="active"{% endif %}>Build Controls</a>
-        <a href="{{ url_for('game_config') }}"
-           {% if request.endpoint in ('game_config', 'game_config_save') %}class="active"{% endif %}>Game Config</a>
-        <a href="{{ url_for('game_logs') }}"
-           {% if request.endpoint == 'game_logs' %}class="active"{% endif %}>Game Logs</a>
-        {% if current_user.is_authenticated %}
-        <form method="post" action="{{ url_for('logout') }}" class="nav-logout">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit">Log out</button>
-        </form>
-        {% endif %}
+        <input type="checkbox" id="nav-toggle" class="nav-toggle">
+        <label for="nav-toggle" class="nav-toggle-label">
+            <span></span><span></span><span></span>
+        </label>
+        <span class="nav-title">{{ APP_TITLE }}</span>
+        <div class="nav-links">
+            <a href="{{ url_for('build_config') }}"
+               {% if request.endpoint in ('build_config', 'build_config_save') %}class="active"{% endif %}>Build Config</a>
+            <a href="{{ url_for('build_controls') }}"
+               {% if request.endpoint in ('build_controls', 'build_rebuild', 'build_restart', 'build_stop') %}class="active"{% endif %}>Build Controls</a>
+            <a href="{{ url_for('game_config') }}"
+               {% if request.endpoint in ('game_config', 'game_config_save') %}class="active"{% endif %}>Game Config</a>
+            <a href="{{ url_for('game_logs') }}"
+               {% if request.endpoint == 'game_logs' %}class="active"{% endif %}>Game Logs</a>
+            {% if current_user.is_authenticated %}
+            <form method="post" action="{{ url_for('logout') }}" class="nav-logout">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit">Log out</button>
+            </form>
+            {% endif %}
+        </div>
     </nav>
     <main>
         {% with messages = get_flashed_messages(with_categories=true) %}

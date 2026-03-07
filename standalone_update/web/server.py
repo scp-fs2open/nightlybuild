@@ -23,7 +23,10 @@ _secure_cookies = os.environ.get('SECURE_COOKIES', '0').lower() in ('1', 'true',
 app.config['REMEMBER_COOKIE_SECURE'] = _secure_cookies
 app.config['SESSION_COOKIE_SECURE'] = _secure_cookies
 
+APP_TITLE = 'FSO Standalone Update Manager'
+
 app.jinja_env.filters['basename'] = os.path.basename
+app.jinja_env.globals['APP_TITLE'] = APP_TITLE
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
