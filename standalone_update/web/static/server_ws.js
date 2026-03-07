@@ -5,6 +5,7 @@
     });
     var logEl = document.getElementById('update-log');
     var statusEl = document.getElementById('build-status');
+    var msgEl = document.getElementById('action-message');
     var buttons = ['btn-rebuild', 'btn-restart', 'btn-stop'].map(function(id) {
         return document.getElementById(id);
     });
@@ -15,6 +16,20 @@
         restarting: 'Restarting...',
         stopping: 'Stopping...'
     };
+
+    function doAction(action) {
+        if (msgEl) msgEl.textContent = '';
+        socket.emit('server_action', {action: action}, function(resp) {
+            if (!resp.ok && msgEl) {
+                msgEl.textContent = resp.error;
+                msgEl.className = 'flash error';
+            }
+        });
+    }
+
+    buttons[0].addEventListener('click', function() { doAction('rebuild'); });
+    buttons[1].addEventListener('click', function() { doAction('restart'); });
+    buttons[2].addEventListener('click', function() { doAction('stop'); });
 
     socket.on('update_log_lines', function(msg) {
         if (!logEl) {
@@ -55,5 +70,7 @@
         buttons.forEach(function(btn) {
             if (btn) btn.disabled = msg.is_running;
         });
+        // Clear action message when status changes
+        if (msgEl) msgEl.textContent = '';
     });
 })();

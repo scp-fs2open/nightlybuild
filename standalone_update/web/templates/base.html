@@ -18,7 +18,7 @@
             <a href="{{ url_for('build_config') }}"
                {% if request.endpoint in ('build_config', 'build_config_save') %}class="active"{% endif %}>Build Config</a>
             <a href="{{ url_for('build_controls') }}"
-               {% if request.endpoint in ('build_controls', 'build_rebuild', 'build_restart', 'build_stop') %}class="active"{% endif %}>Build Controls</a>
+               {% if request.endpoint == 'build_controls' %}class="active"{% endif %}>Build Controls</a>
             <a href="{{ url_for('game_config') }}"
                {% if request.endpoint in ('game_config', 'game_config_save') %}class="active"{% endif %}>Game Config</a>
             <a href="{{ url_for('game_logs') }}"

@@ -116,8 +116,9 @@ def start_update(restart_only=False, stop_only=False):
     _log_file.write(header)
     _log_file.flush()
 
-    with _watch_lock:
-        _watch_state.pop(os.path.realpath(LOG_PATH), None)
+    # Notify clients the log was truncated and reset the watcher to the start
+    socketio.emit('update_log_truncated', to='page:server')
+    _sync_watcher_to_offset(LOG_PATH, 0)
 
     cmd = [UPDATE_SCRIPT]
     if flag:
@@ -284,11 +285,37 @@ _client_rooms = {}  # sid -> room
 
 @socketio.on('join_page')
 def handle_join_page(page):
-    if page in ('server', 'logs'):
-        room = f'page:{page}'
-        join_room(room)
-        _room_occupancy[room] = _room_occupancy.get(room, 0) + 1
-        _client_rooms[request.sid] = room
+    if page not in ('server', 'logs'):
+        return
+
+    room = f'page:{page}'
+    join_room(room)
+    _room_occupancy[room] = _room_occupancy.get(room, 0) + 1
+    _client_rooms[request.sid] = room
+
+    if page == 'server':
+        # Send current build status so the client is never stale
+        status, is_running = get_status()
+        socketio.emit('build_status',
+                      {'status': status, 'is_running': is_running},
+                      to=request.sid)
+
+
+@socketio.on('server_action')
+def handle_server_action(data):
+    action = data.get('action', '') if isinstance(data, dict) else data
+    if action not in ('rebuild', 'restart', 'stop'):
+        return {'ok': False, 'error': 'Invalid action.'}
+    if not LOG_PATH:
+        return {'ok': False, 'error': 'UPDATE_LOG_PATH is not configured.'}
+    kwargs = {}
+    if action == 'restart':
+        kwargs['restart_only'] = True
+    elif action == 'stop':
+        kwargs['stop_only'] = True
+    if not start_update(**kwargs):
+        return {'ok': False, 'error': 'An update is already in progress.'}
+    return {'ok': True}
 
 
 @socketio.on('disconnect')
@@ -409,45 +436,6 @@ def build_controls():
         _sync_watcher_to_offset(LOG_PATH, offset)
     return render_template('server.html', status=status, is_running=is_running,
                            lines=lines, log_path=LOG_PATH, log_error=log_error)
-
-
-@app.route('/server/rebuild', methods=['POST'])
-@login_required
-def build_rebuild():
-    if not LOG_PATH:
-        flash('Cannot run: UPDATE_LOG_PATH is not configured.', 'error')
-        return redirect(url_for('build_controls'))
-    if not start_update():
-        flash('An update is already in progress.', 'error')
-        return redirect(url_for('build_controls'))
-    flash('Rebuild started.', 'success')
-    return redirect(url_for('build_controls'))
-
-
-@app.route('/server/restart', methods=['POST'])
-@login_required
-def build_restart():
-    if not LOG_PATH:
-        flash('Cannot run: UPDATE_LOG_PATH is not configured.', 'error')
-        return redirect(url_for('build_controls'))
-    if not start_update(restart_only=True):
-        flash('An update is already in progress.', 'error')
-        return redirect(url_for('build_controls'))
-    flash('Restart started.', 'success')
-    return redirect(url_for('build_controls'))
-
-
-@app.route('/server/stop', methods=['POST'])
-@login_required
-def build_stop():
-    if not LOG_PATH:
-        flash('Cannot run: UPDATE_LOG_PATH is not configured.', 'error')
-        return redirect(url_for('build_controls'))
-    if not start_update(stop_only=True):
-        flash('An update is already in progress.', 'error')
-        return redirect(url_for('build_controls'))
-    flash('Stop initiated.', 'success')
-    return redirect(url_for('build_controls'))
 
 
 @app.route('/gameconfig', methods=['GET'])

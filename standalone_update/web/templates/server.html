@@ -15,25 +15,23 @@
         </span>
     </div>
     <div class="button-row">
-        <form method="POST" action="{{ url_for('build_rebuild') }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-rebuild" id="btn-rebuild"
+        <div>
+            <button type="button" class="btn btn-rebuild" id="btn-rebuild"
                     {{ 'disabled' if is_running }}>Rebuild</button>
             <span class="btn-hint">Fetch, build, and deploy a new binary</span>
-        </form>
-        <form method="POST" action="{{ url_for('build_restart') }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-restart" id="btn-restart"
+        </div>
+        <div>
+            <button type="button" class="btn btn-restart" id="btn-restart"
                     {{ 'disabled' if is_running }}>Restart</button>
             <span class="btn-hint">Restart the server using the current build</span>
-        </form>
-        <form method="POST" action="{{ url_for('build_stop') }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-stop" id="btn-stop"
+        </div>
+        <div>
+            <button type="button" class="btn btn-stop" id="btn-stop"
                     {{ 'disabled' if is_running }}>Stop</button>
             <span class="btn-hint">Kill the server without restarting</span>
-        </form>
+        </div>
     </div>
+    <div id="action-message"></div>
 </div>
 
 <h2>Update Log</h2>

@@ -93,6 +93,18 @@ stop_server() {
     if pgrep "${MAIN_PROCESS}" > /dev/null 2>&1; then
         echo "Killing ${MAIN_PROCESS}..."
         pkill "${MAIN_PROCESS}" || error_exit "Could not kill ${MAIN_PROCESS}"
+        # Wait for process to fully exit so it releases log files, sockets, etc.
+        local _tries=0
+        while pgrep "${MAIN_PROCESS}" > /dev/null 2>&1; do
+            sleep 0.25
+            _tries=$((_tries + 1))
+            if [ $_tries -ge 20 ]; then
+                echo "Process still running after 5s, sending SIGKILL..."
+                pkill -9 "${MAIN_PROCESS}" 2>/dev/null
+                sleep 0.5
+                break
+            fi
+        done
     fi
     if screen -ls | grep server > /dev/null; then
         echo "Killing screen..."
