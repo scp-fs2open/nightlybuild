@@ -364,6 +364,42 @@ h2 {
     overflow-y: auto;
 }
 
+/* Game config editor */
+.cfg-path {
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: #888;
+    margin-bottom: 0.75rem;
+}
+
+.cfg-new {
+    color: #856404;
+    font-style: italic;
+}
+
+.cfg-editor {
+    width: 100%;
+    min-height: 60vh;
+    font-family: monospace;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1rem;
+    resize: vertical;
+    tab-size: 4;
+    white-space: pre;
+    overflow-wrap: normal;
+    overflow-x: auto;
+}
+
+.cfg-editor:focus {
+    outline: 2px solid #3498db;
+    outline-offset: -1px;
+}
+
 .log-error {
     color: #721c24;
     background: #f8d7da;

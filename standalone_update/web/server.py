@@ -127,16 +127,22 @@ def get_fso_data_dir():
         return os.path.join(xdg, 'HardLightProductions', 'FreeSpaceOpen')
 
 
-def get_log_panels():
+def get_fso_data_file(filename):
+    """Return the path to a file in the FSO data dir, respecting MOD_DIRNAME."""
     fso_data = get_fso_data_dir()
     mod_dirname = parse_env(ENV_PATH).get('MOD_DIRNAME', '').split(',')[0]
-    multi_path = (os.path.join(fso_data, mod_dirname, 'data', 'multi.log')
-                  if mod_dirname else
-                  os.path.join(fso_data, 'data', 'multi.log'))
+    if mod_dirname:
+        return os.path.join(fso_data, mod_dirname, 'data', filename)
+    return os.path.join(fso_data, 'data', filename)
+
+
+def get_log_panels():
+    fso_data = get_fso_data_dir()
     return [
         {'id': 'standalone', 'name': 'FSO Standalone Log',
          'path': os.path.join(fso_data, 'data', 'fs2_standalone.log')},
-        {'id': 'multi', 'name': 'Multi Log', 'path': multi_path},
+        {'id': 'multi', 'name': 'Multi Log',
+         'path': get_fso_data_file('multi.log')},
     ]
 
 
@@ -159,7 +165,7 @@ def login():
             login_user(_user, remember=True)
             next_url = request.args.get('next', '')
             if not next_url or not next_url.startswith('/'):
-                next_url = url_for('config')
+                next_url = url_for('build_config')
             return redirect(next_url)
         flash('Invalid password.', 'error')
     return render_template('login.html')
@@ -174,12 +180,12 @@ def logout():
 
 @app.route('/')
 def index():
-    return redirect(url_for('config'))
+    return redirect(url_for('build_config'))
 
 
 @app.route('/config', methods=['GET'])
 @login_required
-def config():
+def build_config():
     variables = parse_env_default(ENV_DEFAULT_PATH)
     overrides = parse_env(ENV_PATH)
     sections = merge_variables(variables, overrides)
@@ -188,7 +194,7 @@ def config():
 
 @app.route('/config', methods=['POST'])
 @login_required
-def config_save():
+def build_config_save():
     variables = parse_env_default(ENV_DEFAULT_PATH)
     overrides = {}
 
@@ -204,16 +210,16 @@ def config_save():
             if not segment or '/' in segment or '..' in segment:
                 flash('Each mod in MOD_DIRNAME must be a plain directory name '
                       '(no slashes, "..", or empty segments).', 'error')
-                return redirect(url_for('config'))
+                return redirect(url_for('build_config'))
 
     write_env(ENV_PATH, overrides)
     flash('Configuration saved.', 'success')
-    return redirect(url_for('config'))
+    return redirect(url_for('build_config'))
 
 
 @app.route('/server')
 @login_required
-def server():
+def build_controls():
     status, is_running = get_status()
     lines, log_error = read_log_lines()
     return render_template('server.html', status=status, is_running=is_running,
@@ -222,46 +228,75 @@ def server():
 
 @app.route('/server/rebuild', methods=['POST'])
 @login_required
-def server_rebuild():
+def build_rebuild():
     if not LOG_PATH:
         flash('Cannot run: UPDATE_LOG_PATH is not configured.', 'error')
-        return redirect(url_for('server'))
+        return redirect(url_for('build_controls'))
     if not start_update():
         flash('An update is already in progress.', 'error')
-        return redirect(url_for('server'))
+        return redirect(url_for('build_controls'))
     flash('Rebuild started.', 'success')
-    return redirect(url_for('server'))
+    return redirect(url_for('build_controls'))
 
 
 @app.route('/server/restart', methods=['POST'])
 @login_required
-def server_restart():
+def build_restart():
     if not LOG_PATH:
         flash('Cannot run: UPDATE_LOG_PATH is not configured.', 'error')
-        return redirect(url_for('server'))
+        return redirect(url_for('build_controls'))
     if not start_update(restart_only=True):
         flash('An update is already in progress.', 'error')
-        return redirect(url_for('server'))
+        return redirect(url_for('build_controls'))
     flash('Restart started.', 'success')
-    return redirect(url_for('server'))
+    return redirect(url_for('build_controls'))
 
 
 @app.route('/server/stop', methods=['POST'])
 @login_required
-def server_stop():
+def build_stop():
     if not LOG_PATH:
         flash('Cannot run: UPDATE_LOG_PATH is not configured.', 'error')
-        return redirect(url_for('server'))
+        return redirect(url_for('build_controls'))
     if not start_update(stop_only=True):
         flash('An update is already in progress.', 'error')
-        return redirect(url_for('server'))
+        return redirect(url_for('build_controls'))
     flash('Stop initiated.', 'success')
-    return redirect(url_for('server'))
+    return redirect(url_for('build_controls'))
+
+
+@app.route('/gameconfig', methods=['GET'])
+@login_required
+def game_config():
+    cfg_path = get_fso_data_file('multi.cfg')
+    content = ''
+    exists = os.path.exists(cfg_path)
+    if exists:
+        with open(cfg_path) as f:
+            content = f.read()
+    return render_template('multicfg.html', content=content, cfg_path=cfg_path,
+                           exists=exists)
+
+
+@app.route('/gameconfig', methods=['POST'])
+@login_required
+def game_config_save():
+    cfg_path = get_fso_data_file('multi.cfg')
+    content = request.form.get('content', '')
+    # Normalize line endings
+    content = content.replace('\r\n', '\n').replace('\r', '\n')
+    cfg_dir = os.path.dirname(cfg_path)
+    if not os.path.isdir(cfg_dir):
+        os.makedirs(cfg_dir, exist_ok=True)
+    with open(cfg_path, 'w') as f:
+        f.write(content)
+    flash('multi.cfg saved.', 'success')
+    return redirect(url_for('game_config'))
 
 
 @app.route('/logs')
 @login_required
-def logs():
+def game_logs():
     panels = get_log_panels()
     for panel in panels:
         if not os.path.exists(panel['path']):

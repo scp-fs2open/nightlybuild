@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Configuration - Standalone Update{% endblock %}
+{% block title %}Build Config - Standalone Update{% endblock %}
 {% block content %}
-<h1>Standalone Update Server Configuration</h1>
+<h1>Build Configuration</h1>
 <p>Check <strong>Override</strong> to set a custom value in <code>.env</code>.
    Unchecked variables use the default from <code>.env.default</code>.</p>
 
-<form method="POST" action="{{ url_for('config_save') }}">
+<form method="POST" action="{{ url_for('build_config_save') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     {% for section_name, vars in sections %}
     <fieldset>

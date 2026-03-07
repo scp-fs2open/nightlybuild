@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Server - Standalone Update{% endblock %}
+{% block title %}Build Controls - Standalone Update{% endblock %}
 {% if is_running %}
 {% block head_extra %}<meta http-equiv="refresh" content="5">{% endblock %}
 {% endif %}
 {% block content %}
-<h1>Server Control</h1>
+<h1>Build Controls</h1>
 
 <div class="server-controls">
     <div class="status-row">
@@ -18,19 +18,19 @@
         </span>
     </div>
     <div class="button-row">
-        <form method="POST" action="{{ url_for('server_rebuild') }}">
+        <form method="POST" action="{{ url_for('build_rebuild') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-rebuild"
                     {{ 'disabled' if is_running }}>Rebuild</button>
             <span class="btn-hint">Fetch, build, and deploy a new binary</span>
         </form>
-        <form method="POST" action="{{ url_for('server_restart') }}">
+        <form method="POST" action="{{ url_for('build_restart') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-restart"
                     {{ 'disabled' if is_running }}>Restart</button>
             <span class="btn-hint">Restart the server using the current build</span>
         </form>
-        <form method="POST" action="{{ url_for('server_stop') }}">
+        <form method="POST" action="{{ url_for('build_stop') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-stop"
                     {{ 'disabled' if is_running }}>Stop</button>

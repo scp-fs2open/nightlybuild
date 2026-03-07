@@ -10,12 +10,14 @@
 <body>
     <nav>
         <span class="nav-title">Standalone Update</span>
-        <a href="{{ url_for('config') }}"
-           {% if request.endpoint == 'config' %}class="active"{% endif %}>Configuration</a>
-        <a href="{{ url_for('server') }}"
-           {% if request.endpoint == 'server' %}class="active"{% endif %}>Server</a>
-        <a href="{{ url_for('logs') }}"
-           {% if request.endpoint == 'logs' %}class="active"{% endif %}>Logs</a>
+        <a href="{{ url_for('build_config') }}"
+           {% if request.endpoint in ('build_config', 'build_config_save') %}class="active"{% endif %}>Build Config</a>
+        <a href="{{ url_for('build_controls') }}"
+           {% if request.endpoint in ('build_controls', 'build_rebuild', 'build_restart', 'build_stop') %}class="active"{% endif %}>Build Controls</a>
+        <a href="{{ url_for('game_config') }}"
+           {% if request.endpoint in ('game_config', 'game_config_save') %}class="active"{% endif %}>Game Config</a>
+        <a href="{{ url_for('game_logs') }}"
+           {% if request.endpoint == 'game_logs' %}class="active"{% endif %}>Game Logs</a>
         {% if current_user.is_authenticated %}
         <form method="post" action="{{ url_for('logout') }}" class="nav-logout">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
