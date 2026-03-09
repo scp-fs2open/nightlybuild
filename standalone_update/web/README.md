@@ -113,5 +113,5 @@ The web app is configured via environment variables (set in `standalone-update-w
 | `UPDATE_LOG_PATH` | _(none)_ | Path to the update log file — read for display and used as the output destination when rebuild/restart is triggered from the UI |
 | `LOG_LINES` | `100` | Maximum number of log lines to display |
 | `SECRET_KEY` | _(random)_ | Flask session secret — set a stable value in production to preserve sessions across restarts |
-| `PASSWORD_HASH` | _(none)_ | Bcrypt password hash for the login form — generate with `python3 -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('yourpassword'))"` |
+| `PASSWORD_HASH` | _(none)_ | Werkzeug-compatible password hash for the login form — generate with `python3 -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('yourpassword'))"` (uses scrypt by default; any algorithm supported by `check_password_hash` will work) |
 | `SECURE_COOKIES` | `0` | Set to `1` to mark session and remember-me cookies as `Secure` (requires HTTPS) |

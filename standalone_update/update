@@ -46,6 +46,10 @@ while getopts "t:d:c:r:m:v:f:RSh" opt; do
 done
 shift $((OPTIND - 1))
 
+if [ -n "${RESTART_ONLY}" ] && [ -n "${STOP_ONLY}" ]; then
+    error_exit "-R (restart) and -S (stop) are mutually exclusive"
+fi
+
 # Auto-derive MOD_ROOTS array from comma-delimited MOD_DIRNAME
 MOD_NAMES=()
 MOD_VCSS=()
@@ -53,6 +57,9 @@ MOD_ROOTS=()
 if [ -n "${MOD_DIRNAME}" ]; then
     IFS=',' read -ra MOD_NAMES <<< "${MOD_DIRNAME}"
     IFS=',' read -ra MOD_VCSS <<< "${MOD_VCS}"
+    if [ -n "${MOD_VCS}" ] && [ ${#MOD_VCSS[@]} -ne ${#MOD_NAMES[@]} ]; then
+        error_exit "MOD_VCS has ${#MOD_VCSS[@]} entries but MOD_DIRNAME has ${#MOD_NAMES[@]} — they must match positionally"
+    fi
     for _name in "${MOD_NAMES[@]}"; do
         MOD_ROOTS+=("${GAME_ROOT}/${_name}")
     done
@@ -121,7 +128,7 @@ start_server() {
     fi
     echo "Starting screen and ${MAIN_PROCESS}/${MOD_NAMES[0]:-freespace2}"
     (
-        cd ${GAME_ROOT}
+        cd "${GAME_ROOT}"
         if [ -n "${USE_DEBUGGER}" ]; then
             screen -dmS server ${DEBUGGER} ${DEBUGGER_FLAG} "r -standalone${EXTRA_FLAGS:+ ${EXTRA_FLAGS}} -noninteractive${MOD_DIRNAME:+ -mod ${MOD_DIRNAME}}" ${LAUNCH_BIN}
         else
@@ -246,14 +253,11 @@ else
     start_server
 
     # Clean up old build_exports
-    (
-        cd "$BUILD_EXPORTS_DIR" || error_exit "Failed to change to export directory: $BUILD_EXPORTS_DIR"
-        EXPORT_COUNT=$(ls -1 | wc -l)
-        if [ "$EXPORT_COUNT" -gt 1 ]; then
-            echo "Cleaning up old build_export folders..."
-            ls -t | tail -n +2 | xargs rm -rf || error_exit "Failed to remove old exports under ${BUILD_EXPORTS_DIR}"
-        else
-            echo "Only one build export found, nothing to clean up"
-        fi
-    )
+    EXPORT_COUNT=$(ls -1 "$BUILD_EXPORTS_DIR" | wc -l)
+    if [ "$EXPORT_COUNT" -gt 1 ]; then
+        echo "Cleaning up old build_export folders..."
+        (cd "$BUILD_EXPORTS_DIR" && ls -t | tail -n +2 | xargs rm -rf) || error_exit "Failed to remove old exports under ${BUILD_EXPORTS_DIR}"
+    else
+        echo "Only one build export found, nothing to clean up"
+    fi
 fi

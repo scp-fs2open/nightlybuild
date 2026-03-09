@@ -98,6 +98,8 @@ def get_status():
 def start_update(restart_only=False, stop_only=False):
     """Start the update script in the background. Returns True on success."""
     global _running_process, _running_action, _running_action_base, _log_file
+    if not LOG_PATH:
+        return False
     status, is_running = get_status()
     if is_running:
         return False
