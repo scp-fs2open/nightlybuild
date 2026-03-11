@@ -1,1 +1,6 @@
 .env
+web/venv/
+web/__pycache__/
+web/standalone-update-web.env
+web/standalone-update-web.nginx.conf
+web/standalone-update-web.service

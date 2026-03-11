@@ -1,0 +1,23 @@
+[Unit]
+Description=Standalone Update Web UI
+After=network.target
+
+[Service]
+Type=simple
+
+# --- Edit these for your server ---
+User=scpuser
+WorkingDirectory=/usr/share/games/fs2source/nightlybuild/standalone_update/web
+ExecStart=/usr/share/games/fs2source/nightlybuild/standalone_update/web/venv/bin/gunicorn \
+    --bind 127.0.0.1:5000 \
+    --workers 1 \
+    --worker-class gevent \
+    server:app
+EnvironmentFile=/usr/share/games/fs2source/nightlybuild/standalone_update/web/standalone-update-web.env
+# ---
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

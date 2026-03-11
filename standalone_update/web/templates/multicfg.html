@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Game Config{% endblock %}
+{% block content %}
+<h1>Game Configuration</h1>
+<p>Edit <code>multi.cfg</code> to configure the standalone server's runtime behavior.</p>
+<p class="cfg-path">{{ cfg_path | basename }}
+    {% if not exists %}<span class="cfg-new">— file does not exist yet; saving will create it</span>{% endif %}
+</p>
+
+<form method="POST" action="{{ url_for('game_config_save') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <textarea name="content" class="cfg-editor" spellcheck="false">{{ content }}</textarea>
+    <button type="submit">Save</button>
+</form>
+{% endblock %}

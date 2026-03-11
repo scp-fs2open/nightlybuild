@@ -60,8 +60,8 @@ The script uses a two-layer config system:
 | `FSO_REPO` | `/usr/share/games/fs2source/fs2_open` | Path to the local FSO git repository |
 | `GAME_ROOT` | `/usr/share/games/freespace2` | Path to the game data directory where builds are deployed |
 | `BUILD_EXPORTS_DIR` | `/usr/share/games/fs2source/build_exports` | Working directory for build worktrees |
-| `MOD_DIRNAME` | _(unset)_ | Mod folder name (e.g. `fotg`). Enables mod-specific launch flags. |
-| `MOD_VCS` | _(unset)_ | VCS for auto-updating the mod folder (`git` or `svn`). Leave unset to manage manually. |
+| `MOD_DIRNAME` | _(unset)_ | Comma-delimited mod list (e.g. `fotg` or `fotg,fotg-test`). First mod is primary and determines the engine data folder. Passed directly to the engine's `-mod` flag. |
+| `MOD_VCS` | _(unset)_ | VCS per mod, positionally matched to `MOD_DIRNAME` (`git`, `svn`, or empty for unmanaged). E.g. `git,svn` or `git,` |
 | `REFERENCE` | `origin/master` | Git reference to build from — branch (`origin/master`), tag (`release_25_0_0`), or commit hash |
 | `EXTRA_FLAGS` | _(unset)_ | Additional command line flags passed to the game binary (e.g. `-prefer_ipv4`) |
 
@@ -70,13 +70,24 @@ The script uses a two-layer config system:
 ```bash
 BUILD_TYPE=FastDebug
 GAME_ROOT=/usr/share/games/fotg
-MOD_DIRNAME=fotg
-MOD_VCS=git
+MOD_DIRNAME=fotg,fotg-test
+MOD_VCS=git,svn
 REFERENCE=release_25_0_0
 EXTRA_FLAGS=-prefer_ipv4
 ```
 
 All variables can also be passed as command line arguments (run `./update -h` for usage).
+
+## Server Control Modes
+
+In addition to a full rebuild, the update script supports two shortcut modes:
+
+```bash
+./update -R   # Restart using the existing deployed binary (skip fetch/build)
+./update -S   # Stop the server without restarting
+```
+
+`-R` is useful for applying configuration changes or recovering a crashed server quickly. `-S` shuts down the screen session and game process without bringing them back up.
 
 ## Cron Setup
 
@@ -90,7 +101,11 @@ CRON_TZ=UTC
 0 9 * * * /usr/share/games/fs2source/nightlybuild/standalone_update/update > /home/scpuser/standalone_update.log 2>&1
 ```
 
-The script will exit early with an error if the current day's build already exists (i.e. no new export is needed when the ref hasn't changed), so running it frequently is safe.
+Each run produces a uniquely named build (datetime + commit hash), so the script can safely be run multiple times per day.
+
+## Web UI
+
+A web app is available in the [`web/`](web/) directory for managing configuration, triggering builds/restarts, and viewing logs from a browser. See [web/README.md](web/README.md) for setup instructions.
 
 ## Directory Structure
 
@@ -105,9 +120,10 @@ After setup, the typical directory layout on a server looks like:
 │       └── standalone_update/     # This directory
 │           ├── update             # The script
 │           ├── .env.default       # Default configuration
-│           └── .env               # Your overrides (gitignored)
+│           ├── .env               # Your overrides (gitignored)
+│           └── web/               # Web UI (see web/README.md)
 └── freespace2/                    # Game root (retail data + deployed binary)
-    ├── fs2_open_20250226          # Currently deployed build
+    ├── fs2_open_20250226090000_a1b2c3d  # Currently deployed build
     ├── root_fs2.vp
     └── ...
 ```

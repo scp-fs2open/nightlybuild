@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Game Logs{% endblock %}
+{% block content %}
+<h1>Game Logs</h1>
+<p id="ws-status" class="ws-status">Connecting...</p>
+
+{% for panel in panels %}
+<div class="log-panel">
+    <div class="log-panel-header">
+        <span class="log-panel-name">{{ panel.name }}</span>
+        <span class="log-panel-path">{{ panel.path | basename }}</span>
+    </div>
+    {% if panel.error %}
+    <p class="log-error">{{ panel.error }}</p>
+    {% elif panel.lines %}
+    <pre class="log-output" id="log-{{ panel.id }}">{% for line in panel.lines %}{{ line }}{% endfor %}</pre>
+    {% else %}
+    <p>Log file is empty.</p>
+    {% endif %}
+</div>
+{% endfor %}
+{% endblock %}
+{% block socketio_scripts %}
+<script src="{{ url_for('static', filename='logs_ws.js') }}"></script>
+{% endblock %}

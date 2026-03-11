@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block head_extra %}
+<script src="{{ url_for('static', filename='login.js') }}" defer></script>
+{% endblock %}
+{% block content %}
+<h1>Login</h1>
+<form method="post" class="login-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="login-field">
+        <label for="password">Password</label>
+        <div class="password-wrapper">
+            <input type="password" id="password" name="password" autofocus>
+            <button type="button" class="password-toggle" aria-label="Show password">Show</button>
+        </div>
+    </div>
+    <button type="submit">Log in</button>
+</form>
+{% endblock %}

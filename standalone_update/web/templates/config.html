@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Build Config{% endblock %}
+{% block content %}
+<h1>Build Configuration</h1>
+<p>Check <strong>Override</strong> to set a custom value in <code>.env</code>.
+   Unchecked variables use the default from <code>.env.default</code>.</p>
+
+<form method="POST" action="{{ url_for('build_config_save') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% for section_name, vars in sections %}
+    <fieldset>
+        <legend>{{ section_name }}</legend>
+        {% for var in vars %}
+        <div class="form-row{% if var.is_overridden %} overridden{% endif %}">
+            <div class="var-header">
+                <label class="override-label">
+                    <input type="checkbox" name="override_{{ var.name }}"
+                           {% if var.is_overridden %}checked{% endif %}
+                           onchange="toggleOverride(this, '{{ var.name }}')">
+                    <strong>{{ var.name }}</strong>
+                </label>
+                {% if var.description %}
+                <span class="description">{{ var.description }}</span>
+                {% endif %}
+            </div>
+            <div class="var-value">
+                <input type="text" name="value_{{ var.name }}" id="value_{{ var.name }}"
+                       value="{{ var.override_value if var.is_overridden else (var.default_value or '') }}"
+                       placeholder="{{ var.example_value or var.default_value or 'unset' }}"
+                       {% if not var.is_overridden %}disabled{% endif %}>
+                {% if var.is_active_default %}
+                <span class="default-badge">Default: {{ var.default_value }}</span>
+                {% else %}
+                <span class="default-badge unset">Default: unset{% if var.example_value %} (example: {{ var.example_value }}){% endif %}</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </fieldset>
+    {% endfor %}
+    <button type="submit">Save Configuration</button>
+</form>
+
+<script src="{{ url_for('static', filename='config.js') }}"></script>
+{% endblock %}

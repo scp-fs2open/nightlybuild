@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Build Controls{% endblock %}
+{% block content %}
+<h1>Build Controls</h1>
+
+<div class="server-controls">
+    <div class="status-row">
+        <span class="status-indicator {{ status }}" id="build-status">
+            <span class="status-dot"></span>
+            {% if status == 'idle' %}Idle
+            {% elif status == 'rebuilding' %}Rebuilding...
+            {% elif status == 'restarting' %}Restarting...
+            {% elif status == 'stopping' %}Stopping...
+            {% endif %}
+        </span>
+    </div>
+    <div class="button-row">
+        <div>
+            <button type="button" class="btn btn-rebuild" id="btn-rebuild"
+                    {{ 'disabled' if is_running }}>Rebuild</button>
+            <span class="btn-hint">Fetch, build, and deploy a new binary</span>
+        </div>
+        <div>
+            <button type="button" class="btn btn-restart" id="btn-restart"
+                    {{ 'disabled' if is_running }}>Restart</button>
+            <span class="btn-hint">Restart the server using the current build</span>
+        </div>
+        <div>
+            <button type="button" class="btn btn-stop" id="btn-stop"
+                    {{ 'disabled' if is_running }}>Stop</button>
+            <span class="btn-hint">Kill the server without restarting</span>
+        </div>
+    </div>
+    <div id="action-message"></div>
+</div>
+
+<h2>Update Log</h2>
+{% if log_error %}
+<p class="log-error">{{ log_error }}</p>
+{% elif lines %}
+<p>Last {{ lines|length }} lines</p>
+<pre class="log-output" id="update-log">{% for line in lines %}{{ line }}{% endfor %}</pre>
+{% else %}
+<p>Log file is empty.</p>
+{% endif %}
+{% endblock %}
+{% block socketio_scripts %}
+<script src="{{ url_for('static', filename='server_ws.js') }}"></script>
+{% endblock %}
