@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import json
 import os
 import subprocess
 import sys
@@ -63,8 +64,8 @@ LOG_LINES = int(os.environ.get('LOG_LINES', '100'))
 
 # Process tracking
 _running_process = None
-_running_action = None       # 'rebuilding', 'restarting', or 'stopping'
-_running_action_base = None  # 'rebuild', 'restart', or 'stop'
+_running_action = None       # 'rebuilding', 'updating', 'restarting', or 'stopping'
+_running_action_base = None  # 'rebuild', 'update', 'restart', or 'stop'
 _log_file = None
 
 
@@ -92,10 +93,13 @@ def get_status():
         # Immediately notify clients of completion
         _last_emitted_status = 'idle'
         socketio.emit('build_status', {'status': 'idle', 'is_running': False}, to='page:server')
+        # Push updated build info (may have changed after rebuild or mod update)
+        build_info = read_build_info()
+        socketio.emit('build_info', {'info': build_info}, to='page:server')
     return ('idle', False)
 
 
-def start_update(restart_only=False, stop_only=False):
+def start_update(restart_only=False, stop_only=False, update_mods_only=False):
     """Start the update script in the background. Returns True on success."""
     global _running_process, _running_action, _running_action_base, _log_file
     if not LOG_PATH:
@@ -106,6 +110,8 @@ def start_update(restart_only=False, stop_only=False):
 
     if stop_only:
         action, flag, running_label = 'stop', '-S', 'stopping'
+    elif update_mods_only:
+        action, flag, running_label = 'update', '-U', 'updating'
     elif restart_only:
         action, flag, running_label = 'restart', '-R', 'restarting'
     else:
@@ -306,12 +312,14 @@ def handle_join_page(page):
 @socketio.on('server_action')
 def handle_server_action(data):
     action = data.get('action', '') if isinstance(data, dict) else data
-    if action not in ('rebuild', 'restart', 'stop'):
+    if action not in ('rebuild', 'update', 'restart', 'stop'):
         return {'ok': False, 'error': 'Invalid action.'}
     if not LOG_PATH:
         return {'ok': False, 'error': 'UPDATE_LOG_PATH is not configured.'}
     kwargs = {}
-    if action == 'restart':
+    if action == 'update':
+        kwargs['update_mods_only'] = True
+    elif action == 'restart':
         kwargs['restart_only'] = True
     elif action == 'stop':
         kwargs['stop_only'] = True
@@ -348,6 +356,32 @@ def _sync_watcher_to_offset(filepath, offset):
         return
     with _watch_lock:
         _watch_state[filepath] = {'offset': offset, 'inode': inode}
+
+
+def _get_game_root():
+    """Resolve GAME_ROOT from .env override or .env.default."""
+    overrides = parse_env(ENV_PATH)
+    if 'GAME_ROOT' in overrides:
+        return overrides['GAME_ROOT']
+    for var in parse_env_default(ENV_DEFAULT_PATH):
+        if var.name == 'GAME_ROOT' and var.default_value:
+            return var.default_value
+    return ''
+
+
+def read_build_info():
+    """Read build_info.json from GAME_ROOT. Returns dict or None."""
+    game_root = _get_game_root()
+    if not game_root:
+        return None
+    path = os.path.join(game_root, 'build_info.json')
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return None
 
 
 def read_log_lines():
@@ -436,8 +470,10 @@ def build_controls():
     lines, log_error, offset = read_log_lines()
     if LOG_PATH and offset:
         _sync_watcher_to_offset(LOG_PATH, offset)
+    build_info = read_build_info()
     return render_template('server.html', status=status, is_running=is_running,
-                           lines=lines, log_path=LOG_PATH, log_error=log_error)
+                           lines=lines, log_path=LOG_PATH, log_error=log_error,
+                           build_info=build_info)
 
 
 @app.route('/game-config', methods=['GET'])

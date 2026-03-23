@@ -1,0 +1,12 @@
+{
+  "binary": "fs2_open_20260323120000_a1b2c3d",
+  "build_type": "Release",
+  "compiler": "gcc",
+  "reference": "origin/master",
+  "commit": "a1b2c3d",
+  "extra_flags": "",
+  "mod_dirname": "fotg",
+  "mod_vcs": "git",
+  "built_at": "2026-03-23T12:00:00Z",
+  "mods_updated_at": "2026-03-23T14:30:00Z"
+}

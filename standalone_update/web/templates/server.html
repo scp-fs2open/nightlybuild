@@ -9,6 +9,7 @@
             <span class="status-dot"></span>
             {% if status == 'idle' %}Idle
             {% elif status == 'rebuilding' %}Rebuilding...
+            {% elif status == 'updating' %}Updating &amp; Restarting...
             {% elif status == 'restarting' %}Restarting...
             {% elif status == 'stopping' %}Stopping...
             {% endif %}
@@ -19,6 +20,11 @@
             <button type="button" class="btn btn-rebuild" id="btn-rebuild"
                     {{ 'disabled' if is_running }}>Rebuild</button>
             <span class="btn-hint">Fetch, build, and deploy a new binary</span>
+        </div>
+        <div>
+            <button type="button" class="btn btn-update" id="btn-update"
+                    {{ 'disabled' if is_running }}>Update &amp; Restart</button>
+            <span class="btn-hint">Update mod data and restart the server</span>
         </div>
         <div>
             <button type="button" class="btn btn-restart" id="btn-restart"
@@ -33,6 +39,27 @@
     </div>
     <div id="action-message"></div>
 </div>
+
+{% if build_info %}
+<div class="build-info">
+    <h3>Current Deployment</h3>
+    <table class="info-table">
+        <tr><td class="info-label">Binary</td><td>{{ build_info.binary }}</td></tr>
+        <tr><td class="info-label">Build Type</td><td>{{ build_info.build_type }}</td></tr>
+        <tr><td class="info-label">Compiler</td><td>{{ build_info.compiler }}</td></tr>
+        <tr><td class="info-label">Reference</td><td>{{ build_info.reference }}</td></tr>
+        <tr><td class="info-label">Commit</td><td><code>{{ build_info.commit }}</code></td></tr>
+        {% if build_info.mod_dirname %}
+        <tr><td class="info-label">Mod</td><td>{{ build_info.mod_dirname }}{% if build_info.mod_vcs %} <span class="info-secondary">({{ build_info.mod_vcs }})</span>{% endif %}</td></tr>
+        {% endif %}
+        {% if build_info.extra_flags %}
+        <tr><td class="info-label">Extra Flags</td><td><code>{{ build_info.extra_flags }}</code></td></tr>
+        {% endif %}
+        <tr><td class="info-label">Built</td><td>{{ build_info.built_at }}</td></tr>
+        <tr><td class="info-label">Mods Updated</td><td>{{ build_info.mods_updated_at }}</td></tr>
+    </table>
+</div>
+{% endif %}
 
 <h2>Update Log</h2>
 {% if log_error %}
