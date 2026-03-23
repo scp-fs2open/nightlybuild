@@ -188,6 +188,18 @@ else
     echo "Fetching updates for parent repo and submodules..."
     git -C "$FSO_REPO" fetch --tags --force --recurse-submodules || error_exit "Failed to fetch updates from remote repositories"
 
+    # If REFERENCE is a PR (pr/NUMBER or pull/NUMBER), fetch the PR head ref
+    # Falls back to treating as a normal ref if the PR fetch fails (e.g. a branch named pr/123)
+    if [[ "$REFERENCE" =~ ^(pr|pull)/([0-9]+)$ ]]; then
+        PR_NUMBER="${BASH_REMATCH[2]}"
+        echo "Fetching pull request #${PR_NUMBER}..."
+        if git -C "$FSO_REPO" fetch origin "pull/${PR_NUMBER}/head:refs/remotes/origin/pr/${PR_NUMBER}" 2>/dev/null; then
+            REFERENCE="origin/pr/${PR_NUMBER}"
+        else
+            echo "WARNING: Could not fetch pull request #${PR_NUMBER}, treating '${REFERENCE}' as a regular ref"
+        fi
+    fi
+
     echo "Resolving reference '$REFERENCE' to commit hash..."
     HASH=$(git -C "$FSO_REPO" rev-parse --short "$REFERENCE" 2>/dev/null) || error_exit "Reference '$REFERENCE' not found in repository"
 

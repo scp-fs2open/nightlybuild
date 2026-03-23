@@ -62,7 +62,7 @@ The script uses a two-layer config system:
 | `BUILD_EXPORTS_DIR` | `/usr/share/games/fs2source/build_exports` | Working directory for build worktrees |
 | `MOD_DIRNAME` | _(unset)_ | Comma-delimited mod list (e.g. `fotg` or `fotg,fotg-test`). First mod is primary and determines the engine data folder. Passed directly to the engine's `-mod` flag. |
 | `MOD_VCS` | _(unset)_ | VCS per mod, positionally matched to `MOD_DIRNAME` (`git`, `svn`, or empty for unmanaged). E.g. `git,svn` or `git,` |
-| `REFERENCE` | `origin/master` | Git reference to build from — branch (`origin/master`), tag (`release_25_0_0`), or commit hash |
+| `REFERENCE` | `origin/master` | Git reference to build from — branch (`origin/master`), tag (`release_25_0_0`), commit hash, or pull request (`pr/NUMBER` or `pull/NUMBER`) |
 | `EXTRA_FLAGS` | _(unset)_ | Additional command line flags passed to the game binary (e.g. `-prefer_ipv4`) |
 
 ### Example `.env`
@@ -74,6 +74,12 @@ MOD_DIRNAME=fotg,fotg-test
 MOD_VCS=git,svn
 REFERENCE=release_25_0_0
 EXTRA_FLAGS=-prefer_ipv4
+```
+
+To build from a GitHub pull request instead:
+
+```bash
+REFERENCE=pr/7306
 ```
 
 All variables can also be passed as command line arguments (run `./update -h` for usage).
