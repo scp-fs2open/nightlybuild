@@ -308,9 +308,47 @@ button[type="submit"]:hover {
 }
 
 .status-indicator.rebuilding .status-dot,
+.status-indicator.updating .status-dot,
 .status-indicator.restarting .status-dot,
 .status-indicator.stopping .status-dot {
     background: #f39c12;
+}
+
+.build-info {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.build-info h3 {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 0.5rem;
+}
+
+.info-table {
+    width: 100%;
+    font-size: 0.85rem;
+    border-collapse: collapse;
+}
+
+.info-table td {
+    padding: 0.2rem 0.5rem;
+    vertical-align: top;
+}
+
+.info-label {
+    color: #777;
+    white-space: nowrap;
+    width: 1%;
+    font-weight: 600;
+}
+
+.info-secondary {
+    color: #999;
+    font-size: 0.8rem;
 }
 
 .button-row {
@@ -341,6 +379,14 @@ button[type="submit"]:hover {
 
 .btn-rebuild:hover:not(:disabled) {
     background: #34495e;
+}
+
+.btn-update {
+    background: #27ae60;
+}
+
+.btn-update:hover:not(:disabled) {
+    background: #2ecc71;
 }
 
 .btn-restart {

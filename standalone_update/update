@@ -20,8 +20,9 @@ fi
 # Parse command line arguments (overrides config file)
 RESTART_ONLY=""
 STOP_ONLY=""
+UPDATE_MODS_ONLY=""
 
-while getopts "t:d:c:r:m:v:f:RSh" opt; do
+while getopts "t:d:c:r:m:v:f:RSUh" opt; do
     case "${opt}" in
         t) BUILD_TYPE="${OPTARG}" ;;
         d) USE_DEBUGGER="${OPTARG}" ;;
@@ -32,10 +33,12 @@ while getopts "t:d:c:r:m:v:f:RSh" opt; do
         f) EXTRA_FLAGS="${OPTARG}" ;;
         R) RESTART_ONLY=yes ;;
         S) STOP_ONLY=yes ;;
+        U) UPDATE_MODS_ONLY=yes ;;
         h)
-            echo "Usage: $0 [-t BUILD_TYPE] [-d USE_DEBUGGER] [-c COMPILER] [-r REFERENCE] [-m MOD_DIRNAME] [-v MOD_VCS] [-f EXTRA_FLAGS] [-R] [-S]"
+            echo "Usage: $0 [-t BUILD_TYPE] [-d USE_DEBUGGER] [-c COMPILER] [-r REFERENCE] [-m MOD_DIRNAME] [-v MOD_VCS] [-f EXTRA_FLAGS] [-R] [-S] [-U]"
             echo "  -R  Restart the server using the existing build (skip fetch/build)"
             echo "  -S  Stop the server without restarting"
+            echo "  -U  Update mod data and restart the server (skip fetch/build)"
             exit 0
             ;;
         *)
@@ -46,8 +49,12 @@ while getopts "t:d:c:r:m:v:f:RSh" opt; do
 done
 shift $((OPTIND - 1))
 
-if [ -n "${RESTART_ONLY}" ] && [ -n "${STOP_ONLY}" ]; then
-    error_exit "-R (restart) and -S (stop) are mutually exclusive"
+_exclusive_count=0
+[ -n "${RESTART_ONLY}" ] && _exclusive_count=$((_exclusive_count + 1))
+[ -n "${STOP_ONLY}" ] && _exclusive_count=$((_exclusive_count + 1))
+[ -n "${UPDATE_MODS_ONLY}" ] && _exclusive_count=$((_exclusive_count + 1))
+if [ $_exclusive_count -gt 1 ]; then
+    error_exit "-R (restart), -S (stop), and -U (update mods) are mutually exclusive"
 fi
 
 # Auto-derive MOD_ROOTS array from comma-delimited MOD_DIRNAME
@@ -137,6 +144,56 @@ start_server() {
     )
 }
 
+write_build_info() {
+    local _build_info="${GAME_ROOT}/build_info.json"
+    echo "Writing build metadata to ${_build_info}..."
+    cat > "${_build_info}" <<BUILDINFO
+{
+  "binary": "${BINARY_NAME}",
+  "build_type": "${BUILD_TYPE}",
+  "compiler": "${COMPILER}",
+  "reference": "${REFERENCE}",
+  "commit": "${HASH}",
+  "extra_flags": "${EXTRA_FLAGS}",
+  "mod_dirname": "${MOD_DIRNAME}",
+  "mod_vcs": "${MOD_VCS}",
+  "built_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "mods_updated_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+BUILDINFO
+}
+
+update_build_info_mods() {
+    local _build_info="${GAME_ROOT}/build_info.json"
+    if [ ! -f "${_build_info}" ]; then
+        echo "No build_info.json found, skipping metadata update"
+        return
+    fi
+    echo "Updating mods_updated_at in ${_build_info}..."
+    local _now
+    _now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    # Use a temp file for portable in-place edit
+    sed "s/\"mods_updated_at\": \"[^\"]*\"/\"mods_updated_at\": \"${_now}\"/" \
+        "${_build_info}" > "${_build_info}.tmp" \
+        && mv "${_build_info}.tmp" "${_build_info}"
+}
+
+update_mods() {
+    for _i in "${!MOD_ROOTS[@]}"; do
+        _root="${MOD_ROOTS[$_i]}"
+        _vcs="${MOD_VCSS[$_i]:-}"
+        if [ -n "${_vcs}" ]; then
+            if [ "${_vcs}" = "git" ]; then
+                echo "Updating mod git folder at ${_root}..."
+                git -C "${_root}" pull || error_exit "Failed to update mod git folder at ${_root}"
+            elif [ "${_vcs}" = "svn" ]; then
+                echo "Updating mod svn folder at ${_root}..."
+                (cd "${_root}" && svn up) || error_exit "Failed to update mod svn folder at ${_root}"
+            fi
+        fi
+    done
+}
+
 ### Validation ###
 
 if [ ! -d "${GAME_ROOT}" ]; then
@@ -160,6 +217,18 @@ done
 
 if [ -n "${STOP_ONLY}" ]; then
     stop_server
+
+elif [ -n "${UPDATE_MODS_ONLY}" ]; then
+    EXISTING_BINARY=$(ls -1dt ${GAME_ROOT}/fs2_open_* 2>/dev/null | head -1)
+    if [ -z "${EXISTING_BINARY}" ]; then
+        error_exit "No existing build found in ${GAME_ROOT} to restart"
+    fi
+    BINARY_NAME=$(basename "${EXISTING_BINARY}")
+    echo "Update & Restart mode: updating mods and reusing existing build ${BINARY_NAME}"
+    update_mods
+    update_build_info_mods
+    stop_server
+    start_server
 
 elif [ -n "${RESTART_ONLY}" ]; then
     EXISTING_BINARY=$(ls -1dt ${GAME_ROOT}/fs2_open_* 2>/dev/null | head -1)
@@ -233,19 +302,7 @@ else
     echo "Running make inside build export build folder..."
     make -C "${BUILD_PATH}" || error_exit "make failed to run in: ${BUILD_PATH}"
 
-    for _i in "${!MOD_ROOTS[@]}"; do
-        _root="${MOD_ROOTS[$_i]}"
-        _vcs="${MOD_VCSS[$_i]:-}"
-        if [ -n "${_vcs}" ]; then
-            if [ "${_vcs}" = "git" ]; then
-                echo "Updating mod git folder at ${_root}..."
-                git -C "${_root}" pull || error_exit "Failed to update mod git folder at ${_root}"
-            elif [ "${_vcs}" = "svn" ]; then
-                echo "Updating mod svn folder at ${_root}..."
-                (cd "${_root}" && svn up) || error_exit "Failed to update mod svn folder at ${_root}"
-            fi
-        fi
-    done
+    update_mods
 
     BINARY_NAME="fs2_open_${BUILD_ID}"
 
@@ -261,6 +318,8 @@ else
 
     echo "Copying build to game folder..."
     cp -a ${BUILD_PATH}/bin/fs2_open_* "${GAME_ROOT}/${BINARY_NAME}" || error_exit "Failed to copy build to game root ${GAME_ROOT}"
+
+    write_build_info
 
     start_server
 

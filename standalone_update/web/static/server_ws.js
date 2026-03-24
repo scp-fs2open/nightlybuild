@@ -6,13 +6,14 @@
     var logEl = document.getElementById('update-log');
     var statusEl = document.getElementById('build-status');
     var msgEl = document.getElementById('action-message');
-    var buttons = ['btn-rebuild', 'btn-restart', 'btn-stop'].map(function(id) {
+    var buttons = ['btn-rebuild', 'btn-update', 'btn-restart', 'btn-stop'].map(function(id) {
         return document.getElementById(id);
     });
 
     var STATUS_LABELS = {
         idle: 'Idle',
         rebuilding: 'Rebuilding...',
+        updating: 'Updating & Restarting...',
         restarting: 'Restarting...',
         stopping: 'Stopping...'
     };
@@ -28,8 +29,9 @@
     }
 
     buttons[0].addEventListener('click', function() { doAction('rebuild'); });
-    buttons[1].addEventListener('click', function() { doAction('restart'); });
-    buttons[2].addEventListener('click', function() { doAction('stop'); });
+    buttons[1].addEventListener('click', function() { doAction('update'); });
+    buttons[2].addEventListener('click', function() { doAction('restart'); });
+    buttons[3].addEventListener('click', function() { doAction('stop'); });
 
     socket.on('update_log_lines', function(msg) {
         if (!logEl) {
@@ -55,6 +57,45 @@
         if (logEl) {
             logEl.textContent = '';
         }
+    });
+
+    var BUILD_INFO_FIELDS = [
+        {key: 'binary', label: 'Binary'},
+        {key: 'build_type', label: 'Build Type'},
+        {key: 'compiler', label: 'Compiler'},
+        {key: 'reference', label: 'Reference'},
+        {key: 'commit', label: 'Commit', code: true},
+        {key: 'mod_dirname', label: 'Mod', suffix_key: 'mod_vcs'},
+        {key: 'extra_flags', label: 'Extra Flags', code: true},
+        {key: 'built_at', label: 'Built'},
+        {key: 'mods_updated_at', label: 'Mods Updated'}
+    ];
+
+    socket.on('build_info', function(msg) {
+        var container = document.querySelector('.build-info');
+        var info = msg.info;
+        if (!info) {
+            if (container) container.remove();
+            return;
+        }
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'build-info';
+            var controls = document.querySelector('.server-controls');
+            if (controls) controls.parentNode.insertBefore(container, controls.nextSibling);
+        }
+        var html = '<h3>Current Deployment</h3><table class="info-table">';
+        BUILD_INFO_FIELDS.forEach(function(f) {
+            var val = info[f.key];
+            if (!val) return;
+            var display = f.code ? '<code>' + val + '</code>' : val;
+            if (f.suffix_key && info[f.suffix_key]) {
+                display += ' <span class="info-secondary">(' + info[f.suffix_key] + ')</span>';
+            }
+            html += '<tr><td class="info-label">' + f.label + '</td><td>' + display + '</td></tr>';
+        });
+        html += '</table>';
+        container.innerHTML = html;
     });
 
     socket.on('build_status', function(msg) {
