@@ -304,7 +304,17 @@ else
 
     update_mods
 
-    BINARY_NAME="fs2_open_${BUILD_ID}"
+    # Detect the built artifact and preserve any file extension (e.g. .app on macOS)
+    BUILT_ARTIFACT=$(ls -1d ${BUILD_PATH}/bin/fs2_open_* 2>/dev/null | head -1)
+    if [ -z "${BUILT_ARTIFACT}" ]; then
+        error_exit "No build artifact found in ${BUILD_PATH}/bin/"
+    fi
+    BUILT_BASENAME=$(basename "${BUILT_ARTIFACT}")
+    BINARY_EXT=""
+    case "${BUILT_BASENAME}" in
+        *.*) BINARY_EXT=".${BUILT_BASENAME##*.}" ;;
+    esac
+    BINARY_NAME="fs2_open_${BUILD_ID}${BINARY_EXT}"
 
     stop_server
 
