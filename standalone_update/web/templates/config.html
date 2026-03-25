@@ -15,8 +15,7 @@
             <div class="var-header">
                 <label class="override-label">
                     <input type="checkbox" name="override_{{ var.name }}"
-                           {% if var.is_overridden %}checked{% endif %}
-                           onchange="toggleOverride(this, '{{ var.name }}')">
+                           {% if var.is_overridden %}checked{% endif %}>
                     <strong>{{ var.name }}</strong>
                 </label>
                 {% if var.description %}

@@ -9,3 +9,10 @@ function toggleOverride(checkbox, varName) {
         row.classList.remove('overridden');
     }
 }
+
+document.querySelectorAll('input[name^="override_"]').forEach(function(checkbox) {
+    var varName = checkbox.name.slice('override_'.length);
+    checkbox.addEventListener('change', function() {
+        toggleOverride(checkbox, varName);
+    });
+});
