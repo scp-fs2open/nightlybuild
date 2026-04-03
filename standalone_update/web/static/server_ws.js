@@ -28,10 +28,11 @@
         });
     }
 
-    buttons[0].addEventListener('click', function() { doAction('rebuild'); });
-    buttons[1].addEventListener('click', function() { doAction('update'); });
-    buttons[2].addEventListener('click', function() { doAction('restart'); });
-    buttons[3].addEventListener('click', function() { doAction('stop'); });
+    buttons.forEach(function(btn, i) {
+        if (!btn) return;
+        var actions = ['rebuild', 'update', 'restart', 'stop'];
+        btn.addEventListener('click', function() { doAction(actions[i]); });
+    });
 
     socket.on('update_log_lines', function(msg) {
         if (!logEl) {
