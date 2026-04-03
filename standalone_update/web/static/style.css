@@ -285,6 +285,9 @@ button[type="submit"]:hover {
 }
 
 .status-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
     margin-bottom: 0.75rem;
 }
 
@@ -504,6 +507,9 @@ h2 {
 }
 
 .log-panel-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
     margin-bottom: 0.5rem;
 }
 
@@ -566,6 +572,55 @@ h2 {
 .cfg-editor:focus {
     outline: 2px solid #3498db;
     outline-offset: -1px;
+}
+
+/* Engine process status badge */
+.engine-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-left: auto;
+}
+
+.engine-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.engine-status.running .engine-dot {
+    background: #27ae60;
+}
+
+.engine-status.running .engine-label {
+    color: #27ae60;
+}
+
+.engine-status.stopped .engine-dot {
+    background: #95a5a6;
+}
+
+.engine-status.stopped .engine-label {
+    color: #95a5a6;
+}
+
+.engine-status.stale .engine-dot {
+    background: #f39c12;
+}
+
+.engine-status.stale .engine-label {
+    color: #f39c12;
+}
+
+.engine-status.unknown .engine-dot {
+    background: #bdc3c7;
+}
+
+.engine-status.unknown .engine-label {
+    color: #bdc3c7;
 }
 
 /* WebSocket connection status */

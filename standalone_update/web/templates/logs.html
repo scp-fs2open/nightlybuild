@@ -9,6 +9,10 @@
     <div class="log-panel-header">
         <span class="log-panel-name">{{ panel.name }}</span>
         <span class="log-panel-path">{{ panel.path | basename }}</span>
+        <span class="engine-status unknown" id="engine-status-{{ panel.id }}">
+            <span class="engine-dot"></span>
+            <span class="engine-label">Checking...</span>
+        </span>
     </div>
     {% if panel.error %}
     <p class="log-error">{{ panel.error }}</p>

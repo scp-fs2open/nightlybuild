@@ -98,6 +98,22 @@
         container.innerHTML = html;
     });
 
+    // Engine process status
+    var ENGINE_STATES = {
+        true:  {cls: 'running',  label: 'Engine running'},
+        false: {cls: 'stopped',  label: 'Engine not running'},
+        null:  {cls: 'unknown',  label: 'Engine status unknown'}
+    };
+
+    socket.on('engine_status', function(msg) {
+        var el = document.getElementById('engine-status');
+        if (!el) return;
+        var state = ENGINE_STATES[msg.running] || ENGINE_STATES[null];
+        el.className = 'engine-status ' + state.cls;
+        var label = el.querySelector('.engine-label');
+        if (label) label.textContent = state.label;
+    });
+
     socket.on('build_status', function(msg) {
         if (statusEl) {
             statusEl.className = 'status-indicator ' + msg.status;

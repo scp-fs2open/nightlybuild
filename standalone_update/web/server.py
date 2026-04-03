@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 import threading
+import shutil
 from datetime import datetime, timedelta
 
 from flask import Flask, render_template, request, redirect, url_for, flash
@@ -177,6 +178,7 @@ def get_log_panels():
 _watch_state = {}       # realpath -> {'offset': int, 'inode': int}
 _watch_lock = threading.Lock()
 _last_emitted_status = None
+_last_engine_running = None  # Track engine running state for change detection
 _watcher_started = False
 
 # Registry of files to watch: realpath -> {line_event, truncate_event, room}
@@ -246,11 +248,23 @@ def _check_and_emit_status():
         socketio.emit('build_status', {'status': status, 'is_running': is_running}, to='page:server')
 
 
+def _check_and_emit_engine_status():
+    """Poll for game engine process and emit changes to all connected pages."""
+    global _last_engine_running
+    running = is_engine_running()
+    if running != _last_engine_running:
+        _last_engine_running = running
+        payload = {'running': running}
+        socketio.emit('engine_status', payload, to='page:server')
+        socketio.emit('engine_status', payload, to='page:logs')
+
+
 def _file_watcher():
     """Background greenlet that polls log files and build status for changes."""
     while True:
         socketio.sleep(0.25)
         _check_and_emit_status()
+        _check_and_emit_engine_status()
         for filepath, reg in _watch_registry.items():
             _check_and_emit_file(filepath, reg['line_event'], reg['truncate_event'], reg['room'])
 
@@ -300,6 +314,17 @@ def handle_join_page(page):
     join_room(room)
     _room_occupancy[room] = _room_occupancy.get(room, 0) + 1
     _client_rooms[request.sid] = room
+
+    # Send current engine status so the client is never stale
+    running = is_engine_running()
+    socketio.emit('engine_status', {'running': running}, to=request.sid)
+
+    if page == 'logs':
+        # One-time lsof check: tell the client which log files the engine has open
+        panels_active = {}
+        for panel in get_log_panels():
+            panels_active[panel['id']] = is_log_open_by_engine(panel['path'])
+        socketio.emit('log_file_active', {'panels': panels_active}, to=request.sid)
 
     if page == 'server':
         # Send current build status so the client is never stale
@@ -381,6 +406,56 @@ def read_build_info():
         with open(path) as f:
             return json.load(f)
     except (json.JSONDecodeError, OSError):
+        return None
+
+
+def _get_engine_process_name():
+    """Determine the process name to look for (fs2_open, or debugger if USE_DEBUGGER is set)."""
+    overrides = parse_env(ENV_PATH)
+    use_debugger = overrides.get('USE_DEBUGGER', '')
+    if not use_debugger:
+        # Check .env.default — USE_DEBUGGER is commented out by default,
+        # so parse_env_default won't return a value unless it's uncommented
+        for var in parse_env_default(ENV_DEFAULT_PATH):
+            if var.name == 'USE_DEBUGGER' and var.default_value:
+                use_debugger = var.default_value
+                break
+    if use_debugger:
+        return 'lldb' if sys.platform == 'darwin' else 'gdb'
+    return 'fs2_open'
+
+
+def is_engine_running():
+    """Check whether the game engine process is currently running."""
+    process_name = _get_engine_process_name()
+    pgrep = shutil.which('pgrep')
+    if not pgrep:
+        return None  # Can't determine
+    try:
+        result = subprocess.run(
+            [pgrep, process_name],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+        return result.returncode == 0
+    except OSError:
+        return None
+
+
+def is_log_open_by_engine(filepath):
+    """Check whether the engine process currently has a specific log file open."""
+    if not filepath or not os.path.exists(filepath):
+        return False
+    process_name = _get_engine_process_name()
+    lsof = shutil.which('lsof')
+    if not lsof:
+        return None  # Can't determine
+    try:
+        result = subprocess.run(
+            [lsof, '-c', process_name, '--', filepath],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+        return result.returncode == 0
+    except OSError:
         return None
 
 
