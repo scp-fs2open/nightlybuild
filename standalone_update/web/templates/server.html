@@ -25,11 +25,13 @@
                     {{ 'disabled' if is_running }}>Rebuild</button>
             <span class="btn-hint">Fetch, build, and deploy a new binary</span>
         </div>
+        {% if build_info.mod_vcs %}
         <div>
             <button type="button" class="btn btn-update" id="btn-update"
                     {{ 'disabled' if is_running }}>Update &amp; Restart</button>
             <span class="btn-hint">Update mod data and restart the server</span>
         </div>
+        {% endif %}
         <div>
             <button type="button" class="btn btn-restart" id="btn-restart"
                     {{ 'disabled' if is_running }}>Restart</button>
