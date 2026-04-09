@@ -4,4 +4,5 @@ Flask-SocketIO>=5.3,<6
 Flask-WTF>=1.2,<2
 gevent>=24.0
 gunicorn>=21,<24
+requests>=2.28,<3
 simple-websocket>=1.0,<2

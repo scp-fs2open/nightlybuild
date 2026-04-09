@@ -7,7 +7,8 @@ import threading
 import shutil
 from datetime import datetime, timedelta
 
-from flask import Flask, render_template, request, redirect, url_for, flash
+import requests as http_requests
+from flask import Flask, make_response, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_socketio import SocketIO, join_room
 from flask_wtf.csrf import CSRFProtect
@@ -33,6 +34,12 @@ app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024  # 1 MB
 
 app.jinja_env.filters['basename'] = os.path.basename
 app.jinja_env.globals['APP_TITLE'] = APP_TITLE
+
+
+@app.context_processor
+def inject_engine_webui_flag():
+    """Make engine_webui_available accessible in all templates."""
+    return {'engine_webui_available': parse_multi_cfg_webapi() is not None}
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -161,6 +168,54 @@ def get_fso_data_file(filename):
     if mod_dirname:
         return os.path.join(fso_data, mod_dirname, 'data', filename)
     return os.path.join(fso_data, 'data', filename)
+
+
+def parse_multi_cfg_webapi():
+    """Parse multi.cfg for engine web API settings.
+
+    Returns a dict with 'port', 'username', and 'password' if the web API
+    appears to be configured (i.e. +webui_root is set), or None otherwise.
+    """
+    cfg_path = get_fso_data_file('multi.cfg')
+    if not os.path.exists(cfg_path):
+        return None
+
+    settings = {}
+    try:
+        with open(cfg_path) as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith('+webapi_server_port'):
+                    parts = line.split(None, 1)
+                    if len(parts) == 2:
+                        try:
+                            settings['port'] = int(parts[1])
+                        except ValueError:
+                            pass
+                elif line.startswith('+webapi_username'):
+                    parts = line.split(None, 1)
+                    if len(parts) == 2:
+                        settings['username'] = parts[1]
+                elif line.startswith('+webapi_password'):
+                    parts = line.split(None, 1)
+                    if len(parts) == 2:
+                        settings['password'] = parts[1]
+                elif line.startswith('+webui_root'):
+                    parts = line.split(None, 1)
+                    if len(parts) == 2:
+                        settings['webui_root'] = parts[1]
+    except OSError:
+        return None
+
+    # Only expose the proxy when the engine web API is configured
+    if 'webui_root' not in settings:
+        return None
+
+    # Apply engine defaults for any missing values
+    settings.setdefault('port', 8080)
+    settings.setdefault('username', 'admin')
+    settings.setdefault('password', 'admin')
+    return settings
 
 
 def get_log_panels():
@@ -594,6 +649,93 @@ def game_logs():
                 _sync_watcher_to_offset(panel['path'], f.tell())
             panel['error'] = None
     return render_template('logs.html', panels=panels)
+
+
+# --- Engine web UI proxy ---
+# Forwards requests to the game engine's built-in Mongoose HTTP server,
+# injecting Basic Auth from multi.cfg so the user only authenticates once
+# through the Flask login.  Two route prefixes are needed because the legacy
+# JS uses a mix of relative URLs (resolve under /engine/) and absolute URLs
+# (resolve at /api/1/).
+
+_ENGINE_PROXY_TIMEOUT = 10  # seconds
+
+# Relaxed CSP for the legacy engine webui which relies on inline styles
+# (jQuery UI, DataTables) and may use eval (older jQuery/DataTables).
+_ENGINE_CSP = (
+    "default-src 'self'; "
+    "style-src 'self' 'unsafe-inline'; "
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+    "connect-src 'self'; "
+    "img-src 'self'"
+)
+
+# External auto-login script tag injected into the legacy index.html so
+# users skip the built-in login form — our proxy handles authentication.
+_ENGINE_AUTOLOGIN_TAG = '<script src="/static/engine_autologin.js"></script>'
+
+
+def _proxy_to_engine(target_path):
+    """Forward the current request to the engine's web server."""
+    webapi = parse_multi_cfg_webapi()
+    if not webapi:
+        return make_response('Engine web API is not configured in multi.cfg.', 502)
+
+    url = f'http://127.0.0.1:{webapi["port"]}/{target_path}'
+    if request.query_string:
+        url += '?' + request.query_string.decode()
+
+    # Strip hop-by-hop and auth headers — we supply our own auth
+    fwd_headers = {k: v for k, v in request.headers
+                   if k.lower() not in ('host', 'authorization', 'cookie')}
+
+    try:
+        resp = http_requests.request(
+            method=request.method,
+            url=url,
+            data=request.get_data(),
+            headers=fwd_headers,
+            auth=(webapi['username'], webapi['password']),
+            allow_redirects=False,
+            timeout=_ENGINE_PROXY_TIMEOUT,
+        )
+    except http_requests.ConnectionError:
+        return make_response('Engine web server is not reachable.', 502)
+    except http_requests.Timeout:
+        return make_response('Engine web server timed out.', 504)
+
+    # Pass through the response, stripping hop-by-hop headers
+    excluded = {'content-encoding', 'transfer-encoding', 'connection'}
+    headers = {k: v for k, v in resp.headers.items()
+               if k.lower() not in excluded}
+
+    body = resp.content
+
+    # For the legacy HTML page: inject auto-login and set a relaxed CSP
+    if target_path in ('', 'index.html') and resp.status_code == 200:
+        text = resp.text
+        text = text.replace('</body>', _ENGINE_AUTOLOGIN_TAG + '\n</body>')
+        response = make_response(text, resp.status_code, headers)
+        response.headers['Content-Security-Policy'] = _ENGINE_CSP
+        return response
+
+    return make_response(body, resp.status_code, headers)
+
+
+@app.route('/engine/')
+@app.route('/engine/<path:subpath>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+@csrf.exempt
+def engine_proxy(subpath=''):
+    return _proxy_to_engine(subpath)
+
+
+@app.route('/api/1/', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@app.route('/api/1/<path:subpath>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+@csrf.exempt
+def engine_api_proxy(subpath=''):
+    return _proxy_to_engine(f'api/1/{subpath}')
 
 
 if __name__ == '__main__':
