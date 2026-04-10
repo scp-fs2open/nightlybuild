@@ -24,6 +24,10 @@
                {% if request.endpoint in ('game_config', 'game_config_save') %}class="active"{% endif %}>Game Config</a>
             <a href="{{ url_for('game_logs') }}"
                {% if request.endpoint == 'game_logs' %}class="active"{% endif %}>Game Logs</a>
+            {% if engine_webui_available %}
+            <a href="{{ url_for('engine_proxy') }}"
+               {% if request.endpoint in ('engine_proxy', 'engine_api_proxy') %}class="active"{% endif %}>Engine</a>
+            {% endif %}
             {% if current_user.is_authenticated %}
             <form method="post" action="{{ url_for('logout') }}" class="nav-logout">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
