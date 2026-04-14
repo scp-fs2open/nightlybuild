@@ -58,8 +58,15 @@ class ForumAPI:
             "body": content
         })
 
-        if resp.text != "OK":
-            print("Post failed!")
+        try:
+            data = resp.json()
+            if "thread_url" in data:
+                print("Post succeeded: {}".format(data["thread_url"]))
+                return
+        except (ValueError, KeyError):
+            pass
+
+        print("Post failed! HTTP {}: {}".format(resp.status_code, resp.text))
 
     def post_nightly(self, date, revision, files, log, success):
         print("Posting nightly thread...")
