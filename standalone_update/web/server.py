@@ -465,19 +465,26 @@ def read_build_info():
 
 
 def _get_engine_process_name():
-    """Determine the process name to look for (fs2_open, or debugger if USE_DEBUGGER is set)."""
+    """Determine the process name to look for.
+
+    Mirrors the update script: USE_DEBUGGER unset → fs2_open;
+    set + COMPILER=clang → lldb; set + anything else → gdb.
+    """
     overrides = parse_env(ENV_PATH)
     use_debugger = overrides.get('USE_DEBUGGER', '')
-    if not use_debugger:
-        # Check .env.default — USE_DEBUGGER is commented out by default,
-        # so parse_env_default won't return a value unless it's uncommented
+    compiler = overrides.get('COMPILER', '')
+    # Fall back to .env.default for any value not overridden. USE_DEBUGGER is
+    # commented out by default, so parse_env_default won't return it unless
+    # it's been uncommented; COMPILER has a default ('gcc').
+    if not use_debugger or not compiler:
         for var in parse_env_default(ENV_DEFAULT_PATH):
-            if var.name == 'USE_DEBUGGER' and var.default_value:
+            if not use_debugger and var.name == 'USE_DEBUGGER' and var.default_value:
                 use_debugger = var.default_value
-                break
-    if use_debugger:
-        return 'lldb' if sys.platform == 'darwin' else 'gdb'
-    return 'fs2_open'
+            elif not compiler and var.name == 'COMPILER' and var.default_value:
+                compiler = var.default_value
+    if not use_debugger:
+        return 'fs2_open'
+    return 'lldb' if compiler == 'clang' else 'gdb'
 
 
 def is_engine_running():

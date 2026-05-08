@@ -15,3 +15,6 @@ fsobuild/data
 **/.cache
 
 state.pickle
+
+# Spot for venv files when testing locally
+.venv
