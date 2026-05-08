@@ -102,28 +102,48 @@ error_exit() {
     exit 1
 }
 
+_kill_and_wait() {
+    local _name="$1"
+    if ! pgrep "${_name}" > /dev/null 2>&1; then
+        return
+    fi
+    echo "Killing ${_name}..."
+    pkill "${_name}" || error_exit "Could not kill ${_name}"
+    # Wait for the process to fully exit so it releases log files, sockets, etc.
+    local _tries=0
+    while pgrep "${_name}" > /dev/null 2>&1; do
+        sleep 0.25
+        _tries=$((_tries + 1))
+        if [ $_tries -ge 20 ]; then
+            echo "${_name} still running after 5s, sending SIGKILL..."
+            pkill -9 "${_name}" 2>/dev/null
+            sleep 0.5
+            break
+        fi
+    done
+}
+
 stop_server() {
     echo "Stopping server..."
-    if pgrep "${MAIN_PROCESS}" > /dev/null 2>&1; then
-        echo "Killing ${MAIN_PROCESS}..."
-        pkill "${MAIN_PROCESS}" || error_exit "Could not kill ${MAIN_PROCESS}"
-        # Wait for process to fully exit so it releases log files, sockets, etc.
-        local _tries=0
-        while pgrep "${MAIN_PROCESS}" > /dev/null 2>&1; do
-            sleep 0.25
-            _tries=$((_tries + 1))
-            if [ $_tries -ge 20 ]; then
-                echo "Process still running after 5s, sending SIGKILL..."
-                pkill -9 "${MAIN_PROCESS}" 2>/dev/null
-                sleep 0.5
-                break
-            fi
-        done
+    # In debugger mode, kill the debugger first so the inferior is no longer
+    # traced. lldb on detach typically leaves the inferior in a stopped (T)
+    # state, so SIGCONT it back to running — then SIGTERM hits SDL's signal
+    # handler, which converts it to SDL_QUIT and lets the engine flush its
+    # log files on shutdown. _kill_and_wait's SIGKILL fallback still catches
+    # a hung main loop.
+    if [ -n "${USE_DEBUGGER}" ]; then
+        _kill_and_wait "${DEBUGGER}"
+        pkill -CONT fs2_open 2>/dev/null || true
     fi
-    if screen -ls | grep server > /dev/null; then
+    _kill_and_wait "fs2_open"
+    # Best-effort screen cleanup — by now the screen child has usually
+    # exited, so the session may already be gone or in a dead state.
+    if screen -ls 2>/dev/null | grep -q '\.server\b'; then
         echo "Killing screen..."
-        screen -S server -X quit || error_exit "Could not kill screen"
+        screen -S server -X quit 2>/dev/null || true
     fi
+    # Sweep up any dead sockets so future starts don't trip on them.
+    screen -wipe > /dev/null 2>&1 || true
 }
 
 start_server() {
