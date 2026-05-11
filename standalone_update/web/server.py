@@ -464,38 +464,21 @@ def read_build_info():
         return None
 
 
-def _get_engine_process_name():
-    """Determine the process name to look for.
-
-    Mirrors the update script: USE_DEBUGGER unset → fs2_open;
-    set + COMPILER=clang → lldb; set + anything else → gdb.
-    """
-    overrides = parse_env(ENV_PATH)
-    use_debugger = overrides.get('USE_DEBUGGER', '')
-    compiler = overrides.get('COMPILER', '')
-    # Fall back to .env.default for any value not overridden. USE_DEBUGGER is
-    # commented out by default, so parse_env_default won't return it unless
-    # it's been uncommented; COMPILER has a default ('gcc').
-    if not use_debugger or not compiler:
-        for var in parse_env_default(ENV_DEFAULT_PATH):
-            if not use_debugger and var.name == 'USE_DEBUGGER' and var.default_value:
-                use_debugger = var.default_value
-            elif not compiler and var.name == 'COMPILER' and var.default_value:
-                compiler = var.default_value
-    if not use_debugger:
-        return 'fs2_open'
-    return 'lldb' if compiler == 'clang' else 'gdb'
-
-
 def is_engine_running():
-    """Check whether the game engine process is currently running."""
-    process_name = _get_engine_process_name()
+    """Check whether the standalone game engine is currently running.
+
+    Filters on argv via `pgrep -f` so only fs2_open instances launched
+    with -standalone match — a client running alongside on a dev machine
+    isn't reported as the engine. Looks at live process state rather
+    than .env-derived configuration so a toggled USE_DEBUGGER/COMPILER
+    between starts doesn't misreport.
+    """
     pgrep = shutil.which('pgrep')
     if not pgrep:
         return None  # Can't determine
     try:
         result = subprocess.run(
-            [pgrep, process_name],
+            [pgrep, '-f', 'fs2_open.*-standalone'],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
         )
         return result.returncode == 0
@@ -504,16 +487,15 @@ def is_engine_running():
 
 
 def is_log_open_by_engine(filepath):
-    """Check whether the engine process currently has a specific log file open."""
+    """Check whether fs2_open currently has a specific log file open."""
     if not filepath or not os.path.exists(filepath):
         return False
-    process_name = _get_engine_process_name()
     lsof = shutil.which('lsof')
     if not lsof:
         return None  # Can't determine
     try:
         result = subprocess.run(
-            [lsof, '-c', process_name, '--', filepath],
+            [lsof, '-c', 'fs2_open', '--', filepath],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
         )
         return result.returncode == 0

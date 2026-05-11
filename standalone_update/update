@@ -103,47 +103,149 @@ error_exit() {
 }
 
 _kill_and_wait() {
-    local _name="$1"
-    if ! pgrep "${_name}" > /dev/null 2>&1; then
+    # Args: pattern [pgrep-flag] [label]
+    # pattern: pgrep pattern (matches process name by default)
+    # pgrep-flag: pass "-f" to match against full command line (argv)
+    # label: human-friendly name for output (defaults to pattern)
+    local _pattern="$1"
+    local _flag="${2:-}"
+    local _label="${3:-${_pattern}}"
+    if ! pgrep ${_flag} "${_pattern}" > /dev/null 2>&1; then
         return
     fi
-    echo "Killing ${_name}..."
-    pkill "${_name}" || error_exit "Could not kill ${_name}"
+    echo "Killing ${_label}..."
+    pkill ${_flag} "${_pattern}" 2>/dev/null || true
     # Wait for the process to fully exit so it releases log files, sockets, etc.
     local _tries=0
-    while pgrep "${_name}" > /dev/null 2>&1; do
+    while pgrep ${_flag} "${_pattern}" > /dev/null 2>&1; do
         sleep 0.25
         _tries=$((_tries + 1))
         if [ $_tries -ge 20 ]; then
-            echo "${_name} still running after 5s, sending SIGKILL..."
-            pkill -9 "${_name}" 2>/dev/null
+            echo "${_label} still running after 5s, sending SIGKILL..."
+            pkill -9 ${_flag} "${_pattern}" 2>/dev/null
             sleep 0.5
             break
         fi
     done
 }
 
+_kill_pid() {
+    local _pid="$1"
+    local _label="${2:-PID ${_pid}}"
+    [ -z "${_pid}" ] && return
+    if ! kill -0 "${_pid}" 2>/dev/null; then
+        return
+    fi
+    echo "Killing ${_label}..."
+    kill "${_pid}" 2>/dev/null || true
+    local _tries=0
+    while kill -0 "${_pid}" 2>/dev/null; do
+        sleep 0.25
+        _tries=$((_tries + 1))
+        if [ $_tries -ge 20 ]; then
+            echo "${_label} still running after 5s, sending SIGKILL..."
+            kill -9 "${_pid}" 2>/dev/null
+            sleep 0.5
+            break
+        fi
+    done
+}
+
+# Walk up the process tree from a PID, emitting "PPID:comm" lines for
+# every ancestor that looks like a debugger. On macOS lldb spawns
+# debugserver as the direct tracer of the inferior, so we have to walk
+# past it to find lldb itself. Stops at session wrappers (screen, login,
+# launchd, init/systemd) or PID 1.
+_find_debugger_ancestors() {
+    local _pid="$1"
+    local _max=10
+    while [ ${_max} -gt 0 ]; do
+        local _ppid
+        _ppid=$(ps -o ppid= -p "${_pid}" 2>/dev/null | tr -d ' ')
+        [ -z "${_ppid}" ] && return
+        [ "${_ppid}" = "0" ] && return
+        [ "${_ppid}" = "1" ] && return
+        local _pname
+        _pname=$(ps -o comm= -p "${_ppid}" 2>/dev/null | sed 's:.*/::')
+        case "${_pname}" in
+            lldb|gdb|debugserver|lldb-server)
+                echo "${_ppid}:${_pname}"
+                ;;
+            SCREEN|screen|login|launchd|init|systemd)
+                return
+                ;;
+        esac
+        _pid="${_ppid}"
+        _max=$((_max - 1))
+    done
+}
+
 stop_server() {
     echo "Stopping server..."
-    # In debugger mode, kill the debugger first so the inferior is no longer
-    # traced. lldb on detach typically leaves the inferior in a stopped (T)
-    # state, so SIGCONT it back to running — then SIGTERM hits SDL's signal
-    # handler, which converts it to SDL_QUIT and lets the engine flush its
-    # log files on shutdown. _kill_and_wait's SIGKILL fallback still catches
-    # a hung main loop.
-    if [ -n "${USE_DEBUGGER}" ]; then
-        _kill_and_wait "${DEBUGGER}"
-        pkill -CONT fs2_open 2>/dev/null || true
-    fi
-    _kill_and_wait "fs2_open"
-    # Best-effort screen cleanup — by now the screen child has usually
-    # exited, so the session may already be gone or in a dead state.
+
+    # Cleanup is driven by live process state, not .env — the deployed
+    # configuration may disagree (manual launches, toggled debugger
+    # between start and stop). Thoroughness matters more than precision.
+    #
+    # Restrict every match to processes whose argv contains -standalone,
+    # so a client fs2_open (or its debugger) running alongside on a dev
+    # machine is left alone — only the server has -standalone.
+    local _standalone='fs2_open.*-standalone'
+
+    # Walk up the process tree from each standalone fs2_open looking for
+    # debugger ancestors and kill them. We have to walk (not just check
+    # the direct parent) because on macOS lldb spawns debugserver as the
+    # actual tracer, so the chain is fs2_open <- debugserver <- lldb <-
+    # login <- SCREEN. Killing by PID — not by name — keeps unrelated
+    # lldb/gdb instances on dev machines safe.
+    # pgrep -f for the engine pattern can also return the debugger's PID
+    # (its argv mentions the standalone binary), so we filter on process
+    # name to keep only fs2_open candidates to walk up from.
+    local _engine_pid _pname _killed_debugger=0
+    for _engine_pid in $(pgrep -f "${_standalone}" 2>/dev/null); do
+        _pname=$(ps -o comm= -p "${_engine_pid}" 2>/dev/null | sed 's:.*/::')
+        case "${_pname}" in fs2_open*) ;; *) continue ;; esac
+        local _entry _anc_pid _anc_name
+        for _entry in $(_find_debugger_ancestors "${_engine_pid}"); do
+            _anc_pid="${_entry%:*}"
+            _anc_name="${_entry#*:}"
+            _kill_pid "${_anc_pid}" "${_anc_name} (PID ${_anc_pid}, ancestor of standalone fs2_open)"
+            _killed_debugger=1
+        done
+    done
+
+    # SIGCONT in case the debugger left the inferior in a stopped (T) state.
+    [ ${_killed_debugger} -eq 1 ] && pkill -CONT -f "${_standalone}" 2>/dev/null || true
+
+    # Graceful shutdown: SDL hooks SIGTERM into an SDL_QUIT event so the
+    # engine can flush its log files. SIGKILL is the 5s fallback.
+    _kill_and_wait "${_standalone}" '-f' 'fs2_open (standalone)'
+
+    # Tear down the "server" screen session — this also SIGHUPs any
+    # leftover children running inside it (e.g. an orphaned debugger
+    # whose inferior already exited).
     if screen -ls 2>/dev/null | grep -q '\.server\b'; then
         echo "Killing screen..."
         screen -S server -X quit 2>/dev/null || true
     fi
-    # Sweep up any dead sockets so future starts don't trip on them.
+    # Wipe any dead session metadata so the next start doesn't trip on it.
     screen -wipe > /dev/null 2>&1 || true
+
+    # Catch debuggers that got reparented under init/launchd when their
+    # screen died (so screen -X quit can't reach them). Match by argv —
+    # debuggers we launched always have -standalone in their command line
+    # (passed as the run-arguments to lldb/gdb), so a debugger attached
+    # to a client isn't touched.
+    _kill_and_wait 'lldb.*-standalone' '-f' 'orphaned lldb (standalone)'
+    _kill_and_wait 'gdb.*-standalone' '-f' 'orphaned gdb (standalone)'
+
+    # Final verification — anything standalone-shaped still alive gets
+    # force-killed. We don't fail the operation.
+    if pgrep -f "${_standalone}" > /dev/null 2>&1; then
+        echo "Standalone fs2_open still present after cleanup; sending SIGKILL"
+        pkill -9 -f "${_standalone}" 2>/dev/null
+        sleep 0.5
+    fi
 }
 
 start_server() {
