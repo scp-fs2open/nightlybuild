@@ -1,4 +1,6 @@
 .env
+standalone-update.service
+standalone-update.timer
 web/venv/
 web/__pycache__/
 web/standalone-update-web.env

@@ -1,0 +1,14 @@
+[Unit]
+Description=FSO standalone server update
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+
+# --- Edit these for your server ---
+User=scpuser
+ExecStart=/usr/share/games/fs2source/nightlybuild/standalone_update/update
+StandardOutput=truncate:/home/scpuser/standalone_update.log
+StandardError=inherit
+# ---
