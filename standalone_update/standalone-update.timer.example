@@ -1,0 +1,11 @@
+[Unit]
+Description=Run FSO standalone server update daily
+
+[Timer]
+# --- Edit this for your preferred schedule ---
+OnCalendar=*-*-* 09:00:00 UTC
+# ---
+Unit=standalone-update.service
+
+[Install]
+WantedBy=timers.target

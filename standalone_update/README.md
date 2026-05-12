@@ -1,6 +1,6 @@
 # Standalone Server Update Script
 
-Automated build-and-deploy script for FSO standalone game servers. Designed to run on headless Linux VPS servers, typically triggered by cron.
+Automated build-and-deploy script for FSO standalone game servers. Designed to run on headless Linux VPS servers, typically triggered by a systemd timer (or cron on systems where systemd isn't available).
 
 ## What It Does
 
@@ -95,9 +95,45 @@ In addition to a full rebuild, the update script supports two shortcut modes:
 
 `-R` is useful for applying configuration changes or recovering a crashed server quickly. `-S` shuts down the screen session and game process without bringing them back up.
 
-## Cron Setup
+## Scheduling
 
-The script is intended to be run via cron. Example crontab entry that runs daily at 09:00 UTC:
+Each run produces a uniquely named build (datetime + commit hash), so the script can safely be run multiple times per day.
+
+### Systemd Timer (recommended)
+
+Two example unit files ship in this directory: `standalone-update.service.example` and `standalone-update.timer.example`. Copy them to unsuffixed names (the unsuffixed copies are gitignored), edit for your server, install them, and enable the timer:
+
+```bash
+cp standalone-update.service.example standalone-update.service
+cp standalone-update.timer.example standalone-update.timer
+
+# Edit the User= and ExecStart= lines in the .service file, and the
+# OnCalendar= line in the .timer file, to match your setup.
+
+sudo cp standalone-update.service standalone-update.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now standalone-update.timer
+```
+
+Verify the timer is scheduled:
+
+```bash
+systemctl list-timers standalone-update.timer
+```
+
+If 09:00 UTC happens while the machine is off, the run is silently skipped — the next scheduled time still fires normally. (Add `Persistent=true` under `[Timer]` if you'd rather have missed runs caught up on next boot.)
+
+**Logs.** Script output is written to the file path set in `StandardOutput=` in the service file (`/home/scpuser/standalone_update.log` by default), overwritten on each run. If you're using the web UI, this path needs to match the `UPDATE_LOG_PATH` env var it's configured with (see [web/README.md](web/README.md)) so the in-browser build log reflects scheduled runs as well as button-triggered ones. Service-level events (timer fired, run succeeded or failed) are captured by the journal:
+
+```bash
+journalctl -u standalone-update.service        # service start/stop events
+```
+
+**`network-online.target` caveat.** The service declares `Wants=network-online.target` so it doesn't fire mid-boot before the network is ready. This only actually waits if a wait-online helper is enabled — `NetworkManager-wait-online.service` (NetworkManager) or `systemd-networkd-wait-online.service` (systemd-networkd). Most distros enable one of these by default; on minimal setups you may need to enable it explicitly.
+
+### Cron (alternate)
+
+If your distro doesn't ship systemd (or you prefer cron), the script can be run from a crontab. Example crontab entry that runs daily at 09:00 UTC:
 
 ```cron
 # Set timezone to UTC for this crontab
@@ -106,8 +142,6 @@ CRON_TZ=UTC
 # Run script daily at 0900 UTC
 0 9 * * * /usr/share/games/fs2source/nightlybuild/standalone_update/update > /home/scpuser/standalone_update.log 2>&1
 ```
-
-Each run produces a uniquely named build (datetime + commit hash), so the script can safely be run multiple times per day.
 
 ## Web UI
 
@@ -127,6 +161,8 @@ After setup, the typical directory layout on a server looks like:
 │           ├── update             # The script
 │           ├── .env.default       # Default configuration
 │           ├── .env               # Your overrides (gitignored)
+│           ├── standalone-update.service.example  # Systemd service template
+│           ├── standalone-update.timer.example    # Systemd timer template
 │           └── web/               # Web UI (see web/README.md)
 └── freespace2/                    # Game root (retail data + deployed binary)
     ├── fs2_open_20250226090000_a1b2c3d  # Currently deployed build
