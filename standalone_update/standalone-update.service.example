@@ -5,6 +5,7 @@ After=network-online.target
 
 [Service]
 Type=oneshot
+KillMode=process
 
 # --- Edit these for your server ---
 User=scpuser

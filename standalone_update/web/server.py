@@ -472,13 +472,19 @@ def is_engine_running():
     isn't reported as the engine. Looks at live process state rather
     than .env-derived configuration so a toggled USE_DEBUGGER/COMPILER
     between starts doesn't misreport.
+
+    The pattern uses \\s+ (not .* or a literal space) to bridge the gap
+    between the binary basename and -standalone so it can't match the
+    cmdline of another concurrent pgrep invocation — pgrep's argv has
+    that string as a single non-whitespace token, so \\s+ never matches
+    inside it.
     """
     pgrep = shutil.which('pgrep')
     if not pgrep:
         return None  # Can't determine
     try:
         result = subprocess.run(
-            [pgrep, '-f', 'fs2_open.*-standalone'],
+            [pgrep, '-f', r'fs2_open\S+\s+-standalone'],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
         )
         return result.returncode == 0
