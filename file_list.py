@@ -41,6 +41,8 @@ def get_release_files(tag_name, config) -> Tuple[List[ReleaseFile], Dict[str, So
             # x64 is the Visual Studio name but for consistency we need Win64
             if platform == "x64":
                 platform = "Win64"
+            elif platform == "ARM64":
+                platform = "WinARM64"
 
             binary_files.append(ReleaseFile(name, url, platform, group_match.group(3)))
         else:
@@ -95,6 +97,8 @@ def get_nightly_files(tag_name, config):
         # x64 is the name Visual Studio uses but Win64 works better for us since that gets displayed in the nightly post
         if "x64" in group_match:
             group_match = group_match.replace("x64", "Win64")
+        elif "ARM64" in group_match:
+            group_match = group_match.replace("ARM64", "WinARM64")
 
         # nebula.py expects "MacOSX" as the group, but the build actions may pass off as just "Mac"
         if "Mac" in group_match:

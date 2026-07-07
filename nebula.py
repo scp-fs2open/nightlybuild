@@ -32,7 +32,8 @@ platforms = {
     'Win32-SSE2': 'windows',
     'Win64-SSE2': 'windows',
     'Win32-AVX': 'windows',
-    'Win64-AVX': 'windows'
+    'Win64-AVX': 'windows',
+    'WinARM64': 'windows',
 }
 
 envs = {
@@ -43,7 +44,8 @@ envs = {
     'Win32-SSE2': 'windows',
     'Win64-SSE2': 'windows && x86_64',
     'Win32-AVX': 'windows && avx',
-    'Win64-AVX': 'windows && avx && x86_64'
+    'Win64-AVX': 'windows && avx && x86_64',
+    'WinARM64': 'windows && arm64',
 }
 
 subdirs = {
@@ -181,6 +183,7 @@ def render_nebula_release(version, stability, files, config):
                     "sse2": "SSE2" in fn or "AVX" in fn,  # AVX implies SSE2
                     "avx": "AVX" in fn,  # This conveniently also covers the AVX2 case since AVX2 implies AVX
                     "avx2": "AVX2" in fn,
+                    "arm64": "arm64" in fn,
                 }
 
                 pkg['executables'].append({

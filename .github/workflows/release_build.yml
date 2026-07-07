@@ -34,14 +34,14 @@ jobs:
           git config --global user.email "SirKnightlySCP@gmail.com"
           git config --global user.name "SirKnightly"
       - name: Checkout nightly script
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
       - name: Decrypt config
         env:
           CONFIG_PASSWORD: ${{ secrets.CONFIG_PASSWORD }}
         run: |
           gpg --quiet --batch --yes --decrypt --passphrase="$CONFIG_PASSWORD" --output $GITHUB_WORKSPACE/config.yml config.github.yml.gpg
       - name: Checkout FSO code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
         with:
           repository: scp-fs2open/fs2open.github.com
           path: fs2open.github.com
@@ -49,7 +49,7 @@ jobs:
           submodules: true
           fetch-depth: 0
       - name: Set up Python 3.8
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v6
         with:
           python-version: 3.8
       - name: Install dependencies
