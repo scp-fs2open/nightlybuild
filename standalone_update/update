@@ -430,7 +430,7 @@ else
     mkdir -p "${BUILD_PATH}" || error_exit "Could not create build folder: ${BUILD_PATH}"
 
     echo "Running cmake inside build export build folder..."
-    cmake -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -S "${EXPORT_PATH}" -B "${BUILD_PATH}" || error_exit "Failed to run cmake for type ${BUILD_TYPE} in ${BUILD_PATH}"
+    cmake -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DFSO_BUILD_QTFRED=OFF -DFSO_BUILD_WITH_VULKAN=OFF -S "${EXPORT_PATH}" -B "${BUILD_PATH}" || error_exit "Failed to run cmake for type ${BUILD_TYPE} in ${BUILD_PATH}"
 
     echo "Running make inside build export build folder..."
     make -C "${BUILD_PATH}" || error_exit "make failed to run in: ${BUILD_PATH}"
