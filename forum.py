@@ -1,4 +1,5 @@
 from itertools import groupby
+import os
 from typing import List
 
 import requests
@@ -51,12 +52,14 @@ class ForumAPI:
         self.config = config
 
     def create_post(self, title, content, board):
-        resp = requests.post(self.config["hlp"]["api"], data={
-            "api_key": self.config["hlp"]["key"],
-            "board": str(board),
-            "subject": title,
-            "body": content
-        })
+        resp = requests.post(self.config["hlp"]["api"],
+                             headers={"X-HLP-Bot": os.environ["FORUM_SECRET"]},
+                             data={
+                                "api_key": self.config["hlp"]["key"],
+                                "board": str(board),
+                                "subject": title,
+                                "body": content
+                            })
 
         try:
             data = resp.json()
