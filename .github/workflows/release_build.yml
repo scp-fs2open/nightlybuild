@@ -57,5 +57,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Run script
+        env:
+          FORUM_SECRET: ${{ secrets.FORUM_SECRET }}
         run: |
           python release.py --config $GITHUB_WORKSPACE/config.yml --version ${{ github.event.inputs.releaseVersion }} --type ${{ github.event.inputs.releaseType }} --candidate ${{ github.event.inputs.releaseCandidate}}
