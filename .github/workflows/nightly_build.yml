@@ -41,5 +41,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Run script
+        env:
+          FORUM_SECRET: ${{ secrets.FORUM_SECRET }}
         run: |
           python nightly.py --config $GITHUB_WORKSPACE/config.yml

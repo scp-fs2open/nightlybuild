@@ -12,6 +12,10 @@ from util import expand_config_vars
 
 # Assumes git has SirKnightly credentials already
 def main():
+    if "FORUM_SECRET" not in os.environ or not os.environ["FORUM_SECRET"]:
+        print("Error: FORUM_SECRET environment variable not set!")
+        sys.exit(1)
+
     # Set up paths
     print("Setting up paths...")
     abspath = os.path.abspath(__file__)
