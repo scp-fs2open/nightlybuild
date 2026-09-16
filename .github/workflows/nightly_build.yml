@@ -24,6 +24,12 @@ jobs:
           CONFIG_PASSWORD: ${{ secrets.CONFIG_PASSWORD }}
         run: |
           gpg --quiet --batch --yes --decrypt --passphrase="$CONFIG_PASSWORD" --output $GITHUB_WORKSPACE/config.yml config.github.yml.gpg
+      - name: Point forum API at the new URL
+        env:
+          HLP_API: ${{ secrets.HLP_API }}
+        run: |
+          if [ -z "$HLP_API" ]; then echo "HLP_API secret not set"; exit 1; fi
+          yq -i '.hlp.api = strenv(HLP_API)' $GITHUB_WORKSPACE/config.yml
       - name: Checkout FSO code
         uses: actions/checkout@v7
         with:
