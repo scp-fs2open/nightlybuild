@@ -70,6 +70,36 @@ PORT = int(os.environ.get('WEB_PORT', '5000'))
 LOG_PATH = os.environ.get('UPDATE_LOG_PATH', '')
 LOG_LINES = int(os.environ.get('LOG_LINES', '100'))
 
+
+class UpdateStartError(Exception):
+    """The update script could not be started (unwritable log, missing script, ...)."""
+
+
+def _errno_detail(exc):
+    """Readable one-liner for an OSError, e.g. 'Permission denied'."""
+    return exc.strerror or str(exc)
+
+
+def check_log_path_writable():
+    """Warn at startup if UPDATE_LOG_PATH is unusable.
+
+    A log file owned by another user (systemd opens StandardOutput= as root even
+    when User= is set, so a scheduled run that lands first creates it as root)
+    makes every build control button fail.  Say so at boot rather than waiting
+    for someone to click.
+    """
+    if not LOG_PATH:
+        app.logger.warning(
+            'UPDATE_LOG_PATH is not set - build control buttons will not work.')
+        return
+    target = LOG_PATH if os.path.exists(LOG_PATH) else (os.path.dirname(LOG_PATH) or '.')
+    if not os.access(target, os.W_OK):
+        app.logger.warning(
+            'UPDATE_LOG_PATH %s is not writable by uid %d - build control buttons '
+            'will fail until this is fixed (e.g. chown the log file to the user '
+            'this service runs as).', LOG_PATH, os.geteuid())
+
+
 # Process tracking
 _running_process = None
 _running_action = None       # 'rebuilding', 'updating', 'restarting', or 'stopping'
@@ -128,9 +158,19 @@ def start_update(restart_only=False, stop_only=False, update_mods_only=False):
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     header = f'=== Web UI: {action} triggered at {timestamp} ===\n'
 
-    _log_file = open(LOG_PATH, 'w')
-    _log_file.write(header)
-    _log_file.flush()
+    _log_file = None
+    try:
+        _log_file = open(LOG_PATH, 'w')
+        _log_file.write(header)
+        _log_file.flush()
+    except OSError as exc:
+        if _log_file is not None:
+            _log_file.close()
+            _log_file = None
+        raise UpdateStartError(
+            f'Cannot write to the update log at {LOG_PATH} '
+            f'({_errno_detail(exc)}). Check that it is writable by the user '
+            f'this service runs as.') from exc
 
     # Notify clients the log was truncated and reset the watcher to the start
     socketio.emit('update_log_truncated', to='page:server')
@@ -140,10 +180,18 @@ def start_update(restart_only=False, stop_only=False, update_mods_only=False):
     if flag:
         cmd.append(flag)
 
-    _running_process = subprocess.Popen(
-        cmd, stdout=_log_file, stderr=subprocess.STDOUT,
-        cwd=SCRIPT_DIR
-    )
+    try:
+        _running_process = subprocess.Popen(
+            cmd, stdout=_log_file, stderr=subprocess.STDOUT,
+            cwd=SCRIPT_DIR
+        )
+    except OSError as exc:
+        _log_file.close()
+        _log_file = None
+        raise UpdateStartError(
+            f'Cannot run the update script at {UPDATE_SCRIPT} '
+            f'({_errno_detail(exc)}). Check that it exists and is executable by '
+            f'the user this service runs as.') from exc
     _running_action = running_label
     _running_action_base = action
     # Immediately notify clients of new status
@@ -403,7 +451,19 @@ def handle_server_action(data):
         kwargs['restart_only'] = True
     elif action == 'stop':
         kwargs['stop_only'] = True
-    if not start_update(**kwargs):
+    try:
+        started = start_update(**kwargs)
+    except UpdateStartError as exc:
+        app.logger.error('server_action %r failed: %s', action, exc, exc_info=True)
+        return {'ok': False, 'error': str(exc)}
+    except Exception as exc:
+        # Any uncaught exception here would send no ack at all, leaving the
+        # button looking dead with nothing in the browser console.
+        app.logger.exception('server_action %r raised an unexpected error', action)
+        return {'ok': False,
+                'error': f'Unexpected {type(exc).__name__} while starting '
+                         f'{action} - see the service journal for the traceback.'}
+    if not started:
         return {'ok': False, 'error': 'An update is already in progress.'}
     return {'ok': True}
 
@@ -413,6 +473,12 @@ def handle_disconnect():
     room = _client_rooms.pop(request.sid, None)
     if room:
         _room_occupancy[room] = max(0, _room_occupancy.get(room, 0) - 1)
+
+
+@socketio.on_error_default
+def handle_socketio_error(exc):
+    """Log any handler exception that would otherwise vanish without a trace."""
+    app.logger.exception('Unhandled error in Socket.IO handler: %s', exc)
 
 
 @app.after_request
@@ -731,6 +797,9 @@ def engine_proxy(subpath=''):
 @csrf.exempt
 def engine_api_proxy(subpath=''):
     return _proxy_to_engine(f'api/1/{subpath}')
+
+
+check_log_path_writable()
 
 
 if __name__ == '__main__':

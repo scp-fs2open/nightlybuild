@@ -129,6 +129,15 @@ If 09:00 UTC happens while the machine is off, the run is silently skipped — t
 journalctl -u standalone-update.service        # service start/stop events
 ```
 
+**Log file ownership.** systemd opens the `StandardOutput=` file itself, as root, even though `User=scpuser` is set — so if a scheduled run is the first thing to touch the log path, the file is created `root:root` and the web UI (running as `scpuser`) can never write to it. Every Build Controls button then fails. Fix it once and the ownership sticks, since `truncate:` reuses the existing inode:
+
+```bash
+sudo chown scpuser:scpuser /home/scpuser/standalone_update.log
+sudo chmod 664 /home/scpuser/standalone_update.log
+```
+
+If the log file is ever deleted, the next scheduled run recreates it as root and this needs repeating — `ExecStartPre=` can't claim the file first, because systemd opens the output fd before any `Exec*` command runs. The web UI logs a warning at startup when the path isn't writable, and surfaces the error on the button itself rather than failing silently.
+
 **`network-online.target` caveat.** The service declares `Wants=network-online.target` so it doesn't fire mid-boot before the network is ready. This only actually waits if a wait-online helper is enabled — `NetworkManager-wait-online.service` (NetworkManager) or `systemd-networkd-wait-online.service` (systemd-networkd). Most distros enable one of these by default; on minimal setups you may need to enable it explicitly.
 
 ### Cron (alternate)
