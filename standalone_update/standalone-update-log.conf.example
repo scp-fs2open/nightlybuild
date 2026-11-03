@@ -1,0 +1,23 @@
+# systemd-tmpfiles rule for the update log — see "Log file ownership" in README.md.
+#
+# systemd opens the StandardOutput= file of standalone-update.service as root,
+# even when User=scpuser is set, so whichever component touches the log path
+# first decides who owns it.  If a scheduled run gets there before the web UI,
+# the log is created root:root and the web UI (running as scpuser) can never
+# write to it — every Build Controls button then fails silently.
+#
+# This rule creates the file with the right ownership at boot, well before the
+# timer can fire, and corrects the ownership and mode of a file that already
+# exists.  The path, user, and group must match the StandardOutput= line in
+# standalone-update.service and the UPDATE_LOG_PATH in web/standalone-update-web.env.
+#
+# Install:
+#   cp standalone-update-log.conf.example standalone-update-log.conf
+#   nano standalone-update-log.conf
+#   sudo cp standalone-update-log.conf /etc/tmpfiles.d/
+#   sudo systemd-tmpfiles --create /etc/tmpfiles.d/standalone-update-log.conf
+
+# --- Edit the path, user, and group for your server ---
+#Type Path                                Mode User    Group   Age Argument
+f     /home/scpuser/standalone_update.log 0664 scpuser scpuser -   -
+# ---

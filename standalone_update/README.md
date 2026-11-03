@@ -101,16 +101,20 @@ Each run produces a uniquely named build (datetime + commit hash), so the script
 
 ### Systemd Timer (recommended)
 
-Two example unit files ship in this directory: `standalone-update.service.example` and `standalone-update.timer.example`. Copy them to unsuffixed names (the unsuffixed copies are gitignored), edit for your server, install them, and enable the timer:
+Three example files ship in this directory: `standalone-update.service.example`, `standalone-update.timer.example`, and `standalone-update-log.conf.example` (a systemd-tmpfiles rule that keeps the log file writable — see [Log file ownership](#log-file-ownership) for why it matters). Copy them to unsuffixed names (the unsuffixed copies are gitignored), edit for your server, install them, and enable the timer:
 
 ```bash
 cp standalone-update.service.example standalone-update.service
 cp standalone-update.timer.example standalone-update.timer
+cp standalone-update-log.conf.example standalone-update-log.conf
 
-# Edit the User= and ExecStart= lines in the .service file, and the
-# OnCalendar= line in the .timer file, to match your setup.
+# Edit the User= and ExecStart= lines in the .service file, the OnCalendar=
+# line in the .timer file, and the path/user/group in the .conf file, to
+# match your setup.
 
 sudo cp standalone-update.service standalone-update.timer /etc/systemd/system/
+sudo cp standalone-update-log.conf /etc/tmpfiles.d/
+sudo systemd-tmpfiles --create /etc/tmpfiles.d/standalone-update-log.conf
 sudo systemctl daemon-reload
 sudo systemctl enable --now standalone-update.timer
 ```
@@ -128,6 +132,18 @@ If 09:00 UTC happens while the machine is off, the run is silently skipped — t
 ```bash
 journalctl -u standalone-update.service        # service start/stop events
 ```
+
+<a id="log-file-ownership" name="log-file-ownership"></a>
+**Log file ownership.** systemd opens the `StandardOutput=` file itself, as root, even though `User=scpuser` is set — so whichever component touches the log path first decides who owns it. If a scheduled run gets there before the web UI, the log is created `root:root`, the web UI (running as `scpuser`) can never write to it, and every Build Controls button fails. `ExecStartPre=` can't claim the file first, because systemd opens the output fd before any `Exec*` command runs.
+
+`standalone-update-log.conf.example` solves this declaratively. `systemd-tmpfiles-setup.service` applies it early in boot, long before the timer can fire, so the root-owned file never gets created in the first place. The `f` type also corrects the ownership and mode of a file that already exists, so installing the rule and running `systemd-tmpfiles --create` repairs a host that is already broken — no chown needed:
+
+```bash
+sudo systemd-tmpfiles --create /etc/tmpfiles.d/standalone-update-log.conf
+ls -l /home/scpuser/standalone_update.log      # expect scpuser scpuser, 0664
+```
+
+One gap remains: if the log is deleted while the machine is up, nothing recreates it until the next boot or the next `systemd-tmpfiles --create`, so a scheduled run in that window can still claim it as root. The web UI logs a warning at startup when the path isn't writable, and surfaces the error on the button itself rather than failing silently, so this shows up immediately rather than as a dead button.
 
 **`network-online.target` caveat.** The service declares `Wants=network-online.target` so it doesn't fire mid-boot before the network is ready. This only actually waits if a wait-online helper is enabled — `NetworkManager-wait-online.service` (NetworkManager) or `systemd-networkd-wait-online.service` (systemd-networkd). Most distros enable one of these by default; on minimal setups you may need to enable it explicitly.
 
@@ -163,6 +179,7 @@ After setup, the typical directory layout on a server looks like:
 │           ├── .env               # Your overrides (gitignored)
 │           ├── standalone-update.service.example  # Systemd service template
 │           ├── standalone-update.timer.example    # Systemd timer template
+│           ├── standalone-update-log.conf.example # tmpfiles.d log ownership rule
 │           └── web/               # Web UI (see web/README.md)
 └── freespace2/                    # Game root (retail data + deployed binary)
     ├── fs2_open_20250226090000_a1b2c3d  # Currently deployed build

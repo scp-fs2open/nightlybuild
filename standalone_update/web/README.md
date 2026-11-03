@@ -110,7 +110,7 @@ The web app is configured via environment variables (set in `standalone-update-w
 |---|---|---|
 | `WEB_HOST` | `127.0.0.1` | Bind address |
 | `WEB_PORT` | `5000` | Listen port |
-| `UPDATE_LOG_PATH` | _(none)_ | Path to the update log file — read for display and used as the output destination when rebuild/restart is triggered from the UI |
+| `UPDATE_LOG_PATH` | _(none)_ | Path to the update log file — read for display and used as the output destination when rebuild/restart is triggered from the UI. Must be writable by the user this service runs as; see [Log file ownership](../README.md#log-file-ownership) if the Build Controls buttons do nothing |
 | `LOG_LINES` | `100` | Maximum number of log lines to display |
 | `SECRET_KEY` | _(random)_ | Flask session secret — set a stable value in production to preserve sessions across restarts |
 | `PASSWORD_HASH` | _(none)_ | Werkzeug-compatible password hash for the login form — generate with `python3 -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('yourpassword'))"` (uses scrypt by default; any algorithm supported by `check_password_hash` will work) |

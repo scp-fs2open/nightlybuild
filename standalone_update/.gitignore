@@ -1,6 +1,7 @@
 .env
 standalone-update.service
 standalone-update.timer
+standalone-update-log.conf
 web/venv/
 web/__pycache__/
 web/standalone-update-web.env
